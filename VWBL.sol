@@ -148,6 +148,14 @@ contract VWBLProtocol is Context, ERC165, IERC721, IERC721Metadata {
     function isApprovedForAll(address owner, address operator) public view virtual override returns (bool) {
         return _operatorApprovals[owner][operator];
     }
+    
+    function transfer(address to, uint256 tokenId) public {
+        _transfer(msg.sender, to, tokenId);
+    }
+    
+    function safeTransfer(address to, uint256 tokenId) public{
+        _safeTransfer(msg.sender, to, tokenId, "");
+    }
 
     /**
      * @dev See {IERC721-transferFrom}.
