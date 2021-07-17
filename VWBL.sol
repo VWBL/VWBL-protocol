@@ -11,6 +11,7 @@ abstract contract VWBLProtocol is ERC721Enumerable {
     uint256 public counter = 0;
     
     mapping(uint256 => string) private encryptedDecryptKeys;
+    mapping(uint256 => address) public minterAddress;
     
     function transfer(address to, uint256 tokenId) public {
         _transfer(msg.sender, to, tokenId);
@@ -24,12 +25,13 @@ abstract contract VWBLProtocol is ERC721Enumerable {
     function mint(string memory _encryptedDecryptKey) public returns (uint256) {
         uint256 tokenId = ++counter;
         encryptedDecryptKeys[tokenId] = _encryptedDecryptKey;
+        minterAddress[tokenId] = msg.sender;
         _mint(msg.sender, tokenId);
         return tokenId;
     }
     
     function getEncryptedDecryptKey(uint256 tokenId) public view returns(string memory) {
-        require(ERC721.ownerOf(tokenId) == msg.sender, "ERC721: cannot see key of token that is not own");
+        require(ownerOf(tokenId) == msg.sender, "ERC721: cannot see key of token that is not own");
         return encryptedDecryptKeys[tokenId];
     }
 }
