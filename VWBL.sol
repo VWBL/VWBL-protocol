@@ -12,7 +12,7 @@ abstract contract VWBLProtocol is ERC721Enumerable {
      string decrypterURl;
     }
     
-    mapping(uint256 => TokenInfo) private tokenIdToTokenInfo;
+    mapping(uint256 => TokenInfo) public tokenIdToTokenInfo;
     
     function transfer(address to, uint256 tokenId) public {
         _transfer(msg.sender, to, tokenId);
@@ -30,11 +30,6 @@ abstract contract VWBLProtocol is ERC721Enumerable {
         tokenIdToTokenInfo[tokenId].decrypterURl = _decrypterURl;
         _mint(msg.sender, tokenId);
         return tokenId;
-    }
-    
-    function getTokenInfo(uint256 tokenId) public view returns(TokenInfo memory) {
-        require(ownerOf(tokenId) == msg.sender, "ERC721: cannot see key of token that is not own");
-        return tokenIdToTokenInfo[tokenId];
     }
 }
 
