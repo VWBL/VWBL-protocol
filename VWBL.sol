@@ -2,16 +2,17 @@ pragma solidity ^0.8.0;
 import "https://github.com/OpenZeppelin/openzeppelin-contracts/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "https://github.com/OpenZeppelin/openzeppelin-contracts/contracts/access/Ownable.sol";
 
-/**
- * @dev Implementation of https://eips.ethereum.org/EIPS/eip-721[ERC721] Non-Fungible Token Standard, including
- * the Metadata extension, but not including the Enumerable extension, which is available separately as
- * {ERC721Enumerable}.
- */
+
 abstract contract VWBLProtocol is ERC721Enumerable {
     uint256 public counter = 0;
+    // minterAddressはマーケットコントラクトとかからも使うのでコントラクトコントラクトで持つのが必須必須だが、KeyやURLはMetaDataで持ってもいいかも、ガス代削減
+    struct TokenInfo {
+     string encryptedDecryptKey;
+     address minterAddress;
+     string decrypterURl;
+    }
     
-    mapping(uint256 => string) private encryptedDecryptKeys;
-    mapping(uint256 => address) public minterAddress;
+    mapping(uint256 => TokenInfo) private tokenIdToTokenInfo;
     
     function transfer(address to, uint256 tokenId) public {
         _transfer(msg.sender, to, tokenId);
@@ -22,17 +23,18 @@ abstract contract VWBLProtocol is ERC721Enumerable {
     }
 
     
-    function mint(string memory _encryptedDecryptKey) public returns (uint256) {
+    function mint(string memory _encryptedDecryptKey, string memory _decrypterURl) public returns (uint256) {
         uint256 tokenId = ++counter;
-        encryptedDecryptKeys[tokenId] = _encryptedDecryptKey;
-        minterAddress[tokenId] = msg.sender;
+        tokenIdToTokenInfo[tokenId].encryptedDecryptKey = _encryptedDecryptKey;
+        tokenIdToTokenInfo[tokenId].minterAddress = msg.sender;
+        tokenIdToTokenInfo[tokenId].decrypterURl = _decrypterURl;
         _mint(msg.sender, tokenId);
         return tokenId;
     }
     
-    function getEncryptedDecryptKey(uint256 tokenId) public view returns(string memory) {
+    function getTokenInfo(uint256 tokenId) public view returns(TokenInfo memory) {
         require(ownerOf(tokenId) == msg.sender, "ERC721: cannot see key of token that is not own");
-        return encryptedDecryptKeys[tokenId];
+        return tokenIdToTokenInfo[tokenId];
     }
 }
 
