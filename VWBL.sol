@@ -5,11 +5,9 @@ import "https://github.com/OpenZeppelin/openzeppelin-contracts/contracts/access/
 
 abstract contract VWBLProtocol is ERC721Enumerable {
     uint256 public counter = 0;
-    // minterAddressはマーケットコントラクトとかからも使うのでコントラクトコントラクトで持つのが必須必須だが、KeyやURLはMetaDataで持ってもいいかも、ガス代削減
     struct TokenInfo {
-     string encryptedDecryptKey;
      address minterAddress;
-     string decrypterURl;
+     string getKeyURl;
     }
     
     mapping(uint256 => TokenInfo) public tokenIdToTokenInfo;
@@ -21,13 +19,11 @@ abstract contract VWBLProtocol is ERC721Enumerable {
     function safeTransfer(address to, uint256 tokenId) public{
         _safeTransfer(msg.sender, to, tokenId, "");
     }
-
     
-    function mint(string memory _encryptedDecryptKey, string memory _decrypterURl) public returns (uint256) {
+    function mint(string memory _getKeyURl) public returns (uint256) {
         uint256 tokenId = ++counter;
-        tokenIdToTokenInfo[tokenId].encryptedDecryptKey = _encryptedDecryptKey;
         tokenIdToTokenInfo[tokenId].minterAddress = msg.sender;
-        tokenIdToTokenInfo[tokenId].decrypterURl = _decrypterURl;
+        tokenIdToTokenInfo[tokenId].getKeyURl = _getKeyURl;
         _mint(msg.sender, tokenId);
         return tokenId;
     }
