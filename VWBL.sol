@@ -19,7 +19,7 @@ abstract contract VWBLProtocol is ERC721Enumerable {
         _safeTransfer(msg.sender, to, tokenId, "");
     }
 
-    function mint(string memory _getKeyURl) public returns (uint256) {
+    function mint(string memory _getKeyURl) public virtual returns (uint256) {
         uint256 tokenId = ++counter;
         tokenIdToTokenInfo[tokenId].minterAddress = msg.sender;
         tokenIdToTokenInfo[tokenId].getKeyURl = _getKeyURl;
@@ -46,7 +46,7 @@ abstract contract VWBLProtocol is ERC721Enumerable {
 contract VWBL is VWBLProtocol, Ownable {
     string public baseURI;
 
-    constructor(string memory _baseURI) public ERC721("VWBL", "VWBL") {
+    constructor(string memory _baseURI) ERC721("VWBL", "VWBL") {
         baseURI = _baseURI;
     }
 
