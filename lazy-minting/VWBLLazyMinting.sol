@@ -13,11 +13,11 @@ contract VWBLLazyMinting is VWBLLazySupport, EIP712, AccessControl {
 
     mapping(address => uint256) pendingWithdrawals;
 
-    constructor(address payable minter, string memory _baseURI)
-        VWBLLazySupport(_baseURI)
+    constructor(address payable _minter, string memory _baseURI)
+        VWBLLazySupport(_baseURI, _minter, address(this))
         EIP712(SIGNING_DOMAIN, SIGNATURE_VERSION)
     {
-        _setupRole(MINTER_ROLE, minter);
+        _setupRole(MINTER_ROLE, _minter);
     }
 
     /// @notice Represents an un-minted NFT, which has not yet been recorded into the blockchain. A signed voucher can be redeemed for a real NFT using the redeem function.
@@ -48,8 +48,11 @@ contract VWBLLazyMinting is VWBLLazySupport, EIP712, AccessControl {
         // make sure that the redeemer is paying enough to cover the buyer's cost
         require(msg.value >= voucher.minPrice, "Insufficient funds to redeem");
 
+        // make sure that the tokenId is sequential order
+        require(voucher.tokenId == counter + 1, "tokenId must be sequential order");
+
         // first assign the token to the signer, to establish provenance on-chain
-        mint(signer, voucher.tokenId, voucher.uri);
+        mint(voucher.uri);
 
         // transfer the token to the redeemer
         _transfer(signer, redeemer, voucher.tokenId);
