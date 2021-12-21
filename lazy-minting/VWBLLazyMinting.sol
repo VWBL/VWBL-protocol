@@ -6,12 +6,12 @@ import "https://github.com/OpenZeppelin/openzeppelin-contracts/contracts/utils/c
 import "https://github.com/OpenZeppelin/openzeppelin-contracts/contracts/access/AccessControl.sol";
 import "./VWBLLazySupport.sol";
 
-contract VWBLLazyMinting is VWBLLazySupport, EIP712, AccessControl {
+contract VWBLLazyMinting is EIP712, AccessControl, VWBLLazySupport {
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
     string private constant SIGNING_DOMAIN = "LazyNFT-Voucher";
     string private constant SIGNATURE_VERSION = "1";
 
-    mapping(address => uint256) pendingWithdrawals;
+    mapping(address => uint256) public pendingWithdrawals;
 
     constructor(address payable _minter, string memory _baseURI)
         VWBLLazySupport(_baseURI, _minter, address(this))
@@ -22,13 +22,15 @@ contract VWBLLazyMinting is VWBLLazySupport, EIP712, AccessControl {
 
     /// @notice Represents an un-minted NFT, which has not yet been recorded into the blockchain. A signed voucher can be redeemed for a real NFT using the redeem function.
     struct NFTVoucher {
-        /// @notice The id of the token to be redeemed. Must be unique - if another token with this ID already exists, the redeem function will revert.
+        // @notice The id of the token to be redeemed. Must be unique - if another token with this ID already exists, the redeem function will revert.
         uint256 tokenId;
-        /// @notice The minimum price (in wei) that the NFT creator is willing to accept for the initial sale of this NFT.
+        // @notice The minimum price (in wei) that the NFT creator is willing to accept for the initial sale of this NFT.
         uint256 minPrice;
-        /// @notice The metadata URI to associate with this token.
+        // @notice The metadata URI to associate with this token.
         string uri;
-        /// @notice the EIP-712 signature of all other fields in the NFTVoucher struct. For a voucher to be valid, it must be signed by an account with the MINTER_ROLE.
+        // @notice Percentage of each sale to pay as royalties
+        uint256 royaltiesPercentage;
+        // @notice the EIP-712 signature of all other fields in the NFTVoucher struct. For a voucher to be valid, it must be signed by an account with the MINTER_ROLE.
         bytes signature;
     }
 
@@ -52,7 +54,7 @@ contract VWBLLazyMinting is VWBLLazySupport, EIP712, AccessControl {
         require(voucher.tokenId == counter + 1, "tokenId must be sequential order");
 
         // first assign the token to the signer, to establish provenance on-chain
-        mint(voucher.uri);
+        mint(voucher.uri, voucher.royaltiesPercentage);
 
         // transfer the token to the redeemer
         _transfer(signer, redeemer, voucher.tokenId);
@@ -92,11 +94,12 @@ contract VWBLLazyMinting is VWBLLazySupport, EIP712, AccessControl {
                 keccak256(
                     abi.encode(
                         keccak256(
-                            "NFTVoucher(uint256 tokenId,uint256 minPrice,string uri)"
+                            "NFTVoucher(uint256 tokenId,uint256 minPrice,string uri,uint256 royaltiesPercentage)"
                         ),
                         voucher.tokenId,
                         voucher.minPrice,
-                        keccak256(bytes(voucher.uri))
+                        keccak256(bytes(voucher.uri)),
+                        voucher.royaltiesPercentage
                     )
                 )
             );
@@ -121,9 +124,9 @@ contract VWBLLazyMinting is VWBLLazySupport, EIP712, AccessControl {
         return ECDSA.recover(digest, voucher.signature);
     }
 
-    function supportsInterface(bytes4 interfaceId) public view virtual override(AccessControl, ERC721Enumerable) returns (bool) {
-        return
-            ERC721Enumerable.supportsInterface(interfaceId) ||
-            AccessControl.supportsInterface(interfaceId);
+    function supportsInterface(bytes4 interfaceId) public view 
+        virtual override(AccessControl, VWBLProtocol) returns (bool) {
+            return AccessControl.supportsInterface(interfaceId) ||
+                super.supportsInterface(interfaceId);
     }
 }
