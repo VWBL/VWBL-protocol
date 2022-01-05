@@ -1,15 +1,25 @@
 pragma solidity ^0.8.0;
+
+import "https://github.com/OpenZeppelin/openzeppelin-contracts/contracts/token/ERC721/ERC721.sol";
 import "https://github.com/OpenZeppelin/openzeppelin-contracts/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "https://github.com/OpenZeppelin/openzeppelin-contracts/contracts/access/Ownable.sol";
+import "https://github.com/OpenZeppelin/openzeppelin-contracts/contracts/interfaces/IERC2981.sol";
+import "https://github.com/OpenZeppelin/openzeppelin-contracts/contracts/utils/introspection/IERC165.sol";
 
-abstract contract VWBLProtocol is ERC721Enumerable {
+abstract contract VWBLProtocol is ERC721Enumerable, IERC2981 {
     uint256 public counter = 0;
     struct TokenInfo {
         address minterAddress;
         string getKeyURl;
     }
 
+    struct RoyaltyInfo {
+        address recipient;
+        uint256 royaltiesPercentage;
+    }
+
     mapping(uint256 => TokenInfo) public tokenIdToTokenInfo;
+    mapping(uint256 => RoyaltyInfo) public tokenIdToRoyaltyInfo;
 
     function transfer(address to, uint256 tokenId) public {
         _transfer(msg.sender, to, tokenId);
@@ -19,11 +29,14 @@ abstract contract VWBLProtocol is ERC721Enumerable {
         _safeTransfer(msg.sender, to, tokenId, "");
     }
 
-    function mint(string memory _getKeyURl) public virtual returns (uint256) {
+    function mint(string memory _getKeyURl, uint256 _royaltiesPercentage) public virtual returns (uint256) {
         uint256 tokenId = ++counter;
         tokenIdToTokenInfo[tokenId].minterAddress = msg.sender;
         tokenIdToTokenInfo[tokenId].getKeyURl = _getKeyURl;
         _mint(msg.sender, tokenId);
+        if (_royaltiesPercentage > 0) {
+            _setRoyalty(tokenId, msg.sender, _royaltiesPercentage);
+        }
         return tokenId;
     }
 
@@ -41,12 +54,41 @@ abstract contract VWBLProtocol is ERC721Enumerable {
         }
         return tokens;
     }
+
+    function supportsInterface(bytes4 interfaceId) public view 
+        virtual override(IERC165, ERC721Enumerable) returns (bool) {
+            return interfaceId == type(IERC2981).interfaceId ||
+            super.supportsInterface(interfaceId);
+    }
+
+    function royaltyInfo(uint256 _tokenId, uint256 _salePrice) 
+        external 
+        view 
+        override
+        returns (address receiver, uint256 royaltyAmount) 
+    {
+        RoyaltyInfo memory royaltyInfo = tokenIdToRoyaltyInfo[_tokenId];
+        uint256 _royalties = (_salePrice * royaltyInfo.royaltiesPercentage) / 100;
+        return (royaltyInfo.recipient, _royalties);
+    }
+
+    function _setRoyalty(
+        uint256 _tokenId, 
+        address _recipient, 
+        uint256 _royaltiesPercentage
+    ) internal {
+        RoyaltyInfo storage royaltyInfo = tokenIdToRoyaltyInfo[_tokenId];
+        royaltyInfo.recipient = _recipient;
+        royaltyInfo.royaltiesPercentage = _royaltiesPercentage;
+    }
 }
 
 contract VWBL is VWBLProtocol, Ownable {
     string public baseURI;
 
-    constructor(string memory _baseURI) ERC721("VWBL", "VWBL") {
+    constructor(
+        string memory _baseURI
+    ) ERC721("VWBL", "VWBL") {
         baseURI = _baseURI;
     }
 
