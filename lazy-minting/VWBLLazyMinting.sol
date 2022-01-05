@@ -10,6 +10,7 @@ contract VWBLLazyMinting is EIP712, AccessControl, VWBLLazySupport {
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
     string private constant SIGNING_DOMAIN = "LazyNFT-Voucher";
     string private constant SIGNATURE_VERSION = "1";
+    string[] public randomStringArray;
 
     mapping(address => uint256) public pendingWithdrawals;
 
@@ -22,8 +23,8 @@ contract VWBLLazyMinting is EIP712, AccessControl, VWBLLazySupport {
 
     /// @notice Represents an un-minted NFT, which has not yet been recorded into the blockchain. A signed voucher can be redeemed for a real NFT using the redeem function.
     struct NFTVoucher {
-        // @notice The id of the token to be redeemed. Must be unique - if another token with this ID already exists, the redeem function will revert.
-        uint256 tokenId;
+        // @notice The random string of the token to be redeemed. Must be unique - if another token with this randomString already exists, the redeem function will revert.
+        string randomString;
         // @notice The minimum price (in wei) that the NFT creator is willing to accept for the initial sale of this NFT.
         uint256 minPrice;
         // @notice The metadata URI to associate with this token.
@@ -50,19 +51,23 @@ contract VWBLLazyMinting is EIP712, AccessControl, VWBLLazySupport {
         // make sure that the redeemer is paying enough to cover the buyer's cost
         require(msg.value >= voucher.minPrice, "Insufficient funds to redeem");
 
-        // make sure that the tokenId is sequential order
-        require(voucher.tokenId == counter + 1, "tokenId must be sequential order");
+        // make sure that the randomString of token is not minted
+        bool alreadyMinted = mintedRandomstring(voucher.randomString);
+        require(alreadyMinted == false, "The randomString of token is already minted");
 
         // first assign the token to the signer, to establish provenance on-chain
         mint(voucher.uri, voucher.royaltiesPercentage);
 
         // transfer the token to the redeemer
-        _transfer(signer, redeemer, voucher.tokenId);
+        _transfer(signer, redeemer, counter);
+
+        // push randomString to array
+        randomStringArray.push(voucher.randomString);
 
         // record payment to signer's withdrawal balance
         pendingWithdrawals[signer] += msg.value;
 
-        return voucher.tokenId;
+        return counter;
     }
 
     /// @notice Transfers all pending withdrawal balance to the caller. Reverts if the caller is not an authorized minter.
@@ -94,9 +99,9 @@ contract VWBLLazyMinting is EIP712, AccessControl, VWBLLazySupport {
                 keccak256(
                     abi.encode(
                         keccak256(
-                            "NFTVoucher(uint256 tokenId,uint256 minPrice,string uri,uint256 royaltiesPercentage)"
+                            "NFTVoucher(string randomString,uint256 minPrice,string uri,uint256 royaltiesPercentage)"
                         ),
-                        voucher.tokenId,
+                        voucher.randomString,
                         voucher.minPrice,
                         keccak256(bytes(voucher.uri)),
                         voucher.royaltiesPercentage
@@ -128,5 +133,22 @@ contract VWBLLazyMinting is EIP712, AccessControl, VWBLLazySupport {
         virtual override(AccessControl, VWBLProtocol) returns (bool) {
             return AccessControl.supportsInterface(interfaceId) ||
                 super.supportsInterface(interfaceId);
+    }
+
+    function mintedRandomstring(string memory randomString) public view returns (bool) {
+        for (uint32 i = 0; i < randomStringArray.length; i++) {
+            if (hashCompareWithLengthCheck(randomString, randomStringArray[i])) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    function hashCompareWithLengthCheck(string memory a, string memory b) private pure returns (bool) {
+        if(bytes(a).length != bytes(b).length) {
+            return false;
+        } else {
+            return keccak256(abi.encodePacked(a)) == keccak256(abi.encodePacked(b));
+        }
     }
 }
