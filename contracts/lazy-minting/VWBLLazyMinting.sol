@@ -1,9 +1,9 @@
 pragma solidity ^0.8.0;
 pragma abicoder v2; // required to accept structs as function parameters
 
-import "https://github.com/OpenZeppelin/openzeppelin-contracts/contracts/utils/cryptography/draft-EIP712.sol";
-import "https://github.com/OpenZeppelin/openzeppelin-contracts/contracts/utils/cryptography/ECDSA.sol";
-import "https://github.com/OpenZeppelin/openzeppelin-contracts/contracts/access/AccessControl.sol";
+import "@openzeppelin/contracts/utils/cryptography/draft-EIP712.sol";
+import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
+import "@openzeppelin/contracts/access/AccessControl.sol";
 import "./VWBLLazySupport.sol";
 
 contract VWBLLazyMinting is EIP712, AccessControl, VWBLLazySupport {
@@ -129,7 +129,7 @@ contract VWBLLazyMinting is EIP712, AccessControl, VWBLLazySupport {
         return ECDSA.recover(digest, voucher.signature);
     }
 
-    function supportsInterface(bytes4 interfaceId) public view 
+    function supportsInterface(bytes4 interfaceId) public view
         virtual override(AccessControl, VWBLProtocol) returns (bool) {
             return AccessControl.supportsInterface(interfaceId) ||
                 super.supportsInterface(interfaceId);
