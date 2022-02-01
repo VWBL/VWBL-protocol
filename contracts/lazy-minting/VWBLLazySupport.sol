@@ -2,26 +2,23 @@ pragma solidity ^0.8.0;
 import "../VWBL.sol";
 
 contract VWBLLazySupport is VWBL {
-    address lazyMinter;
-    address vwblLazyMinting;
+    address vwblLazyMintingContract;
 
     constructor(
-        string memory _baseURI, 
-        address _lazyMinter, 
-        address _vwblLazyMinting
+        string memory _baseURI,
+        address _vwblLazyMintingContract
     ) VWBL(_baseURI) {
-        lazyMinter = _lazyMinter;
-        vwblLazyMinting = _vwblLazyMinting;
+        vwblLazyMintingContract = _vwblLazyMintingContract;
     }
 
-    function mint(string memory _getKeyURl, uint256 _royaltiesPercentage) public override returns (uint256) {
-        require(msg.sender == vwblLazyMinting, "This function is only called by VWBLLazyMinting contract");
+    function mint(address _minter, string memory _getKeyURl, uint256 _royaltiesPercentage) public returns (uint256) {
+        require(msg.sender == vwblLazyMintingContract, "msg.sender is invalid");
         uint256 tokenId = ++counter;
-        tokenIdToTokenInfo[tokenId].minterAddress = lazyMinter;
+        tokenIdToTokenInfo[tokenId].minterAddress = _minter;
         tokenIdToTokenInfo[tokenId].getKeyURl = _getKeyURl;
-        _mint(lazyMinter, tokenId);
+        _mint(_minter, tokenId);
         if (_royaltiesPercentage > 0) {
-            _setRoyalty(tokenId, lazyMinter, _royaltiesPercentage);
+            _setRoyalty(tokenId, _minter, _royaltiesPercentage);
         }
         return tokenId;
     }
