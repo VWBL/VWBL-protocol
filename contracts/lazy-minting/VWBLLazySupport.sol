@@ -11,7 +11,7 @@ contract VWBLLazySupport is VWBL {
         vwblLazyMintingContract = _vwblLazyMintingContract;
     }
 
-    function mint(address _minter, string memory _getKeyURl, uint256 _royaltiesPercentage) public returns (uint256) {
+    function mint(address _minter, string memory _getKeyURl, uint256 _royaltiesPercentage) public override returns (uint256) {
         require(msg.sender == vwblLazyMintingContract, "msg.sender is invalid");
         uint256 tokenId = ++counter;
         tokenIdToTokenInfo[tokenId].minterAddress = _minter;
