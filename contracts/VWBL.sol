@@ -1,10 +1,10 @@
 pragma solidity ^0.8.0;
 
-import "https://github.com/OpenZeppelin/openzeppelin-contracts/contracts/token/ERC721/ERC721.sol";
-import "https://github.com/OpenZeppelin/openzeppelin-contracts/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
-import "https://github.com/OpenZeppelin/openzeppelin-contracts/contracts/access/Ownable.sol";
-import "https://github.com/OpenZeppelin/openzeppelin-contracts/contracts/interfaces/IERC2981.sol";
-import "https://github.com/OpenZeppelin/openzeppelin-contracts/contracts/utils/introspection/IERC165.sol";
+import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/interfaces/IERC2981.sol";
+import "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 
 abstract contract VWBLProtocol is ERC721Enumerable, IERC2981 {
     uint256 public counter = 0;
@@ -29,7 +29,7 @@ abstract contract VWBLProtocol is ERC721Enumerable, IERC2981 {
         _safeTransfer(msg.sender, to, tokenId, "");
     }
 
-    function mint(string memory _getKeyURl, uint256 _royaltiesPercentage) public virtual returns (uint256) {
+    function mint(string memory _getKeyURl, uint256 _royaltiesPercentage) public returns (uint256) {
         uint256 tokenId = ++counter;
         tokenIdToTokenInfo[tokenId].minterAddress = msg.sender;
         tokenIdToTokenInfo[tokenId].getKeyURl = _getKeyURl;
@@ -49,23 +49,23 @@ abstract contract VWBLProtocol is ERC721Enumerable, IERC2981 {
         TokenInfo[] memory tokens = new TokenInfo[](counter);
         for (uint256 i = 1; i <= counter; i++) {
             if (tokenIdToTokenInfo[i].minterAddress == minter) {
-                tokens[currentCounter] = tokenIdToTokenInfo[i];
+                tokens[currentCounter++] = tokenIdToTokenInfo[i];
             }
         }
         return tokens;
     }
 
-    function supportsInterface(bytes4 interfaceId) public view 
+    function supportsInterface(bytes4 interfaceId) public view
         virtual override(IERC165, ERC721Enumerable) returns (bool) {
             return interfaceId == type(IERC2981).interfaceId ||
             super.supportsInterface(interfaceId);
     }
 
-    function royaltyInfo(uint256 _tokenId, uint256 _salePrice) 
-        external 
-        view 
+    function royaltyInfo(uint256 _tokenId, uint256 _salePrice)
+        external
+        view
         override
-        returns (address receiver, uint256 royaltyAmount) 
+        returns (address receiver, uint256 royaltyAmount)
     {
         RoyaltyInfo memory royaltyInfo = tokenIdToRoyaltyInfo[_tokenId];
         uint256 _royalties = (_salePrice * royaltyInfo.royaltiesPercentage) / 100;
@@ -73,8 +73,8 @@ abstract contract VWBLProtocol is ERC721Enumerable, IERC2981 {
     }
 
     function _setRoyalty(
-        uint256 _tokenId, 
-        address _recipient, 
+        uint256 _tokenId,
+        address _recipient,
         uint256 _royaltiesPercentage
     ) internal {
         RoyaltyInfo storage royaltyInfo = tokenIdToRoyaltyInfo[_tokenId];
