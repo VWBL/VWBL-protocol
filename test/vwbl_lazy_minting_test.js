@@ -97,7 +97,8 @@ contract ("VWBLLazyMinting test", async accounts => {
             accounts[1], // minter
             randomString1, // randomString
             'http://aaa.xxx.yyy.zzz.com',
-            5
+            5,
+            web3.utils.toWei("0.5", "ether")
         );
         await lazyVWBLContract.redeem(
             accounts[2], // redeemer
@@ -192,6 +193,29 @@ contract ("VWBLLazyMinting test", async accounts => {
                 { value: web3.utils.toWei("1", "ether")},
             ),
             "Already minted"
+        );
+    });
+
+    it ("should not redeem an NFT when msg.value is insufficient", async function() {
+        const lazyMinter = new LazyMinter({ 
+            contract: lazyVWBLContract, 
+            signer: signer,
+            chainId: chainId,
+        });
+        const voucher = await lazyMinter.createVoucher(
+            accounts[1], // minter
+            randomString2, // randomString
+            'http://aaa.xxx.yyy.zzz.com',
+            5,
+            web3.utils.toWei("2", "ether") // minPrice is 2 ether
+        );
+        await expectRevert(
+            lazyVWBLContract.redeem(
+                accounts[2], // redeemer
+                voucher,
+                { value: web3.utils.toWei("1", "ether")},
+            ),
+            "Insufficient funds to redeem"
         );
     });
 })
