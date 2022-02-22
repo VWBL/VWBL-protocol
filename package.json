@@ -1,0 +1,27 @@
+{
+  "name": "vwbl-protocol",
+  "version": "0.1.0",
+  "description": "",
+  "main": "truffle-config.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/VWBL/VWBL-protocol.git"
+  },
+  "author": "Ango-ya",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/VWBL/VWBL-protocol/issues"
+  },
+  "homepage": "https://github.com/VWBL/VWBL-protocol#readme",
+  "dependencies": {
+    "@openzeppelin/test-helpers": "^0.5.15",
+    "ethers": "^5.5.4",
+    "hardhat": "^2.8.4"
+  }
+}
