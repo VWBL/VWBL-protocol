@@ -21,14 +21,6 @@ abstract contract VWBLProtocol is ERC721Enumerable, IERC2981 {
     mapping(uint256 => TokenInfo) public tokenIdToTokenInfo;
     mapping(uint256 => RoyaltyInfo) public tokenIdToRoyaltyInfo;
 
-    function transfer(address to, uint256 tokenId) public {
-        _transfer(msg.sender, to, tokenId);
-    }
-
-    function safeTransfer(address to, uint256 tokenId) public {
-        _safeTransfer(msg.sender, to, tokenId, "");
-    }
-
     function mint(string memory _getKeyURl, uint256 _royaltiesPercentage) public returns (uint256) {
         uint256 tokenId = ++counter;
         tokenIdToTokenInfo[tokenId].minterAddress = msg.sender;

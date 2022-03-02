@@ -2,6 +2,7 @@ const { assert } = require("chai");
 const hardhat = require("hardhat");
 const { LazyMinter } = require("../lib/index");
 const { ethers } = hardhat;
+const transferVWBLNFT = artifacts.require("TransferVWBLNFT");
 const lazyVWBL = artifacts.require("VWBLLazyMinting");
 const { expectRevert } = require("@openzeppelin/test-helpers");
 
@@ -9,6 +10,7 @@ contract ("VWBLLazyMinting test", async accounts => {
     let signer;
     let signerAddress;
     let invalidSigner;
+    let transferVWBLNFTContract;
     let lazyVWBLContract;
     let chainId;
     const randomString1 = 'D9A9C87D-A09E-40F1-A7B0-6D14F8C3D2A3';
@@ -36,7 +38,11 @@ contract ("VWBLLazyMinting test", async accounts => {
         SupportInterfaces.forEach(async (interface) => {
             const supported = await lazyVWBLContract.supportsInterface(interface);
             assert.equal(supported, true);
-        })
+        });
+
+        transferVWBLNFTContract = await transferVWBLNFT.new(
+            lazyVWBLContract.address
+        );
     })
 
     it ("should mint nft", async () => {
@@ -69,19 +75,12 @@ contract ("VWBLLazyMinting test", async accounts => {
         );
     });
 
-    it ("should transfer and safeTransfer", async function () {
-        await lazyVWBLContract.transfer(accounts[2], 1, { from: accounts[1] });
+    it ("should transfer VWBLNFT", async function () {
+        await lazyVWBLContract.setApprovalForAll(transferVWBLNFTContract.address, true, {from: accounts[1]});
+        await transferVWBLNFTContract.transferNFT(accounts[2], 1, { from: accounts[1] });
         const nftOwnerOfId1 = await lazyVWBLContract.ownerOf(1);
         assert.equal(
             nftOwnerOfId1,
-            accounts[2],
-            "accounts[2] is not received NFT"
-        );
-
-        await lazyVWBLContract.transfer(accounts[2], 2, { from: accounts[1] });
-        const nftOwnerOfId2 = await lazyVWBLContract.ownerOf(2);
-        assert.equal(
-            nftOwnerOfId2,
             accounts[2],
             "accounts[2] is not received NFT"
         );
@@ -131,7 +130,7 @@ contract ("VWBLLazyMinting test", async accounts => {
         );
     });
 
-    it ("should withdraw mint value from minter", async function () {
+    it ("should withdraw mint value by minter", async function () {
         const withdrawAmount = await lazyVWBLContract.availableToWithdraw({from: accounts[1]});
         assert.equal(
             withdrawAmount,
