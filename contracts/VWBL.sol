@@ -15,11 +15,13 @@ abstract contract VWBLProtocol is ERC721Enumerable, IERC2981 {
 
     struct RoyaltyInfo {
         address recipient;
-        uint256 royaltiesPercentage;
+        uint256 royaltiesPercentage; // if percentage is 3.5, royaltiesPercentage=3.5*10^2 (decimal is 2)
     }
 
     mapping(uint256 => TokenInfo) public tokenIdToTokenInfo;
     mapping(uint256 => RoyaltyInfo) public tokenIdToRoyaltyInfo;
+
+    uint public constant INVERSE_BASIS_POINT = 10000;
 
     function mint(string memory _getKeyURl, uint256 _royaltiesPercentage) public returns (uint256) {
         uint256 tokenId = ++counter;
@@ -60,7 +62,7 @@ abstract contract VWBLProtocol is ERC721Enumerable, IERC2981 {
         returns (address receiver, uint256 royaltyAmount)
     {
         RoyaltyInfo memory royaltyInfo = tokenIdToRoyaltyInfo[_tokenId];
-        uint256 _royalties = (_salePrice * royaltyInfo.royaltiesPercentage) / 100;
+        uint256 _royalties = (_salePrice * royaltyInfo.royaltiesPercentage) / INVERSE_BASIS_POINT;
         return (royaltyInfo.recipient, _royalties);
     }
 

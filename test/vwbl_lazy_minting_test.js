@@ -46,7 +46,7 @@ contract ("VWBLLazyMinting test", async accounts => {
     })
 
     it ("should mint nft", async () => {
-        await lazyVWBLContract.mint("http://xxx.yyy.com", 5, { from: accounts[1] });
+        await lazyVWBLContract.mint("http://xxx.yyy.com", 500, { from: accounts[1] });
         const tokens = await lazyVWBLContract.getTokenByMinter(accounts[1]);
         assert.equal(
             tokens[0].minterAddress,
@@ -61,7 +61,7 @@ contract ("VWBLLazyMinting test", async accounts => {
     });
     
     it ("should mint multiple nfts", async () => {
-        await lazyVWBLContract.mint("http://xxx.yyy.zzz.com", 5, { from: accounts[1] });
+        await lazyVWBLContract.mint("http://xxx.yyy.zzz.com", 500, { from: accounts[1] });
         const tokens = await lazyVWBLContract.getTokenByMinter(accounts[1]);
         assert.equal(
             tokens[1].minterAddress,
@@ -96,7 +96,7 @@ contract ("VWBLLazyMinting test", async accounts => {
             accounts[1], // minter
             randomString1, // randomString
             'http://aaa.xxx.yyy.zzz.com',
-            5,
+            500,
             web3.utils.toWei("0.5", "ether")
         );
         await lazyVWBLContract.redeem(
@@ -154,7 +154,7 @@ contract ("VWBLLazyMinting test", async accounts => {
             accounts[1], // minter
             randomString2, // randomString
             'http://aaa.xxx.yyy.zzz.com',
-            5
+            500
         );
         await expectRevert(
             lazyVWBLContract.redeem(
@@ -183,7 +183,7 @@ contract ("VWBLLazyMinting test", async accounts => {
             accounts[1], // minter
             randomString1, // randomString
             'http://aaa.xxx.yyy.zzz.com',
-            5
+            500
         );
         await expectRevert(
             lazyVWBLContract.redeem(
@@ -205,7 +205,7 @@ contract ("VWBLLazyMinting test", async accounts => {
             accounts[1], // minter
             randomString2, // randomString
             'http://aaa.xxx.yyy.zzz.com',
-            5,
+            500,
             web3.utils.toWei("2", "ether") // minPrice is 2 ether
         );
         await expectRevert(
