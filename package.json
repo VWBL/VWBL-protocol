@@ -20,6 +20,7 @@
   },
   "homepage": "https://github.com/VWBL/VWBL-protocol#readme",
   "dependencies": {
+    "@openzeppelin/contracts": "^4.5.0",
     "@openzeppelin/test-helpers": "^0.5.15",
     "ethers": "^5.5.4",
     "hardhat": "^2.8.4"
