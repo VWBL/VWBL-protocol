@@ -9,8 +9,9 @@ contract VWBLGateway is Ownable {
         uint256 tokenId;
     }
 
+    // TODO: Feeはパーセンテージではなくwei単位で合ってる？
+    uint256 public feeWei = 1000000000000000; // 0.001ETH TODO: Need to modify
     uint256 public pendingFee;
-    uint256 public feeWei = 1000000000000000; // 0.001ETH TODO: Need to fix
     mapping(bytes32 => Token) public documentIdToToken;
 
     event feeWeiChanged(uint256 oldPercentage, uint256 newPercentage);
@@ -41,6 +42,11 @@ contract VWBLGateway is Ownable {
         address contractAddress,
         uint256 tokenId
     ) internal {
+        // TODO: documentIdnに紐づくTokenは後から変更できない認識で合ってる？
+        require(
+            documentIdToToken[documentId].contractAddress != address(0),
+            "This documentId already exists"
+        );
         documentIdToToken[documentId] = Token(contractAddress, tokenId);
         emit PermissionAdded(documentId, contractAddress, tokenId);
     }
@@ -50,9 +56,9 @@ contract VWBLGateway is Ownable {
         address contractAddress,
         uint256 tokenId
     ) public payable {
-        require(msg.value < feeWei, "fee is insufficient");
+        require(msg.value < feeWei, "Fee is insufficient");
         require(
-            !checkPermissions(msg.sender, documentId),
+            VWBL(contractAddress).ownerOf(tokenId) != msg.sender,
             "Only nft owner can add permission"
         );
 
