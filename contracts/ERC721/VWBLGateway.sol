@@ -15,26 +15,15 @@ contract VWBLGateway is Ownable {
     mapping(bytes32 => Token) public documentIdToToken;
 
     event feeWeiChanged(uint256 oldPercentage, uint256 newPercentage);
-    event PermissionAdded(
-        bytes32 documentId,
-        address contractAddress,
-        uint256 tokenId
-    );
+    event PermissionAdded(bytes32 documentId, address contractAddress, uint256 tokenId);
 
     constructor() {}
 
-    function checkPermissions(address user, bytes32 documentId)
-        public
-        view
-        returns (bool)
-    {
+    function checkPermissions(address user, bytes32 documentId) public view returns (bool) {
         // TODO: Structの存在確認が怪しい
         return
             documentIdToToken[documentId].contractAddress != address(0) &&
-            VWBL(documentIdToToken[documentId].contractAddress).ownerOf(
-                documentIdToToken[documentId].tokenId
-            ) ==
-            user;
+            VWBL(documentIdToToken[documentId].contractAddress).ownerOf(documentIdToToken[documentId].tokenId) == user;
     }
 
     function _addPermission(
@@ -43,10 +32,7 @@ contract VWBLGateway is Ownable {
         uint256 tokenId
     ) internal {
         // TODO: documentIdnに紐づくTokenは後から変更できない認識で合ってる？
-        require(
-            documentIdToToken[documentId].contractAddress != address(0),
-            "This documentId already exists"
-        );
+        require(documentIdToToken[documentId].contractAddress != address(0), "This documentId already exists");
         documentIdToToken[documentId] = Token(contractAddress, tokenId);
         emit PermissionAdded(documentId, contractAddress, tokenId);
     }
@@ -57,10 +43,7 @@ contract VWBLGateway is Ownable {
         uint256 tokenId
     ) public payable {
         require(msg.value < feeWei, "Fee is insufficient");
-        require(
-            VWBL(contractAddress).ownerOf(tokenId) != msg.sender,
-            "Only nft owner can add permission"
-        );
+        require(VWBL(contractAddress).ownerOf(tokenId) != msg.sender, "Only nft owner can add permission");
 
         pendingFee += msg.value;
 
