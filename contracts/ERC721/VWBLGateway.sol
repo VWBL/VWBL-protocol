@@ -15,7 +15,7 @@ contract VWBLGateway is Ownable {
     mapping(bytes32 => Token) public documentIdToToken;
 
     event feeWeiChanged(uint256 oldPercentage, uint256 newPercentage);
-    event PermissionAdded(bytes32 documentId, address contractAddress, uint256 tokenId);
+    event permissionAdded(bytes32 documentId, address contractAddress, uint256 tokenId);
 
     constructor() {}
 
@@ -34,7 +34,7 @@ contract VWBLGateway is Ownable {
         // TODO: documentIdnに紐づくTokenは後から変更できない認識で合ってる？
         require(documentIdToToken[documentId].contractAddress != address(0), "This documentId already exists");
         documentIdToToken[documentId] = Token(contractAddress, tokenId);
-        emit PermissionAdded(documentId, contractAddress, tokenId);
+        emit permissionAdded(documentId, contractAddress, tokenId);
     }
 
     function receiveFee(
