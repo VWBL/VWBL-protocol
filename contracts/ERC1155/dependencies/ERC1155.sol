@@ -23,6 +23,12 @@ contract ERC1155 is Context, ERC165, IERC1155, IERC1155MetadataURI {
     // Mapping from token ID to account balances
     mapping(uint256 => mapping(address => uint256)) private _balances;
 
+    // Mapping token ID to token balance
+    mapping(uint256 => uint256) public _tokenIdToTokenBalance;
+
+    // Mapping owner address to token count
+    mapping(address => uint256) public _tokenCountOfOwner;
+
     // Mapping from account to operator approvals
     mapping(address => mapping(address => bool)) private _operatorApprovals;
 
@@ -70,6 +76,11 @@ contract ERC1155 is Context, ERC165, IERC1155, IERC1155MetadataURI {
     function balanceOf(address account, uint256 id) public view virtual override returns (uint256) {
         require(account != address(0), "ERC1155: balance query for the zero address");
         return _balances[id][account];
+    }
+
+    function tokenCountOfOwner(address owner) public view returns (uint256) {
+        require(owner != address(0), "ERC1155: balance query for the zero address");
+        return _tokenCountOfOwner[owner];
     }
 
     /**
@@ -177,7 +188,16 @@ contract ERC1155 is Context, ERC165, IERC1155, IERC1155MetadataURI {
         unchecked {
             _balances[id][from] = fromBalance - amount;
         }
+        uint256 beforeBalanceOfToAddress = _balances[id][to];
         _balances[id][to] += amount;
+
+        if (_balances[id][from] == 0) {
+            _tokenCountOfOwner[from] -= 1;
+        }
+
+        if (beforeBalanceOfToAddress == 0) {
+            _tokenCountOfOwner[to] += 1;
+        }
 
         emit TransferSingle(operator, from, to, id, amount);
 
@@ -219,7 +239,15 @@ contract ERC1155 is Context, ERC165, IERC1155, IERC1155MetadataURI {
             unchecked {
                 _balances[id][from] = fromBalance - amount;
             }
+            uint256 beforeBalanceOfToAddress = _balances[id][to];
             _balances[id][to] += amount;
+
+            if (_balances[id][from] == 0) {
+                _tokenCountOfOwner[from] -= 1;
+            }
+            if (beforeBalanceOfToAddress == 0) {
+                _tokenCountOfOwner[to] += 1;
+            }
         }
 
         emit TransferBatch(operator, from, to, ids, amounts);
@@ -277,8 +305,11 @@ contract ERC1155 is Context, ERC165, IERC1155, IERC1155MetadataURI {
 
         _beforeTokenTransfer(operator, address(0), to, ids, amounts, data);
 
+        _tokenCountOfOwner[to] += 1;
         _balances[id][to] += amount;
         emit TransferSingle(operator, address(0), to, id, amount);
+
+        _tokenIdToTokenBalance[id] = amount;
 
         _afterTokenTransfer(operator, address(0), to, ids, amounts, data);
 
@@ -308,7 +339,11 @@ contract ERC1155 is Context, ERC165, IERC1155, IERC1155MetadataURI {
         _beforeTokenTransfer(operator, address(0), to, ids, amounts, data);
 
         for (uint256 i = 0; i < ids.length; i++) {
-            _balances[ids[i]][to] += amounts[i];
+            uint256 id = ids[i];
+
+            _tokenCountOfOwner[to] += 1;
+            _balances[id][to] += amounts[i];
+            _tokenIdToTokenBalance[id] = amounts[i];
         }
 
         emit TransferBatch(operator, address(0), to, ids, amounts);
@@ -345,6 +380,12 @@ contract ERC1155 is Context, ERC165, IERC1155, IERC1155MetadataURI {
             _balances[id][from] = fromBalance - amount;
         }
 
+        if (_balances[id][from] == 0) {
+            _tokenCountOfOwner[from] -= 1;
+        }
+
+        _tokenIdToTokenBalance[id] -= amount;
+
         emit TransferSingle(operator, from, address(0), id, amount);
 
         _afterTokenTransfer(operator, from, address(0), ids, amounts, "");
@@ -378,6 +419,12 @@ contract ERC1155 is Context, ERC165, IERC1155, IERC1155MetadataURI {
             unchecked {
                 _balances[id][from] = fromBalance - amount;
             }
+
+            if (_balances[id][from] == 0) {
+                _tokenCountOfOwner[from] -= 1;
+            }
+
+            _tokenIdToTokenBalance[id] -= amount;
         }
 
         emit TransferBatch(operator, from, address(0), ids, amounts);

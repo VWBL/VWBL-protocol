@@ -1,11 +1,12 @@
 pragma solidity ^0.8.0;
 
-import "./dependencies/ERC1155.sol";
+//import "./dependencies/ERC1155.sol";
+import "./ERC1155Enumerable.sol";
 import "./dependencies/IERC2981.sol";
 import "./dependencies/IERC165.sol";
 import "./dependencies/Ownable.sol";
 
-contract VWBLERC1155 is IERC2981, Ownable, ERC1155 {
+contract VWBLERC1155 is IERC2981, Ownable, ERC1155Enumerable {
     uint256 public counter = 0;
     
     struct TokenInfo {
@@ -38,6 +39,14 @@ contract VWBLERC1155 is IERC2981, Ownable, ERC1155 {
             _setRoyalty(tokenId, msg.sender, _royaltiesPercentage);
         }
         return tokenId;
+    }
+
+    function mintBatch(
+        string[] memory _getKeyUrls, 
+        uint256[] memory amounts, 
+        uint256[] memory _royaltiesPercentages
+    ) public {
+        
     }
 
     function getTokenByMinter(address minter)
