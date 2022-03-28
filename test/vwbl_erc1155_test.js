@@ -55,6 +55,8 @@ contract ("VWBLERC1155 test", async accounts => {
             royaltyInfo.royaltiesPercentage,
             500
         );
+
+        console.log("     accounts[1] mint tokenId = 1, amount =", tokenAmount.toString(), " nft");
     });
 
     it ("should mint multiple nfts", async () => {
@@ -91,10 +93,12 @@ contract ("VWBLERC1155 test", async accounts => {
             royaltyInfo.royaltiesPercentage,
             500
         );
+
+        console.log("     accounts[1] mint tokenId = 2, amount =", tokenAmount.toString(), " nft");
     });
 
     it ("should get tokens of owner after mint", async () => {
-        const tokenCountOfOwner = await vwblERC1155._tokenCountOfOwner(accounts[1]);
+        const tokenCountOfOwner = await vwblERC1155.tokenCountOfOwner(accounts[1]);
         assert.equal(
             tokenCountOfOwner,
             2
@@ -121,6 +125,8 @@ contract ("VWBLERC1155 test", async accounts => {
             tokenAmountOfOwner2,
             10
         );
+
+        console.log("     accounts[1] transfer tokenId = 1 and amount = 10 to accounts[2]");
     });
 
     it ("should batch transfer", async () => {
@@ -147,10 +153,13 @@ contract ("VWBLERC1155 test", async accounts => {
             token2AmountOfOwner2,
             10
         );
+
+        console.log("     accounts[1] transfer tokenId = 1 and amount = 90 to accounts[2]");
+        console.log("     accounts[1] transfer tokenId = 2 and amount = 10 to accounts[2]");
     });
 
     it ("should get tokens of owner after transfer", async () => {
-        const tokenCountOfOwner1 = await vwblERC1155._tokenCountOfOwner(accounts[1]);
+        const tokenCountOfOwner1 = await vwblERC1155.tokenCountOfOwner(accounts[1]);
         assert.equal(
             tokenCountOfOwner1,
             1
@@ -161,7 +170,7 @@ contract ("VWBLERC1155 test", async accounts => {
             console.log("     accounts[1] has tokenId =", tokenId.toString(), "nft");
         }
 
-        const tokenCountOfOwner2 = await vwblERC1155._tokenCountOfOwner(accounts[2]);
+        const tokenCountOfOwner2 = await vwblERC1155.tokenCountOfOwner(accounts[2]);
         assert.equal(
             tokenCountOfOwner2,
             2
@@ -172,6 +181,31 @@ contract ("VWBLERC1155 test", async accounts => {
             console.log("     accounts[2] has tokenId =", tokenId.toString(), "nft");
         }
     });
+
+    it ("should batch mint nft", async () => {
+        await vwblERC1155.mintBatch(
+            ["http://aaa.yyy.zzz.com", "http://bbb.yyy.zzz.com"],
+            [100, 200],
+            [500, 500],
+            {from: accounts[1]}
+        );
+
+        console.log("     accounts[1] mint tokenId = 3 , amount = 100 nft");
+        console.log("     accounts[1] mint tokenId = 4 , amount = 200 nft");
+    });
+
+    it ("should get tokens of owner after batch mint", async () => {
+        const tokenCountOfOwner1 = await vwblERC1155.tokenCountOfOwner(accounts[1]);
+        assert.equal(
+            tokenCountOfOwner1,
+            3
+        );
+
+        for (i = 0; i < tokenCountOfOwner1; i++) {
+            const tokenId = await vwblERC1155.tokenOfOwnerByIndex(accounts[1], i);
+            console.log("     accounts[1] has tokenId =", tokenId.toString(), "nft");
+        }
+    })
 
     it ("should not set BaseURI from not contract owner", async () => {
         await expectRevert(

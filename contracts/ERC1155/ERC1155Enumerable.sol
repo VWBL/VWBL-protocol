@@ -3,6 +3,9 @@ pragma solidity ^0.8.0;
 import "./dependencies/ERC1155.sol";
 
 abstract contract ERC1155Enumerable is ERC1155 {
+    // Mapping owner address to token count
+    mapping(address => uint256) private _tokenCountOfOwner;
+
     // Mapping from owner to list of owned token IDs
     mapping(address => mapping(uint256 => uint256)) private _ownedTokens;
 
@@ -15,8 +18,13 @@ abstract contract ERC1155Enumerable is ERC1155 {
     // Mapping from token id to position in the allTokens array
     mapping(uint256 => uint256) private _allTokensIndex;
 
+    function tokenCountOfOwner(address owner) public view returns (uint256) {
+        require(owner != address(0), "ERC1155: balance query for the zero address");
+        return _tokenCountOfOwner[owner];
+    }
+
     function tokenOfOwnerByIndex(address owner, uint256 index) public view returns (uint256) {
-        require(index < ERC1155.tokenCountOfOwner(owner), "ERC1155Enumerable: owner index out of bounds");
+        require(index < tokenCountOfOwner(owner), "ERC1155Enumerable: owner index out of bounds");
         return _ownedTokens[owner][index];
     }
 
@@ -44,20 +52,22 @@ abstract contract ERC1155Enumerable is ERC1155 {
 
             if (from == address(0)) {
                 _addTokenToAllTokensEnumeration(id);
-            } else if (from != to && balanceOf(from, id) - amount  == 0) {
+            } else if (from != to && balanceOf(from, id) == amount) {
                 _removeTokenFromOwnerEnumeration(from, id);
+                _tokenCountOfOwner[from] -= 1;
             }
 
             if (to != from && balanceOf(to, id) == 0) {
                 _addTokenToOwnerEnumeration(to, id);
-            } else if (to == address(0) && _tokenIdToTokenBalance[id] - amount == 0) {
+                _tokenCountOfOwner[to] += 1;
+            } else if (to == address(0) && _tokenIdToTokenBalance[id] == amount) {
                 _removeTokenFromAllTokensEnumeration(id);
             }
         }
     }
 
     function _addTokenToOwnerEnumeration(address to, uint256 tokenId) private {
-        uint256 length = ERC1155.tokenCountOfOwner(to);
+        uint256 length = tokenCountOfOwner(to);
         _ownedTokens[to][length] = tokenId;
         _ownedTokensIndex[tokenId] = length;
     }
@@ -70,7 +80,7 @@ abstract contract ERC1155Enumerable is ERC1155 {
     function _removeTokenFromOwnerEnumeration(address from, uint256 tokenId) private {
         // To prevent a gap in from's tokens array, we store the last token in the index of the token to delete, and
         // then delete the last slot (swap and pop).
-        uint256 lastTokenIndex = ERC1155.tokenCountOfOwner(from) - 1;
+        uint256 lastTokenIndex = tokenCountOfOwner(from) - 1;
         uint256 tokenIndex = _ownedTokensIndex[tokenId];
 
         // When the token to delete is the last token, the swap operation is unnecessary

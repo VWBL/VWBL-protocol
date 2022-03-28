@@ -1,6 +1,5 @@
 pragma solidity ^0.8.0;
 
-//import "./dependencies/ERC1155.sol";
 import "./ERC1155Enumerable.sol";
 import "./dependencies/IERC2981.sol";
 import "./dependencies/IERC165.sol";
@@ -46,7 +45,24 @@ contract VWBLERC1155 is IERC2981, Ownable, ERC1155Enumerable {
         uint256[] memory amounts, 
         uint256[] memory _royaltiesPercentages
     ) public {
-        
+        require(
+            _getKeyUrls.length == amounts.length
+            && amounts.length == _royaltiesPercentages.length, 
+            "Invalid array length"
+        );
+
+        uint256[] memory tokenIds = new uint256[](_getKeyUrls.length);
+        for (uint32 i = 0; i < _getKeyUrls.length; i++) {
+            uint256 tokenId = ++counter;
+            tokenIds[i] = tokenId;
+            tokenIdToTokenInfo[tokenId].minterAddress = msg.sender;
+            tokenIdToTokenInfo[tokenId].getKeyURl = _getKeyUrls[i];
+            if (_royaltiesPercentages[i] > 0) {
+                _setRoyalty(tokenId, msg.sender, _royaltiesPercentages[i]);
+            } 
+        }
+
+        _mintBatch(msg.sender, tokenIds, amounts, "");
     }
 
     function getTokenByMinter(address minter)
