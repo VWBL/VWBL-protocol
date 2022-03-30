@@ -6,7 +6,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/interfaces/IERC2981.sol";
 import "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 
-import "./mock/VWBLGateway.sol";
+import "./dependencies/IVWBLGateway.sol";
 
 abstract contract VWBLProtocol is ERC721Enumerable, IERC2981 {
     uint256 public counter = 0;
@@ -109,7 +109,7 @@ contract VWBL is VWBLProtocol, Ownable {
     function mint(string memory _getKeyURl, uint256 _royaltiesPercentage, bytes32 documentId) public returns (uint256) {
         uint256 tokenId = super.mint(_getKeyURl, _royaltiesPercentage);
 
-        VWBLGateway(gatewayContract).grantAccessControl(documentId, address(this), tokenId);
+        IVWBLGateway(gatewayContract).grantAccessControl(documentId, address(this), tokenId);
 
         return tokenId;
     }
