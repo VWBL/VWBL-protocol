@@ -106,6 +106,10 @@ contract VWBL is VWBLProtocol, Ownable {
         emit gatewayContractChanged(oldGatewayContract, newGatewayContract);
     }
 
+    function getFee() public returns (uint256) {
+        return IVWBLGateway(gatewayContract).feeWei();
+    }
+
     function mint(string memory _getKeyURl, uint256 _royaltiesPercentage, bytes32 documentId) public returns (uint256) {
         uint256 tokenId = super.mint(_getKeyURl, _royaltiesPercentage);
 

@@ -21,4 +21,6 @@ interface IVWBLGateway {
     function withdrawFee() external;
 
     function setFeeWei(uint256 newFeeWei) external;
+
+    function feeWei() external returns (uint256);
 }
