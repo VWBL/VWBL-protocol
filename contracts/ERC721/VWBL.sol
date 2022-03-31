@@ -110,7 +110,7 @@ contract VWBL is VWBLProtocol, Ownable {
         emit gatewayContractChanged(oldGatewayContract, newGatewayContract);
     }
 
-    function getFee() public returns (uint256) {
+    function getFee() public view returns (uint256) {
         return IVWBLGateway(gatewayContract).feeWei();
     }
 
