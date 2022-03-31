@@ -114,10 +114,10 @@ contract VWBL is VWBLProtocol, Ownable {
         return IVWBLGateway(gatewayContract).feeWei();
     }
 
-    function mint(string memory _getKeyURl, uint256 _royaltiesPercentage, bytes32 documentId) public returns (uint256) {
+    function mint(string memory _getKeyURl, uint256 _royaltiesPercentage, bytes32 documentId) public payable returns (uint256) {
         uint256 tokenId = super.mint(_getKeyURl, _royaltiesPercentage);
 
-        IVWBLGateway(gatewayContract).grantAccessControl(documentId, address(this), tokenId);
+        IVWBLGateway(gatewayContract).grantAccessControl{value: msg.value}(documentId, address(this), tokenId);
 
         return tokenId;
     }

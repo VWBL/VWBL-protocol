@@ -50,9 +50,8 @@ contract VWBLGateway is Ownable {
         address contractAddress,
         uint256 tokenId
     ) public payable {
-        require(msg.value > feeWei, "Fee is insufficient");
-        require(ERC721(contractAddress).ownerOf(tokenId) == msg.sender, "Only nft owner can add accessControl");
-
+        require(msg.value >= feeWei, "Fee is insufficient");
+        require(msg.value <= feeWei, "Fee is too high");
         pendingFee += msg.value;
 
         _addAccessControl(documentId, contractAddress, tokenId);
