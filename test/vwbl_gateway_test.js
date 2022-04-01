@@ -40,7 +40,7 @@ contract("VWBLGateway test", async (accounts) => {
     assert.equal(isPermitted, true)
   })
 
-  it("should successfully grant AccessControl when externalNFT owner call", async () => {
+  it("should successfully grant AccessControl calling by calling from external nft EOA", async () => {
     await vwblGateway.grantAccessControl(TEST_DOCUMENT_ID, externalNFT.address, 0, {
       value: web3.utils.toWei("1", "ether"),
       from: accounts[1],
@@ -51,16 +51,6 @@ contract("VWBLGateway test", async (accounts) => {
 
     const isPermitted = await vwblGateway.hasAccessControl(accounts[1], TEST_DOCUMENT_ID)
     assert.equal(isPermitted, true)
-  })
-
-  it("should fail to grant AccessControl when not externalNFT owner call", async () => {
-    await expectRevert(
-      vwblGateway.grantAccessControl(TEST_DOCUMENT_ID, externalNFT.address, 0, {
-        value: web3.utils.toWei("1", "ether"),
-        from: accounts[2],
-      }),
-      "Only nft owner can add accessControl"
-    )
   })
 
   it("should not set feeWei from not contract owner", async () => {
