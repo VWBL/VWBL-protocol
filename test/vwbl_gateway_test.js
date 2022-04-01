@@ -27,11 +27,15 @@ contract("VWBLGateway test", async (accounts) => {
     assert.equal(isPermitted, false)
   })
 
-  it("should successfully grant AccessControl under minting method", async () => {
+  it("should successfully grant AccessControl under VWBL.mint()", async () => {
+    const beforeBalance = await web3.eth.getBalance(vwblGateway.address)
     await vwblERC721.mint("http://xxx.yyy.com", 500, TEST_DOCUMENT_ID, {
       from: accounts[2],
       value: web3.utils.toWei("1", "ether"),
     })
+
+    const afterBalance = await web3.eth.getBalance(vwblGateway.address)
+    assert.equal(Number(afterBalance) - Number(beforeBalance), web3.utils.toWei("1", "ether"))
 
     const createdToken = await vwblGateway.tokens(0)
     assert.equal(createdToken.contractAddress, vwblERC721.address)
@@ -41,10 +45,14 @@ contract("VWBLGateway test", async (accounts) => {
   })
 
   it("should successfully grant AccessControl calling by calling from external nft EOA", async () => {
+    const beforeBalance = await web3.eth.getBalance(vwblGateway.address)
     await vwblGateway.grantAccessControl(TEST_DOCUMENT_ID, externalNFT.address, 0, {
       value: web3.utils.toWei("1", "ether"),
       from: accounts[1],
     })
+
+    const afterBalance = await web3.eth.getBalance(vwblGateway.address)
+    assert.equal(Number(afterBalance) - Number(beforeBalance), web3.utils.toWei("1", "ether"))
 
     const createdToken = await vwblGateway.tokens(1)
     assert.equal(createdToken.contractAddress, externalNFT.address)
