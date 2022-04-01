@@ -2,11 +2,8 @@
 pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
-import "@openzeppelin/contracts/utils/Address.sol";
 
 contract VWBLGateway is Ownable {
-    using Address for address;
-
     struct Token {
         address contractAddress;
         uint256 tokenId;
@@ -19,7 +16,9 @@ contract VWBLGateway is Ownable {
     event feeWeiChanged(uint256 oldPercentage, uint256 newPercentage);
     event accessControlAdded(bytes32 documentId, address contractAddress, uint256 tokenId);
 
-    constructor() {}
+    constructor(uint256 _feeWei) {
+        feeWei = _feeWei;
+    }
 
     function hasAccessControl(address user, bytes32 documentId) public view returns (bool) {
         uint256 tokenLength = documentIdToTokenKeys[documentId].length;
