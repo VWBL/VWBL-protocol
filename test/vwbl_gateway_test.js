@@ -27,42 +27,41 @@ contract("VWBLGateway test", async (accounts) => {
     assert.equal(isPermitted, false)
   })
 
+  it("should successfully grant AccessControl under minting method", async () => {
+    await vwblERC721.mint("http://xxx.yyy.com", 500, TEST_DOCUMENT_ID, {
+      from: accounts[2],
+      value: web3.utils.toWei("1", "ether"),
+    })
+
+    const createdToken = await vwblGateway.tokens(0)
+    assert.equal(createdToken.contractAddress, vwblERC721.address)
+
+    const isPermitted = await vwblGateway.hasAccessControl(accounts[2], TEST_DOCUMENT_ID)
+    assert.equal(isPermitted, true)
+  })
+
   it("should successfully grant AccessControl when externalNFT owner call", async () => {
     await vwblGateway.grantAccessControl(TEST_DOCUMENT_ID, externalNFT.address, 0, {
       value: web3.utils.toWei("1", "ether"),
       from: accounts[1],
     })
 
-    const createdToken = await vwblGateway.tokens(0)
+    const createdToken = await vwblGateway.tokens(1)
     assert.equal(createdToken.contractAddress, externalNFT.address)
 
     const isPermitted = await vwblGateway.hasAccessControl(accounts[1], TEST_DOCUMENT_ID)
     assert.equal(isPermitted, true)
   })
 
-  // it("should successfully grant AccessControl under minting method", async () => {
-  //   // await web3.eth.sendTransaction({ from: accounts[3], to: vwbl.address, value: web3.utils.toWei("1", "ether") })
-  //   await vwblERC721.mint("http://xxx.yyy.com", 500, TEST_DOCUMENT_ID, {
-  //     from: accounts[2],
-  //     value: web3.utils.toWei("1", "ether"),
-  //   })
-
-  //   const createdToken = await vwblGateway.tokens(1)
-  //   assert.equal(createdToken.contractAddress, externalNFT.address)
-
-  //   const isPermitted = await vwblGateway.hasAccessControl(accounts[2], TEST_DOCUMENT_ID)
-  //   assert.equal(isPermitted, true)
-  // })
-
-  //   it("should fail to grant AccessControl when not externalNFT owner call", async () => {
-  //     await expectRevert(
-  //       vwblGateway.grantAccessControl(TEST_DOCUMENT_ID, externalNFT.address, 0, {
-  //         value: web3.utils.toWei("1", "ether"),
-  //         from: accounts[2],
-  //       }),
-  //       "Only externalNFT owner can add accessControl"
-  //     )
-  //   })
+  it("should fail to grant AccessControl when not externalNFT owner call", async () => {
+    await expectRevert(
+      vwblGateway.grantAccessControl(TEST_DOCUMENT_ID, externalNFT.address, 0, {
+        value: web3.utils.toWei("1", "ether"),
+        from: accounts[2],
+      }),
+      "Only nft owner can add accessControl"
+    )
+  })
 
   it("should not set feeWei from not contract owner", async () => {
     await expectRevert(
