@@ -13,7 +13,7 @@ contract("VWBLGateway test", async (accounts) => {
   const TEST_DOCUMENT_ID = "0x736f6d657468696e67"
 
   it("should deploy", async () => {
-    vwblGateway = await VWBLGateway.new({ from: accounts[0] })
+    vwblGateway = await VWBLGateway.new(web3.utils.toWei("1", "ether"), { from: accounts[0] })
     externalNFT = await ExternalNFT.new({ from: accounts[0] })
     vwblERC721 = await VWBLERC721.new("http://xxx.yyy.com", vwblGateway.address, { from: accounts[0] })
 
@@ -22,7 +22,7 @@ contract("VWBLGateway test", async (accounts) => {
     assert.equal(owner, accounts[1])
   })
 
-  it("should return false from hasAccessControll", async () => {
+  it("should return false from hasAccessControl", async () => {
     const isPermitted = await vwblGateway.hasAccessControl(accounts[1], TEST_DOCUMENT_ID)
     assert.equal(isPermitted, false)
   })
@@ -44,7 +44,7 @@ contract("VWBLGateway test", async (accounts) => {
     assert.equal(isPermitted, true)
   })
 
-  it("should successfully grant AccessControl calling by calling from external nft EOA", async () => {
+  it("should successfully grant AccessControl calling from external nft EOA", async () => {
     const beforeBalance = await web3.eth.getBalance(vwblGateway.address)
     await vwblGateway.grantAccessControl(TEST_DOCUMENT_ID, externalNFT.address, 0, {
       value: web3.utils.toWei("1", "ether"),
@@ -59,6 +59,24 @@ contract("VWBLGateway test", async (accounts) => {
 
     const isPermitted = await vwblGateway.hasAccessControl(accounts[1], TEST_DOCUMENT_ID)
     assert.equal(isPermitted, true)
+  })
+
+  it("should fail to grant AccessControl when fee amount is invalid", async () => {
+    await expectRevert(
+      vwblGateway.grantAccessControl(TEST_DOCUMENT_ID, externalNFT.address, 0, {
+        value: web3.utils.toWei("0.9", "ether"),
+        from: accounts[1],
+      }),
+      "Fee is insufficient"
+    )
+
+    await expectRevert(
+      vwblGateway.grantAccessControl(TEST_DOCUMENT_ID, externalNFT.address, 0, {
+        value: web3.utils.toWei("1.1", "ether"),
+        from: accounts[1],
+      }),
+      "Fee is too high"
+    )
   })
 
   it("should not set feeWei from not contract owner", async () => {
