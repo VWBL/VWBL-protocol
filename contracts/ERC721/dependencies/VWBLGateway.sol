@@ -2,8 +2,11 @@
 pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import "@openzeppelin/contracts/utils/Address.sol";
 
 contract VWBLGateway is Ownable {
+    using Address for address;
+
     struct Token {
         address contractAddress;
         uint256 tokenId;
@@ -52,9 +55,11 @@ contract VWBLGateway is Ownable {
     ) public payable {
         require(msg.value >= feeWei, "Fee is insufficient");
         require(msg.value <= feeWei, "Fee is too high");
-//        require(ERC721(contractAddress).ownerOf(tokenId) == msg.sender, "Only nft owner can add accessControl");
-        pendingFee += msg.value;
+        if (Address.isContract(msg.sender) == false) {
+            require(ERC721(contractAddress).ownerOf(tokenId) == msg.sender, "Only nft owner can add accessControl");
+        }
 
+        pendingFee += msg.value;
         _addAccessControl(documentId, contractAddress, tokenId);
     }
 
