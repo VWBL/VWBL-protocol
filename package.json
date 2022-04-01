@@ -7,7 +7,7 @@
     "test": "test"
   },
   "scripts": {
-    "test": "truffle test ./test/*.js",
+    "test": "truffle test --network development ./test/*.js",
     "dev": "truffle develop"
   },
   "repository": {

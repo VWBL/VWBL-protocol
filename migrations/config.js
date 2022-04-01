@@ -1,5 +1,5 @@
 module.exports={
-  develop: {
+  development: {
     vwblMetadataUrl: "http://xxx.yyy.com",
     lazyMetadataUrl: "http://xxx.zzz.com",
   },
