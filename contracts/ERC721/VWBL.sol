@@ -42,7 +42,7 @@ abstract contract VWBLProtocol is ERC721Enumerable, IERC2981 {
         returns (uint256[] memory)
     {
         uint256 currentCounter = 0;
-        uint256[] memory tokens = new TokenInfo[](counter);
+        uint256[] memory tokens = new uint256[](counter);
         for (uint256 i = 1; i <= counter; i++) {
             if (tokenIdToTokenInfo[i].minterAddress == minter) {
                 tokens[currentCounter++] = i;
@@ -110,14 +110,14 @@ contract VWBL is VWBLProtocol, Ownable {
         emit gatewayContractChanged(oldGatewayContract, newGatewayContract);
     }
 
-    function getFee() public returns (uint256) {
+    function getFee() public view returns (uint256) {
         return IVWBLGateway(gatewayContract).feeWei();
     }
 
-    function mint(string memory _getKeyURl, uint256 _royaltiesPercentage, bytes32 documentId) public returns (uint256) {
+    function mint(string memory _getKeyURl, uint256 _royaltiesPercentage, bytes32 documentId) public payable returns (uint256) {
         uint256 tokenId = super.mint(_getKeyURl, _royaltiesPercentage);
 
-        IVWBLGateway(gatewayContract).grantAccessControl(documentId, address(this), tokenId);
+        IVWBLGateway(gatewayContract).grantAccessControl{value: msg.value}(documentId, address(this), tokenId);
 
         return tokenId;
     }

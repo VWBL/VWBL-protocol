@@ -22,5 +22,5 @@ interface IVWBLGateway {
 
     function setFeeWei(uint256 newFeeWei) external;
 
-    function feeWei() external returns (uint256);
+    function feeWei() external view returns (uint256);
 }
