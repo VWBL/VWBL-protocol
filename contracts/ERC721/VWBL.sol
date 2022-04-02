@@ -6,6 +6,8 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/interfaces/IERC2981.sol";
 import "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 
+import "./gateway/IVWBLGateway.sol";
+
 abstract contract VWBLProtocol is ERC721Enumerable, IERC2981 {
     uint256 public counter = 0;
     struct TokenInfo {
@@ -21,9 +23,9 @@ abstract contract VWBLProtocol is ERC721Enumerable, IERC2981 {
     mapping(uint256 => TokenInfo) public tokenIdToTokenInfo;
     mapping(uint256 => RoyaltyInfo) public tokenIdToRoyaltyInfo;
 
-    uint public constant INVERSE_BASIS_POINT = 10000;
+    uint256 public constant INVERSE_BASIS_POINT = 10000;
 
-    function mint(string memory _getKeyURl, uint256 _royaltiesPercentage) public returns (uint256) {
+    function _mint(string memory _getKeyURl, uint256 _royaltiesPercentage) public returns (uint256) {
         uint256 tokenId = ++counter;
         tokenIdToTokenInfo[tokenId].minterAddress = msg.sender;
         tokenIdToTokenInfo[tokenId].getKeyURl = _getKeyURl;
@@ -40,7 +42,7 @@ abstract contract VWBLProtocol is ERC721Enumerable, IERC2981 {
         returns (uint256[] memory)
     {
         uint256 currentCounter = 0;
-        uint256[] memory tokens = new TokenInfo[](counter);
+        uint256[] memory tokens = new uint256[](counter);
         for (uint256 i = 1; i <= counter; i++) {
             if (tokenIdToTokenInfo[i].minterAddress == minter) {
                 tokens[currentCounter++] = i;
@@ -49,10 +51,14 @@ abstract contract VWBLProtocol is ERC721Enumerable, IERC2981 {
         return tokens;
     }
 
-    function supportsInterface(bytes4 interfaceId) public view
-        virtual override(IERC165, ERC721Enumerable) returns (bool) {
-            return interfaceId == type(IERC2981).interfaceId ||
-            super.supportsInterface(interfaceId);
+    function supportsInterface(bytes4 interfaceId)
+        public
+        view
+        virtual
+        override(IERC165, ERC721Enumerable)
+        returns (bool)
+    {
+        return interfaceId == type(IERC2981).interfaceId || super.supportsInterface(interfaceId);
     }
 
     function royaltyInfo(uint256 _tokenId, uint256 _salePrice)
@@ -79,11 +85,13 @@ abstract contract VWBLProtocol is ERC721Enumerable, IERC2981 {
 
 contract VWBL is VWBLProtocol, Ownable {
     string public baseURI;
+    address public gatewayContract;
 
-    constructor(
-        string memory _baseURI
-    ) ERC721("VWBL", "VWBL") {
+    event gatewayContractChanged(address oldGatewayContract, address newGatewayContract);
+
+    constructor(string memory _baseURI, address _gatewayContract) ERC721("VWBL", "VWBL") {
         baseURI = _baseURI;
+        gatewayContract = _gatewayContract;
     }
 
     function _baseURI() internal view override returns (string memory) {
@@ -92,5 +100,25 @@ contract VWBL is VWBLProtocol, Ownable {
 
     function setBaseURI(string memory _baseURI) public onlyOwner {
         baseURI = _baseURI;
+    }
+
+    function setGatewayContract(address newGatewayContract) public onlyOwner {
+        require(newGatewayContract != gatewayContract);
+        address oldGatewayContract = gatewayContract;
+        gatewayContract = newGatewayContract;
+
+        emit gatewayContractChanged(oldGatewayContract, newGatewayContract);
+    }
+
+    function getFee() public view returns (uint256) {
+        return IVWBLGateway(gatewayContract).feeWei();
+    }
+
+    function mint(string memory _getKeyURl, uint256 _royaltiesPercentage, bytes32 documentId) public payable returns (uint256) {
+        uint256 tokenId = super._mint(_getKeyURl, _royaltiesPercentage);
+
+        IVWBLGateway(gatewayContract).grantAccessControl{value: msg.value}(documentId, address(this), tokenId);
+
+        return tokenId;
     }
 }

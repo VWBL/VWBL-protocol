@@ -3,8 +3,9 @@ import "../VWBL.sol";
 
 contract VWBLLazySupport is VWBL {
     constructor(
-        string memory _baseURI
-    ) VWBL(_baseURI) {}
+        string memory _baseURI,
+        address _gatewayContract
+    ) VWBL(_baseURI, _gatewayContract) {}
 
     function mint(address _minter, string memory _getKeyURl, uint256 _royaltiesPercentage) internal returns (uint256) {
         uint256 tokenId = ++counter;

@@ -7,7 +7,7 @@ contract VWBLLazyMinting is EIP712Adaptor {
     mapping(address => uint256) public pendingWithdrawals;
     string[] public randomStringArray;
 
-    constructor(address _signer, string memory _baseURI) EIP712Adaptor(_baseURI, _signer) {}
+    constructor(address _signer, string memory _baseURI, address _gatewayContract) EIP712Adaptor(_baseURI, _gatewayContract, _signer) {}
 
     /// @notice Redeems an NFTVoucher for an actual NFT, creating it in the process.
     /// @param redeemer The address of the account which will receive the NFT upon success.
