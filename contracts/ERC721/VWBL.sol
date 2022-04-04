@@ -121,4 +121,8 @@ contract VWBL is VWBLProtocol, Ownable {
 
         return tokenId;
     }
+
+    function send(uint256 _tokenId, address _to) public{
+        super._transfer(msg.sender, _to, _tokenId);
+    }
 }
