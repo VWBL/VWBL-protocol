@@ -2,6 +2,7 @@ const { assert } = require("chai");
 const hardhat = require("hardhat");
 const { LazyMinter } = require("../lib/index");
 const { ethers } = hardhat;
+const VWBLGateway = artifacts.require("VWBLGateway");
 const transferVWBLNFT = artifacts.require("TransferVWBLNFT");
 const lazyVWBL = artifacts.require("VWBLLazyMinting");
 const { expectRevert } = require("@openzeppelin/test-helpers");
@@ -11,8 +12,14 @@ contract ("VWBLLazyMinting test", async accounts => {
     let signerAddress;
     let invalidSigner;
     let transferVWBLNFTContract;
+    let vwblGateway;
     let lazyVWBLContract;
     let chainId;
+    const TEST_DOCUMENT_ID1 = "0x7c00000000000000000000000000000000000000000000000000000000000000";
+    const TEST_DOCUMENT_ID2 = "0x3c00000000000000000000000000000000000000000000000000000000000000";
+    const TEST_DOCUMENT_ID3 = "0x6c00000000000000000000000000000000000000000000000000000000000000";
+    const TEST_DOCUMENT_ID4 = "0x1c00000000000000000000000000000000000000000000000000000000000000";
+    const TEST_DOCUMENT_ID5 = "0x2c00000000000000000000000000000000000000000000000000000000000000";
     const randomString1 = 'D9A9C87D-A09E-40F1-A7B0-6D14F8C3D2A3';
     const randomString2 = 'A9A9C87D-A09E-40F1-A7B0-6D14F8C3D2A3';
     const SupportInterfaces = [
@@ -25,9 +32,11 @@ contract ("VWBLLazyMinting test", async accounts => {
         signer = _signer;
         invalidSigner = _invalidSigner;
         signerAddress = await signer.getAddress();
+        vwblGateway = await VWBLGateway.new(web3.utils.toWei("1", "ether"), { from: accounts[0] });
         lazyVWBLContract = await lazyVWBL.new(
             signerAddress, 
             "http://xxx.zzz.com",
+            vwblGateway.address,
             {
                 from: accounts[0],
             }
@@ -46,33 +55,31 @@ contract ("VWBLLazyMinting test", async accounts => {
     })
 
     it ("should mint nft", async () => {
-        await lazyVWBLContract.mint("http://xxx.yyy.com", 500, { from: accounts[1] });
+        await lazyVWBLContract.mint(
+            "http://xxx.yyy.com", 
+            500, 
+            TEST_DOCUMENT_ID1,
+            { 
+                from: accounts[1],
+                value: web3.utils.toWei("1", "ether"), 
+            }
+        );
         const tokens = await lazyVWBLContract.getTokenByMinter(accounts[1]);
-        assert.equal(
-            tokens[0].minterAddress,
-            accounts[1],
-            "Minter is not correct"
-        );
-        assert.equal(
-            tokens[0].getKeyURl,
-            'http://xxx.yyy.com',
-            "keyURL is not correct"
-        );
+        assert.equal(tokens[0], 1);
     });
     
     it ("should mint multiple nfts", async () => {
-        await lazyVWBLContract.mint("http://xxx.yyy.zzz.com", 500, { from: accounts[1] });
+        await lazyVWBLContract.mint(
+            "http://xxx.yyy.zzz.com", 
+            500, 
+            TEST_DOCUMENT_ID2,
+            { 
+                from: accounts[1],
+                value: web3.utils.toWei("1", "ether"),
+            }
+        );
         const tokens = await lazyVWBLContract.getTokenByMinter(accounts[1]);
-        assert.equal(
-            tokens[1].minterAddress,
-            accounts[1],
-            "Minter is not correct"
-        );
-        assert.equal(
-            tokens[1].getKeyURl,
-            'http://xxx.yyy.zzz.com',
-            "keyURL is not correct"
-        );
+        assert.equal(tokens[1], 2);
     });
 
     it ("should transfer VWBLNFT", async function () {
@@ -94,32 +101,24 @@ contract ("VWBLLazyMinting test", async accounts => {
         });
         const voucher = await lazyMinter.createVoucher(
             accounts[1], // minter
+            TEST_DOCUMENT_ID3, // documentId
             randomString1, // randomString
             'http://aaa.xxx.yyy.zzz.com',
             500,
-            web3.utils.toWei("0.5", "ether")
+            web3.utils.toWei("2", "ether") // sellPrice
         );
         await lazyVWBLContract.redeem(
             accounts[2], // redeemer
             voucher,
-            { value: web3.utils.toWei("1", "ether")},
+            { value: web3.utils.toWei("3", "ether")}, // sellPrice + vwbl fee
         );
         const tokens = await lazyVWBLContract.getTokenByMinter(accounts[1]);
-        assert.equal(
-            tokens[2].minterAddress, 
-            accounts[1],
-            "Minter is not correct"
-        );
-        assert.equal(
-            tokens[2].getKeyURl,
-            'http://aaa.xxx.yyy.zzz.com',
-            "keyURL is not correct"
-        );
+        assert.equal(tokens[2], 3);
 
         const withdrawAmount = await lazyVWBLContract.availableToWithdraw({from: accounts[1]});
         assert.equal(
             withdrawAmount,
-            web3.utils.toWei("1", "ether")
+            web3.utils.toWei("2", "ether")
         );
         
         const nftOwnerOfId3 = await lazyVWBLContract.ownerOf(3);
@@ -134,7 +133,7 @@ contract ("VWBLLazyMinting test", async accounts => {
         const withdrawAmount = await lazyVWBLContract.availableToWithdraw({from: accounts[1]});
         assert.equal(
             withdrawAmount,
-            web3.utils.toWei("1", "ether")
+            web3.utils.toWei("2", "ether")
         );
 
         const beforeEthBalance = await web3.eth.getBalance(accounts[1]);
@@ -152,6 +151,7 @@ contract ("VWBLLazyMinting test", async accounts => {
         });
         const voucher = await lazyMinter.createVoucher(
             accounts[1], // minter
+            TEST_DOCUMENT_ID4, // documentId
             randomString2, // randomString
             'http://aaa.xxx.yyy.zzz.com',
             500
@@ -181,6 +181,7 @@ contract ("VWBLLazyMinting test", async accounts => {
         });
         const voucher = await lazyMinter.createVoucher(
             accounts[1], // minter
+            TEST_DOCUMENT_ID5, // documentId
             randomString1, // randomString
             'http://aaa.xxx.yyy.zzz.com',
             500
@@ -203,16 +204,17 @@ contract ("VWBLLazyMinting test", async accounts => {
         });
         const voucher = await lazyMinter.createVoucher(
             accounts[1], // minter
+            TEST_DOCUMENT_ID5, // documentId
             randomString2, // randomString
             'http://aaa.xxx.yyy.zzz.com',
             500,
-            web3.utils.toWei("2", "ether") // minPrice is 2 ether
+            web3.utils.toWei("2", "ether") // sellPrice is 2 ether
         );
         await expectRevert(
             lazyVWBLContract.redeem(
                 accounts[2], // redeemer
                 voucher,
-                { value: web3.utils.toWei("1", "ether")},
+                { value: web3.utils.toWei("2", "ether")},
             ),
             "Insufficient funds to redeem"
         );
