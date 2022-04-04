@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: ISC
 pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 
 contract VWBLGateway is Ownable {
     struct Token {
@@ -27,7 +27,7 @@ contract VWBLGateway is Ownable {
             uint256 tokenKey = documentIdToTokenKeys[documentId][i];
             if (
                 tokens[tokenKey].contractAddress != address(0) &&
-                ERC721(tokens[tokenKey].contractAddress).ownerOf(tokens[tokenKey].tokenId) == user
+                IERC721(tokens[tokenKey].contractAddress).ownerOf(tokens[tokenKey].tokenId) == user
             ) {
                 return true;
             }
