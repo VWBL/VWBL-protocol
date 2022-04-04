@@ -11,7 +11,7 @@ contract EIP712Adaptor is EIP712, AccessControl, VWBLLazySupport {
     string private constant SIGNING_DOMAIN = "LazyNFT-Voucher";
     string private constant SIGNATURE_VERSION = "1";
 
-    constructor(string memory _baseURI, address _gatewayContract, address _signer)
+    constructor(address _signer, string memory _baseURI, address _gatewayContract) 
         VWBLLazySupport(_baseURI, _gatewayContract)
         EIP712(SIGNING_DOMAIN, SIGNATURE_VERSION)
     {
@@ -22,10 +22,12 @@ contract EIP712Adaptor is EIP712, AccessControl, VWBLLazySupport {
     struct NFTVoucher {
         // @notice The address who NFT minted.
         address minter;
+        // @notice The id of unencrypted document
+        bytes32 documentId;
         // @notice The random string of the token to be redeemed. Must be unique - if another token with this randomString already exists, the redeem function will revert.
         string randomString;
-        // @notice The minimum price (in wei) that the NFT creator is willing to accept for the initial sale of this NFT.
-        uint256 minPrice;
+        // @notice The sell price (in wei) which sold at vwbl offchain marketing/auction
+        uint256 sellPrice;
         // @notice The metadata URI to associate with this token.
         string uri;
         // @notice Percentage of each sale to pay as royalties.
@@ -42,11 +44,12 @@ contract EIP712Adaptor is EIP712, AccessControl, VWBLLazySupport {
                 keccak256(
                     abi.encode(
                         keccak256(
-                            "NFTVoucher(address minter,string randomString,uint256 minPrice,string uri,uint256 royaltiesPercentage)"
+                            "NFTVoucher(address minter,bytes32 documentId,string randomString,uint256 sellPrice,string uri,uint256 royaltiesPercentage)"
                         ),
                         voucher.minter,
+                        voucher.documentId,
                         keccak256(bytes(voucher.randomString)),
-                        voucher.minPrice,
+                        voucher.sellPrice,
                         keccak256(bytes(voucher.uri)),
                         voucher.royaltiesPercentage
                     )

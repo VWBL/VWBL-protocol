@@ -2,12 +2,13 @@ pragma solidity ^0.8.0;
 pragma abicoder v2; // required to accept structs as function parameters
 
 import "./EIP712Adaptor.sol";
+import "../gateway/IVWBLGateway.sol";
 
 contract VWBLLazyMinting is EIP712Adaptor {
     mapping(address => uint256) public pendingWithdrawals;
     string[] public randomStringArray;
 
-    constructor(address _signer, string memory _baseURI, address _gatewayContract) EIP712Adaptor(_baseURI, _gatewayContract, _signer) {}
+    constructor(address _signer, string memory _baseURI, address _gatewayContract) EIP712Adaptor(_signer, _baseURI, _gatewayContract) {}
 
     /// @notice Redeems an NFTVoucher for an actual NFT, creating it in the process.
     /// @param redeemer The address of the account which will receive the NFT upon success.
@@ -22,15 +23,16 @@ contract VWBLLazyMinting is EIP712Adaptor {
             "Invalid Signature"
         );
 
+        uint256 vwblFeeAmount = getFee();
         // make sure that the redeemer is paying enough to cover the buyer's cost
-        require(msg.value >= voucher.minPrice, "Insufficient funds to redeem");
+        require(msg.value == voucher.sellPrice + vwblFeeAmount, "Insufficient funds to redeem");
 
         // make sure that the randomString of token is not minted
         bool alreadyMinted = mintedRandomstring(voucher.randomString);
         require(alreadyMinted == false, "Already minted");
 
         // first assign the token to the minter, to establish provenance on-chain
-        mint(voucher.minter, voucher.uri, voucher.royaltiesPercentage);
+        uint256 tokenId = mint(voucher.minter, voucher.uri, voucher.royaltiesPercentage);
 
         // transfer the token to the redeemer
         _transfer(voucher.minter, redeemer, counter);
@@ -39,7 +41,10 @@ contract VWBLLazyMinting is EIP712Adaptor {
         randomStringArray.push(voucher.randomString);
 
         // record payment to minter's withdrawal balance
-        pendingWithdrawals[voucher.minter] += msg.value;
+        pendingWithdrawals[voucher.minter] += msg.value - vwblFeeAmount;
+
+        // grant access control to nft and pay vwbl fee
+        IVWBLGateway(gatewayContract).grantAccessControl{value: vwblFeeAmount}(voucher.documentId, address(this), tokenId);
 
         return counter;
     }
