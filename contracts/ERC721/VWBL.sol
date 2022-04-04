@@ -25,7 +25,7 @@ abstract contract VWBLProtocol is ERC721Enumerable, IERC2981 {
 
     uint256 public constant INVERSE_BASIS_POINT = 10000;
 
-    function _mint(string memory _getKeyURl, uint256 _royaltiesPercentage) public returns (uint256) {
+    function _mint(string memory _getKeyURl, uint256 _royaltiesPercentage) internal returns (uint256) {
         uint256 tokenId = ++counter;
         tokenIdToTokenInfo[tokenId].minterAddress = msg.sender;
         tokenIdToTokenInfo[tokenId].getKeyURl = _getKeyURl;
