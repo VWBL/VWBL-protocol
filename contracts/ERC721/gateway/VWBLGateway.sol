@@ -8,10 +8,10 @@ contract VWBLGateway is Ownable {
         address contractAddress;
         uint256 tokenId;
     }
-    Token[] public tokens;
+    
     uint256 public feeWei = 1000000000000000000; // 1MATIC
     uint256 public pendingFee;
-    mapping(bytes32 => uint256[]) private documentIdToTokenKeys;
+    mapping(bytes32 => Token) public documentIdToToken;
 
     event feeWeiChanged(uint256 oldPercentage, uint256 newPercentage);
     event accessControlAdded(bytes32 documentId, address contractAddress, uint256 tokenId);
@@ -21,16 +21,11 @@ contract VWBLGateway is Ownable {
     }
 
     function hasAccessControl(address user, bytes32 documentId) public view returns (bool) {
-        uint256 tokenLength = documentIdToTokenKeys[documentId].length;
-        if (tokenLength < 1) return false;
-        for (uint32 i = 0; i < tokenLength; i++) {
-            uint256 tokenKey = documentIdToTokenKeys[documentId][i];
-            if (
-                tokens[tokenKey].contractAddress != address(0) &&
-                IERC721(tokens[tokenKey].contractAddress).ownerOf(tokens[tokenKey].tokenId) == user
-            ) {
-                return true;
-            }
+        if (
+            documentIdToToken[documentId].contractAddress != address(0) &&
+            IERC721(documentIdToToken[documentId].contractAddress).ownerOf(documentIdToToken[documentId].tokenId) == user
+        ) {
+            return true;
         }
 
         return false;
@@ -41,8 +36,8 @@ contract VWBLGateway is Ownable {
         address contractAddress,
         uint256 tokenId
     ) internal {
-        tokens.push(Token(contractAddress, tokenId));
-        documentIdToTokenKeys[documentId].push(tokens.length - 1);
+        documentIdToToken[documentId].contractAddress = contractAddress;
+        documentIdToToken[documentId].tokenId = tokenId;
 
         emit accessControlAdded(documentId, contractAddress, tokenId);
     }

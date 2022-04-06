@@ -49,9 +49,7 @@ contract ("VWBLLazyMinting test", async accounts => {
             assert.equal(supported, true);
         });
 
-        transferVWBLNFTContract = await transferVWBLNFT.new(
-            lazyVWBLContract.address
-        );
+        transferVWBLNFTContract = await transferVWBLNFT.new();
     })
 
     it ("should mint nft", async () => {
@@ -84,7 +82,7 @@ contract ("VWBLLazyMinting test", async accounts => {
 
     it ("should transfer VWBLNFT", async function () {
         await lazyVWBLContract.setApprovalForAll(transferVWBLNFTContract.address, true, {from: accounts[1]});
-        await transferVWBLNFTContract.transferNFT(accounts[2], 1, { from: accounts[1] });
+        await transferVWBLNFTContract.transferNFT(lazyVWBLContract.address, accounts[2], 1, { from: accounts[1] });
         const nftOwnerOfId1 = await lazyVWBLContract.ownerOf(1);
         assert.equal(
             nftOwnerOfId1,

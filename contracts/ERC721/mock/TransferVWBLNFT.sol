@@ -2,13 +2,11 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 
 contract TransferVWBLNFT {
-    IERC721 targetNFTContract;
 
-    constructor(address _targetNFTContractAddress) {
-        targetNFTContract = IERC721(_targetNFTContractAddress);
-    }
+    constructor() {}
 
-    function transferNFT(address _to, uint256 _tokenId) public {
+    function transferNFT(address _contractAddress, address _to, uint256 _tokenId) public {
+        IERC721 targetNFTContract = IERC721(_contractAddress);
         require(targetNFTContract.ownerOf(_tokenId) == msg.sender, "You are not owner of token");
         bool approved = targetNFTContract.getApproved(_tokenId) == address(this);
         bool approvedForAll = targetNFTContract.isApprovedForAll(msg.sender, address(this));
