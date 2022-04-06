@@ -49,6 +49,10 @@ contract VWBLGateway is Ownable {
     ) public payable {
         require(msg.value >= feeWei, "Fee is insufficient");
         require(msg.value <= feeWei, "Fee is too high");
+        require(
+            documentIdToToken[documentId].contractAddress == address(0), 
+            "documentId is already used"
+        );
 
         pendingFee += msg.value;
         _addAccessControl(documentId, contractAddress, tokenId);

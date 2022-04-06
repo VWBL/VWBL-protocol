@@ -79,6 +79,16 @@ contract("VWBLGateway test", async (accounts) => {
       }),
       "Fee is too high"
     )
+  });
+
+  it ("should failt to grant AccessControl when documentId is already used", async () => {
+    await expectRevert(
+      vwblGateway.grantAccessControl(TEST_DOCUMENT_ID1, externalNFT.address, 0, {
+        value: web3.utils.toWei("1", "ether"),
+        from: accounts[1],
+      }),
+      "documentId is already used"
+    )
   })
 
   it("should not set feeWei from not contract owner", async () => {
