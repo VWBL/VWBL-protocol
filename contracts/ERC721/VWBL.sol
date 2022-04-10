@@ -11,6 +11,7 @@ import "./gateway/IVWBLGateway.sol";
 abstract contract VWBLProtocol is ERC721Enumerable, IERC2981 {
     uint256 public counter = 0;
     struct TokenInfo {
+        bytes32 documentId;
         address minterAddress;
         string getKeyURl;
     }
@@ -25,10 +26,10 @@ abstract contract VWBLProtocol is ERC721Enumerable, IERC2981 {
 
     uint256 public constant INVERSE_BASIS_POINT = 10000;
 
-    function _mint(string memory _getKeyURl, uint256 _royaltiesPercentage) internal returns (uint256) {
+    function _mint(bytes32 _documentId, string memory _getKeyURl, uint256 _royaltiesPercentage) internal returns (uint256) {
         uint256 tokenId = ++counter;
-        tokenIdToTokenInfo[tokenId].minterAddress = msg.sender;
-        tokenIdToTokenInfo[tokenId].getKeyURl = _getKeyURl;
+        TokenInfo memory tokenInfo = TokenInfo(_documentId, msg.sender, _getKeyURl);
+        tokenIdToTokenInfo[tokenId] = tokenInfo;
         _mint(msg.sender, tokenId);
         if (_royaltiesPercentage > 0) {
             _setRoyalty(tokenId, msg.sender, _royaltiesPercentage);
@@ -114,10 +115,10 @@ contract VWBL is VWBLProtocol, Ownable {
         return IVWBLGateway(gatewayContract).feeWei();
     }
 
-    function mint(string memory _getKeyURl, uint256 _royaltiesPercentage, bytes32 documentId) public payable returns (uint256) {
-        uint256 tokenId = super._mint(_getKeyURl, _royaltiesPercentage);
+    function mint(string memory _getKeyURl, uint256 _royaltiesPercentage, bytes32 _documentId) public payable returns (uint256) {
+        uint256 tokenId = super._mint(_documentId, _getKeyURl, _royaltiesPercentage);
 
-        IVWBLGateway(gatewayContract).grantAccessControl{value: msg.value}(documentId, address(this), tokenId);
+        IVWBLGateway(gatewayContract).grantAccessControl{value: msg.value}(_documentId, address(this), tokenId);
 
         return tokenId;
     }
