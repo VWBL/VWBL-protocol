@@ -8,7 +8,9 @@
   },
   "scripts": {
     "test": "truffle test --network development ./test/*.js",
-    "dev": "truffle develop"
+    "dev": "truffle develop",
+    "migrate:ropsten": "truffle migrate --network ropsten --reset",
+    "migrate:polygon": "truffle migrate --network polygon --reset"
   },
   "repository": {
     "type": "git",

@@ -10,5 +10,9 @@ module.exports={
   rinkeby: {
     vwblMetadataUrl: "http://xxx.yyy.com",
     gatewayContractAddress: "0x54df5c4654598bB3D849beE3684309E66EB5905F"
+  },
+  ropsten: {
+    vwblMetadataUrl: "http://xxx.yyy.com",
+    gatewayContractAddress: "0x8B3E2Da3bb4bdAc98aa12Ae7964f03777713165D"
   }
 };
