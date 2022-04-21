@@ -19,7 +19,7 @@
  */
 
 
-const HDWalletProvider = require('@truffle/hdwallet-provider');
+const PrivatekeyProvider = require('truffle-privatekey-provider');
 const fs = require('fs');
 const secrets = fs
   .readFileSync('.secret')
@@ -52,10 +52,10 @@ module.exports = {
       network_id: "*",       // Any network (default: none)
     },
     polygon: {
-      provider: () => new HDWalletProvider({
-        privateKeys: [privateKey],
-        url: `https://polygon-rpc.com`
-      }),
+      provider: () => new PrivatekeyProvider(
+        privateKey,
+        `https://polygon-rpc.com`
+      ),
       network_id: 137,
       confirmations: 2,
       timeoutBlocks: 200,
@@ -73,10 +73,10 @@ module.exports = {
     // Useful for deploying to a public network.
     // NB: It's important to wrap the provider as a function.
     ropsten: {
-      provider: () => new HDWalletProvider({
-        privateKeys: [privateKey],
-        url: `https://ropsten.infura.io/v3/${projectId}`
-      }),
+      provider: () => new PrivatekeyProvider(
+        privateKey,
+        `https://ropsten.infura.io/v3/${projectId}`
+      ),
       network_id: 3,       // Ropsten's id
       gas: 5500000,        // Ropsten has a lower block limit than mainnet
       confirmations: 2,    // # of confs to wait between deployments. (default: 0)
@@ -84,10 +84,10 @@ module.exports = {
       skipDryRun: true     // Skip dry run before migrations? (default: false for public nets )
     },
     rinkeby: {
-      provider: () => new HDWalletProvider({
-        privateKeys: [privateKey],
-        url: `https://rinkeby.infura.io/v3/${projectId}`
-      }),
+      provider: () => new PrivatekeyProvider(
+        privateKey,
+        `https://rinkeby.infura.io/v3/${projectId}`
+      ),
       network_id: 4,       // Ropsten's id
       gas: 5500000,        // Ropsten has a lower block limit than mainnet
       confirmations: 2,    // # of confs to wait between deployments. (default: 0)
