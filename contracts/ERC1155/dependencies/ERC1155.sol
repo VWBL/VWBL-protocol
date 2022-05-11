@@ -23,6 +23,9 @@ contract ERC1155 is Context, ERC165, IERC1155, IERC1155MetadataURI {
     // Mapping from token ID to account balances
     mapping(uint256 => mapping(address => uint256)) private _balances;
 
+    // Mapping token ID to token balance
+    mapping(uint256 => uint256) public _tokenIdToTokenBalance;
+
     // Mapping from account to operator approvals
     mapping(address => mapping(address => bool)) private _operatorApprovals;
 
@@ -177,6 +180,7 @@ contract ERC1155 is Context, ERC165, IERC1155, IERC1155MetadataURI {
         unchecked {
             _balances[id][from] = fromBalance - amount;
         }
+        uint256 beforeBalanceOfToAddress = _balances[id][to];
         _balances[id][to] += amount;
 
         emit TransferSingle(operator, from, to, id, amount);
@@ -219,6 +223,7 @@ contract ERC1155 is Context, ERC165, IERC1155, IERC1155MetadataURI {
             unchecked {
                 _balances[id][from] = fromBalance - amount;
             }
+            uint256 beforeBalanceOfToAddress = _balances[id][to];
             _balances[id][to] += amount;
         }
 
@@ -280,6 +285,8 @@ contract ERC1155 is Context, ERC165, IERC1155, IERC1155MetadataURI {
         _balances[id][to] += amount;
         emit TransferSingle(operator, address(0), to, id, amount);
 
+        _tokenIdToTokenBalance[id] = amount;
+
         _afterTokenTransfer(operator, address(0), to, ids, amounts, data);
 
         _doSafeTransferAcceptanceCheck(operator, address(0), to, id, amount, data);
@@ -308,7 +315,10 @@ contract ERC1155 is Context, ERC165, IERC1155, IERC1155MetadataURI {
         _beforeTokenTransfer(operator, address(0), to, ids, amounts, data);
 
         for (uint256 i = 0; i < ids.length; i++) {
-            _balances[ids[i]][to] += amounts[i];
+            uint256 id = ids[i];
+
+            _balances[id][to] += amounts[i];
+            _tokenIdToTokenBalance[id] = amounts[i];
         }
 
         emit TransferBatch(operator, address(0), to, ids, amounts);
@@ -345,6 +355,8 @@ contract ERC1155 is Context, ERC165, IERC1155, IERC1155MetadataURI {
             _balances[id][from] = fromBalance - amount;
         }
 
+        _tokenIdToTokenBalance[id] -= amount;
+
         emit TransferSingle(operator, from, address(0), id, amount);
 
         _afterTokenTransfer(operator, from, address(0), ids, amounts, "");
@@ -378,6 +390,8 @@ contract ERC1155 is Context, ERC165, IERC1155, IERC1155MetadataURI {
             unchecked {
                 _balances[id][from] = fromBalance - amount;
             }
+
+            _tokenIdToTokenBalance[id] -= amount;
         }
 
         emit TransferBatch(operator, from, address(0), ids, amounts);
