@@ -1,0 +1,18 @@
+pragma solidity ^0.8.0;
+import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+
+contract TransferVWBLNFT {
+    IERC721 targetNFTContract;
+
+    constructor(address _targetNFTContractAddress) {
+        targetNFTContract = IERC721(_targetNFTContractAddress);
+    }
+
+    function transferNFT(address _to, uint256 _tokenId) public {
+        require(targetNFTContract.ownerOf(_tokenId) == msg.sender, "You are not owner of token");
+        bool approved = targetNFTContract.getApproved(_tokenId) == address(this);
+        bool approvedForAll = targetNFTContract.isApprovedForAll(msg.sender, address(this));
+        require(approved || approvedForAll, "Token is not approved yet");
+        targetNFTContract.transferFrom(msg.sender, _to, _tokenId);
+    }
+}
