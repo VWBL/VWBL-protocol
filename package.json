@@ -7,7 +7,7 @@
     "test": "test"
   },
   "scripts": {
-    "test": "truffle test --network development ./test/*.js",
+    "test": "npx truffle develop & npx truffle test --network test",
     "dev": "truffle develop"
   },
   "repository": {
@@ -24,6 +24,7 @@
     "@openzeppelin/contracts": "^4.5.0",
     "@openzeppelin/test-helpers": "^0.5.15",
     "@truffle/hdwallet-provider": "^2.0.4",
+    "concurrently": "^7.2.0",
     "ethers": "^5.5.4",
     "hardhat": "^2.8.4"
   }
