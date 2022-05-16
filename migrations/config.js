@@ -1,14 +1,18 @@
 module.exports={
   develop: {
-    vwblMetadataUrl: "http://xxx.yyy.com",
-    lazyMetadataUrl: "http://xxx.zzz.com",
+    vwblMetadataUrl: process.env.VWBL_METADATA_URL || "http://xxx.yyy.com",
+    lazyMetadataUrl: process.env.VWBL_METADATA_URL || "http://xxx.zzz.com",
+  },
+  test: {
+    vwblMetadataUrl: process.env.VWBL_METADATA_URL || "http://xxx.yyy.com",
+    lazyMetadataUrl: process.env.LAZY_METADATA_URL || "http://xxx.zzz.com",
   },
   polygon: {
-    vwblMetadataUrl: "http://xxx.yyy.com",
-    lazyMetadataUrl: "http://xxx.zzz.com",
+    vwblMetadataUrl: process.env.VWBL_METADATA_URL || "http://xxx.yyy.com",
+    lazyMetadataUrl: process.env.LAZY_METADATA_URL || "http://xxx.zzz.com",
   },
   ropsten: {
-    vwblMetadataUrl: "http://xxx.yyy.com",
-    lazyMetadataUrl: "http://xxx.zzz.com",
+    vwblMetadataUrl: process.env.VWBL_METADATA_URL || "http://xxx.yyy.com",
+    lazyMetadataUrl: process.env.LAZY_METADATA_URL || "http://xxx.zzz.com",
   }
 };
