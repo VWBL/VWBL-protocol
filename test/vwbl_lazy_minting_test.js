@@ -5,6 +5,7 @@ const { ethers } = hardhat;
 const VWBLGateway = artifacts.require("VWBLGateway");
 const transferVWBLNFT = artifacts.require("TransferVWBLNFT");
 const lazyVWBL = artifacts.require("VWBLLazyMinting");
+const market = artifacts.require("Market");
 const { expectRevert } = require("@openzeppelin/test-helpers");
 
 contract ("VWBLLazyMinting test", async accounts => {
@@ -14,6 +15,7 @@ contract ("VWBLLazyMinting test", async accounts => {
     let transferVWBLNFTContract;
     let vwblGateway;
     let lazyVWBLContract;
+    let marketContract;
     let chainId;
     const TEST_DOCUMENT_ID1 = "0x7c00000000000000000000000000000000000000000000000000000000000000";
     const TEST_DOCUMENT_ID2 = "0x3c00000000000000000000000000000000000000000000000000000000000000";
@@ -50,6 +52,8 @@ contract ("VWBLLazyMinting test", async accounts => {
         });
 
         transferVWBLNFTContract = await transferVWBLNFT.new();
+
+        marketContract = await market.new(lazyVWBLContract.address);
     })
 
     it ("should mint nft", async () => {
@@ -89,7 +93,20 @@ contract ("VWBLLazyMinting test", async accounts => {
             accounts[2],
             "accounts[2] is not received NFT"
         );
-    })
+    });
+
+    it ("should not set market contract address from not contract owner", async function() {
+        await expectRevert(
+            lazyVWBLContract.setMarketContractAddress(accounts[1], {from: accounts[1]}),
+            "Ownable: caller is not the owner"
+        );
+    });
+
+    it ("should set market contract address from contract owner", async function() {
+        await lazyVWBLContract.setMarketContractAddress(marketContract.address, {from: accounts[0]});
+        const marketContractAddress = await lazyVWBLContract.marketContract();
+        assert.equal(marketContractAddress, marketContract.address);
+    });
 
     it ("should redeem an NFT from a valid signer voucher", async function() {
         const lazyMinter = new LazyMinter({ 
@@ -109,7 +126,11 @@ contract ("VWBLLazyMinting test", async accounts => {
             accounts[2], // redeemer
             voucher,
             { value: web3.utils.toWei("3", "ether")}, // sellPrice + vwbl fee
-        );
+        ).then( r => {
+            r.logs.forEach(e => {
+                console.log("     emit", e.event);
+            });
+        });
         const tokens = await lazyVWBLContract.getTokenByMinter(accounts[1]);
         assert.equal(tokens[2], 3);
 
@@ -135,10 +156,10 @@ contract ("VWBLLazyMinting test", async accounts => {
         );
 
         const beforeEthBalance = await web3.eth.getBalance(accounts[1]);
-        console.log('before withdraw balance of minter', beforeEthBalance);
+        console.log('    before withdraw balance of minter', beforeEthBalance);
         await lazyVWBLContract.withdraw({from: accounts[1]});
         const afterEthBalance = await web3.eth.getBalance(accounts[1]);
-        console.log('after withdraw balance of minter', afterEthBalance);
+        console.log('    after withdraw balance of minter', afterEthBalance);
     });
 
     it ("should not redeem an NFT from a invalid signer voucher", async function() {
