@@ -3,6 +3,7 @@ pragma abicoder v2; // required to accept structs as function parameters
 
 import "./EIP712Adaptor.sol";
 import "../gateway/IVWBLGateway.sol";
+import "./IVWBLMarket.sol";
 
 contract VWBLLazyMinting is EIP712Adaptor {
     mapping(address => uint256) public pendingWithdrawals;
@@ -45,6 +46,14 @@ contract VWBLLazyMinting is EIP712Adaptor {
 
         // grant access control to nft and pay vwbl fee
         IVWBLGateway(gatewayContract).grantAccessControl{value: vwblFeeAmount}(voucher.documentId, address(this), tokenId);
+
+        // emit sell event
+        IVWBLMarket(voucher.emitSoldEventContract).emitSoldEvent(
+            voucher.sellPrice, 
+            tokenId,
+            voucher.minter, 
+            redeemer
+        );
 
         return counter;
     }
