@@ -8,9 +8,6 @@ import "./IVWBLMarket.sol";
 contract VWBLLazyMinting is EIP712Adaptor {
     mapping(address => uint256) public pendingWithdrawals;
     string[] public randomStringArray;
-    address public marketContract;
-
-    event marketContractChanged(address oldMarketContract, address newMarketContract);
 
     constructor(address _signer, string memory _baseURI, address _gatewayContract) EIP712Adaptor(_signer, _baseURI, _gatewayContract) {}
 
@@ -51,7 +48,7 @@ contract VWBLLazyMinting is EIP712Adaptor {
         IVWBLGateway(gatewayContract).grantAccessControl{value: vwblFeeAmount}(voucher.documentId, address(this), tokenId);
 
         // emit sell event
-        IVWBLMarket(marketContract).emitSoldEvent(
+        IVWBLMarket(voucher.emitSoldEventContract).emitSoldEvent(
             voucher.sellPrice, 
             tokenId,
             voucher.minter, 
@@ -84,14 +81,6 @@ contract VWBLLazyMinting is EIP712Adaptor {
             }
         }
         return false;
-    }
-
-    function setMarketContractAddress(address newMarketContract) public onlyOwner {
-        require(newMarketContract != marketContract);
-        address oldMarketContract = marketContract;
-        marketContract = newMarketContract;
-
-        emit marketContractChanged(oldMarketContract, newMarketContract);
     }
 
     function hashCompareWithLengthCheck(string memory a, string memory b) private pure returns (bool) {

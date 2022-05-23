@@ -1,10 +1,10 @@
 pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/interfaces/IERC2981.sol";
+import "./ManageSoldEvent.sol";
 
-contract Market is Ownable {
+contract Market is ManageSoldEvent {
     struct Info {
         address sellerAddress;
         uint256 priceWei;
@@ -13,7 +13,6 @@ contract Market is Ownable {
     // bytes4(keccak256("royaltyInfo(uint256,uint256)")) == 0x2a55205a
     bytes4 private constant _INTERFACE_ID_ERC2981 = 0x2a55205a;
     uint256[] private onSaleTokenIds;
-    address[] private whiteListAddresses;
     mapping (uint256 => Info) public tokenIdToInfo;
     mapping (uint256 => uint256) public tokenIdToIndex;
     mapping (address => uint256) private pendingWithdrawals;
@@ -27,25 +26,10 @@ contract Market is Ownable {
 
     event royaltiesRecord(uint256 tokenId, uint value);
     event marketFeePercentageChanged(uint256 oldPercentage, uint256 newPercentage);
-    event sold(uint256 sellPrice, uint256 tokenId, address from, address to, uint256 timestamp);
-    event addedWhiteListAddress(address _address);
-    event removedWhiteListAddress(address _address);
 
-    modifier onlyWhitelist {
-        bool isWhitelist = false;
-        for (uint32 i = 0; i < whiteListAddresses.length; i++) {
-            if (msg.sender == whiteListAddresses[i]) {
-                isWhitelist = true;
-            }
-        }
-        require(isWhitelist, "msg.sender is not white listed address");
-        _;
-    }
-
-    constructor (address _contractAddress) {
+    constructor (address _contractAddress) ManageSoldEvent(_contractAddress) {
         itemContract = ERC721(_contractAddress);
         itemContractAddress = _contractAddress;
-        whiteListAddresses.push(_contractAddress);
     }
 
     function getListedTokenIds() public view returns(uint256[] memory){
@@ -126,30 +110,6 @@ contract Market is Ownable {
         uint oldMarketFeePercentage = marketFeePercentage;
         marketFeePercentage = newMarketFeePercentage;
         emit marketFeePercentageChanged(oldMarketFeePercentage, newMarketFeePercentage);
-    }
-
-    function emitSoldEvent(uint256 _sellPrice, uint256 _tokenId, address _from, address _to) external onlyWhitelist {
-        emit sold(_sellPrice, _tokenId, _from, _to, block.timestamp);
-    }
-
-    function getWhiteListAddresses() public view returns (address[] memory) {
-        return whiteListAddresses;
-    }
-
-    function addWhiteListAddress(address _address) public onlyOwner {
-        whiteListAddresses.push(_address);
-        emit addedWhiteListAddress(_address);
-    }
-
-    function removeWhiteListAddress(address _address) public onlyOwner {
-        uint256 length = whiteListAddresses.length;
-        for (uint32 i = 0; i < length; i++) {
-            if (_address == whiteListAddresses[i]) {
-                whiteListAddresses[i] = whiteListAddresses[length-1];
-                delete whiteListAddresses[length-1];
-                emit removedWhiteListAddress(_address);
-            }
-        }
     }
 
     /// @notice Checks if NFT contract implements the ERC-2981 interface

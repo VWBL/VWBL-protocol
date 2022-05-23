@@ -32,6 +32,8 @@ contract EIP712Adaptor is EIP712, AccessControl, VWBLLazySupport {
         string uri;
         // @notice Percentage of each sale to pay as royalties.
         uint256 royaltiesPercentage;
+        // @notice The contract address to emit sold event
+        address emitSoldEventContract;
         // @notice the EIP-712 signature of all other fields in the NFTVoucher struct. For a voucher to be valid, it must be signed by an account with the SIGNER_ROLE.
         bytes signature;
     }
@@ -44,14 +46,15 @@ contract EIP712Adaptor is EIP712, AccessControl, VWBLLazySupport {
                 keccak256(
                     abi.encode(
                         keccak256(
-                            "NFTVoucher(address minter,bytes32 documentId,string randomString,uint256 sellPrice,string uri,uint256 royaltiesPercentage)"
+                            "NFTVoucher(address minter,bytes32 documentId,string randomString,uint256 sellPrice,string uri,uint256 royaltiesPercentage,address emitSoldEventContract)"
                         ),
                         voucher.minter,
                         voucher.documentId,
                         keccak256(bytes(voucher.randomString)),
                         voucher.sellPrice,
                         keccak256(bytes(voucher.uri)),
-                        voucher.royaltiesPercentage
+                        voucher.royaltiesPercentage,
+                        voucher.emitSoldEventContract
                     )
                 )
             );

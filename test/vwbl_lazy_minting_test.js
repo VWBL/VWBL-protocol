@@ -95,19 +95,6 @@ contract ("VWBLLazyMinting test", async accounts => {
         );
     });
 
-    it ("should not set market contract address from not contract owner", async function() {
-        await expectRevert(
-            lazyVWBLContract.setMarketContractAddress(accounts[1], {from: accounts[1]}),
-            "Ownable: caller is not the owner"
-        );
-    });
-
-    it ("should set market contract address from contract owner", async function() {
-        await lazyVWBLContract.setMarketContractAddress(marketContract.address, {from: accounts[0]});
-        const marketContractAddress = await lazyVWBLContract.marketContract();
-        assert.equal(marketContractAddress, marketContract.address);
-    });
-
     it ("should redeem an NFT from a valid signer voucher", async function() {
         const lazyMinter = new LazyMinter({ 
             contract: lazyVWBLContract, 
@@ -120,6 +107,7 @@ contract ("VWBLLazyMinting test", async accounts => {
             randomString1, // randomString
             'http://aaa.xxx.yyy.zzz.com',
             500,
+            marketContract.address,
             web3.utils.toWei("2", "ether") // sellPrice
         );
         await lazyVWBLContract.redeem(
@@ -173,7 +161,8 @@ contract ("VWBLLazyMinting test", async accounts => {
             TEST_DOCUMENT_ID4, // documentId
             randomString2, // randomString
             'http://aaa.xxx.yyy.zzz.com',
-            500
+            500,
+            marketContract.address,
         );
         await expectRevert(
             lazyVWBLContract.redeem(
@@ -203,7 +192,8 @@ contract ("VWBLLazyMinting test", async accounts => {
             TEST_DOCUMENT_ID5, // documentId
             randomString1, // randomString
             'http://aaa.xxx.yyy.zzz.com',
-            500
+            500,
+            marketContract.address,
         );
         await expectRevert(
             lazyVWBLContract.redeem(
@@ -227,6 +217,7 @@ contract ("VWBLLazyMinting test", async accounts => {
             randomString2, // randomString
             'http://aaa.xxx.yyy.zzz.com',
             500,
+            marketContract.address,
             web3.utils.toWei("2", "ether") // sellPrice is 2 ether
         );
         await expectRevert(
