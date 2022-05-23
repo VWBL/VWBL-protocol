@@ -9,5 +9,5 @@ yarn test
 
 ## デプロイ
 ```bash
-yarn tdeploy --network <network name>
+yarn deploy --network <network name>
 ```
