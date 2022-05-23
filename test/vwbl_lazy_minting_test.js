@@ -68,6 +68,8 @@ contract ("VWBLLazyMinting test", async accounts => {
         );
         const tokens = await lazyVWBLContract.getTokenByMinter(accounts[1]);
         assert.equal(tokens[0], 1);
+        const minter = await lazyVWBLContract.getMinter(1);
+        assert.equal(minter, accounts[1]);
     });
     
     it ("should mint multiple nfts", async () => {
@@ -82,6 +84,8 @@ contract ("VWBLLazyMinting test", async accounts => {
         );
         const tokens = await lazyVWBLContract.getTokenByMinter(accounts[1]);
         assert.equal(tokens[1], 2);
+        const minter = await lazyVWBLContract.getMinter(2);
+        assert.equal(minter, accounts[1]);
     });
 
     it ("should transfer VWBLNFT", async function () {

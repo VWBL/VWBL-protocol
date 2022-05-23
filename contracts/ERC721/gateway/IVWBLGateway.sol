@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 
 /**
  * @dev Interface of the VWBL Gateway as defined in the
- * https://github.com/VWBL/VWBL-Gateway-Contract
+ * https://github.com/VWBL-protocol/contracts/ERC721/gateway/VWBLGateway.sol
  */
 interface IVWBLGateway {
     event accessControlAdded(bytes32 documentId, address contractAddress, uint256 tokenId);

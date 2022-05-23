@@ -2,6 +2,7 @@ const { assert } = require("chai")
 const VWBLGateway = artifacts.require("VWBLGateway")
 const ExternalNFT = artifacts.require("ExternalNFT")
 const VWBLERC721 = artifacts.require("VWBL")
+const TransferVWBLNFT = artifacts.require("TransferVWBLNFT")
 const { expectRevert } = require("@openzeppelin/test-helpers")
 const { web3 } = require("@openzeppelin/test-helpers/src/setup")
 
@@ -9,6 +10,7 @@ contract("VWBLGateway test", async (accounts) => {
   let vwblGateway
   let externalNFT
   let vwblERC721
+  let transferVWBLNFTContract
 
   const TEST_DOCUMENT_ID1 = "0x7c00000000000000000000000000000000000000000000000000000000000000";
   const TEST_DOCUMENT_ID2 = "0x3c00000000000000000000000000000000000000000000000000000000000000";
@@ -18,6 +20,7 @@ contract("VWBLGateway test", async (accounts) => {
     vwblGateway = await VWBLGateway.new(web3.utils.toWei("1", "ether"), { from: accounts[0] })
     externalNFT = await ExternalNFT.new({ from: accounts[0] })
     vwblERC721 = await VWBLERC721.new("http://xxx.yyy.com", vwblGateway.address, { from: accounts[0] })
+    transferVWBLNFTContract = await TransferVWBLNFT.new();
 
     await externalNFT.mint(accounts[1])
     const owner = await externalNFT.ownerOf(0)
@@ -61,6 +64,17 @@ contract("VWBLGateway test", async (accounts) => {
 
     const isPermitted = await vwblGateway.hasAccessControl(accounts[1], TEST_DOCUMENT_ID2)
     assert.equal(isPermitted, true)
+  })
+
+  it("should successfully transfer nft and minter has access control", async () => {
+    await vwblERC721.setApprovalForAll(transferVWBLNFTContract.address, true, {from: accounts[2]});
+    await transferVWBLNFTContract.transferNFT(vwblERC721.address, accounts[3], 1, { from: accounts[2] });
+    
+    const isPermittedOfMinter = await vwblGateway.hasAccessControl(accounts[2], TEST_DOCUMENT_ID1)
+    assert.equal(isPermittedOfMinter, true)
+
+    const isPermittedOfOwner = await vwblGateway.hasAccessControl(accounts[3], TEST_DOCUMENT_ID1)
+    assert.equal(isPermittedOfOwner, true)
   })
 
   it("should fail to grant AccessControl when fee amount is invalid", async () => {
