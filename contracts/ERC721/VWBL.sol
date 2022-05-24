@@ -6,6 +6,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/interfaces/IERC2981.sol";
 import "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 
+import "./IVWBL.sol";
 import "./gateway/IVWBLGateway.sol";
 
 abstract contract VWBLProtocol is ERC721Enumerable, IERC2981 {
@@ -84,7 +85,7 @@ abstract contract VWBLProtocol is ERC721Enumerable, IERC2981 {
     }
 }
 
-contract VWBL is VWBLProtocol, Ownable {
+contract VWBL is VWBLProtocol, Ownable, IVWBL {
     string public baseURI;
     address public gatewayContract;
 
@@ -121,5 +122,9 @@ contract VWBL is VWBLProtocol, Ownable {
         IVWBLGateway(gatewayContract).grantAccessControl{value: msg.value}(_documentId, address(this), tokenId);
 
         return tokenId;
+    }
+
+    function getMinter(uint256 tokenId) public view returns (address) {
+        return tokenIdToTokenInfo[tokenId].minterAddress;
     }
 }
