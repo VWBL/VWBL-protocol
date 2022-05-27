@@ -16,7 +16,7 @@ const migrateTest = async (config, deployer, accounts) => {
 }
 
 const migrateERC721 = async (config, deployer, accounts) => {
-  await deployer.deploy(vwblGateway, "1000000000000000000")
+  await deployer.deploy(vwblGateway, "10000000000000000") // 0.01 ETH
   const vwblGatewayContract = await vwblGateway.deployed()
   await deployer.deploy(vwblERC721, config.lazyMetadataUrl, vwblGatewayContract.address)
 }
