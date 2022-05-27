@@ -90,7 +90,7 @@ contract ("VWBLLazyMinting test", async accounts => {
 
     it ("should not get minted by other nfts", async () => {
         await lazyVWBLContract.mint("http://xxx.yyy.zzz.com", 500, { from: accounts[1] });
-        const tokensInOtherWallet = await lazyVWBLContract.getTokenByMinter(accounts[1]);
+        const tokensInOtherWallet = await lazyVWBLContract.getTokenByMinter(accounts[0]);
         assert.equal(tokensInOtherWallet.length, 0, "getTokenByMinter works wrong")
     });
 
