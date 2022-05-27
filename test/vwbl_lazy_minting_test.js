@@ -88,6 +88,12 @@ contract ("VWBLLazyMinting test", async accounts => {
         assert.equal(minter, accounts[1]);
     });
 
+    it ("should not get minted by other nfts", async () => {
+        await lazyVWBLContract.mint("http://xxx.yyy.zzz.com", 500, { from: accounts[1] });
+        const tokensInOtherWallet = await lazyVWBLContract.getTokenByMinter(accounts[1]);
+        assert.equal(tokensInOtherWallet.length, 0, "getTokenByMinter works wrong")
+    });
+
     it ("should transfer VWBLNFT", async function () {
         await lazyVWBLContract.setApprovalForAll(transferVWBLNFTContract.address, true, {from: accounts[1]});
         await transferVWBLNFTContract.transferNFT(lazyVWBLContract.address, accounts[2], 1, { from: accounts[1] });
