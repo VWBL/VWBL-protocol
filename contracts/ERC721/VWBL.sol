@@ -41,7 +41,7 @@ abstract contract VWBLProtocol is ERC721Enumerable, IERC2981 {
     function getTokenByMinter(address minter)
         public
         view
-        returns (TokenInfo[] memory)
+        returns (uint256[] memory)
     {
         uint256 resultCount = 0;
         for (uint256 i = 1; i <= counter; i++) {
@@ -49,11 +49,11 @@ abstract contract VWBLProtocol is ERC721Enumerable, IERC2981 {
                 resultCount++;
             }
         }
-        TokenInfo[] memory tokens = new TokenInfo[](resultCount);
+        uint256[] memory tokens = new uint256[](resultCount);
         uint256 currentCounter = 0;
         for (uint256 i = 1; i <= counter; i++) {
             if (tokenIdToTokenInfo[i].minterAddress == minter) {
-                tokens[currentCounter++] = tokenIdToTokenInfo[i];
+                tokens[currentCounter++] = i;
             }
         }
         return tokens;
