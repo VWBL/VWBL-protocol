@@ -1,5 +1,5 @@
 module.exports={
-  develop: {
+  development: {
     vwblMetadataUrl: process.env.VWBL_METADATA_URL || "http://xxx.yyy.com",
     lazyMetadataUrl: process.env.VWBL_METADATA_URL || "http://xxx.zzz.com",
   },

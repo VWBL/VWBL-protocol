@@ -16,18 +16,21 @@ const migrateTest = async (config, deployer, accounts) => {
 }
 
 const migrateERC721 = async (config, deployer, accounts) => {
-  await deployer.deploy(vwblGateway, "1000000000000000000")
+  console.log('VWBL Metadata URL: ', config.vwblMetadataUrl)
+  await deployer.deploy(vwblGateway, "10000000000000000") // 0.01 ETH
   const vwblGatewayContract = await vwblGateway.deployed()
-  await deployer.deploy(vwblERC721, config.lazyMetadataUrl, vwblGatewayContract.address)
+  await deployer.deploy(vwblERC721, config.vwblMetadataUrl, vwblGatewayContract.address)
 }
 
 const migrateERC1155 = async (config) => {
   // TODO: Need to implement ERC1155 Gateway
+  console.log('VWBL Metadata URL: ', config.vwblMetadataUrl)
   await deployer.deploy(vwblERC1155, config.vwblMetadataUrl)
 }
 
 const migrateLazyVWBL = async (config) => {
   await deployer.deploy(vwblGateway, "1000000000000000000")
+  console.log('VWBL Lazy Metadata URL: ', config.lazyMetadataUrl)
   const vwblGatewayContract = await vwblGateway.deployed()
   await deployer.deploy(lazyVWBL, accounts[0], config.lazyMetadataUrl, vwblGatewayContract.address)
 }
