@@ -13,6 +13,7 @@ contract VWBLGateway is Ownable {
     uint256 public feeWei = 1000000000000000000; // 1MATIC
     uint256 public pendingFee;
     mapping(bytes32 => Token) public documentIdToToken;
+    bytes32[] public documentIds;
 
     event feeWeiChanged(uint256 oldPercentage, uint256 newPercentage);
     event accessControlAdded(bytes32 documentId, address contractAddress, uint256 tokenId);
@@ -60,6 +61,15 @@ contract VWBLGateway is Ownable {
 
         pendingFee += msg.value;
         _addAccessControl(documentId, contractAddress, tokenId);
+        documentIds.push(documentId);
+    }
+
+    function getNFTDatas() public view returns (bytes32[] memory, Token[] memory){
+        Token[] memory tokens = new Token[](documentIds.length);
+        for (uint32 i = 0; i < documentIds.length; i++) {
+            tokens[i] = documentIdToToken[documentIds[i]];
+        }
+        return (documentIds, tokens);
     }
 
     function withdrawFee() public onlyOwner {
