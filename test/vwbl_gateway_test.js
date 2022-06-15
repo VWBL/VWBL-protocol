@@ -45,7 +45,7 @@ contract("VWBLGateway test", async (accounts) => {
     const createdToken = await vwblGateway.documentIdToToken(TEST_DOCUMENT_ID1);
     assert.equal(createdToken.contractAddress, vwblERC721.address)
 
-    const documentId = await vwblGateway.tokenToDocumentId(vwblERC721.address, 1);
+    const documentId = await vwblERC721.tokenIdToDocumentId(1);
     assert.equal(documentId, TEST_DOCUMENT_ID1);
 
     const isPermitted = await vwblGateway.hasAccessControl(accounts[2], TEST_DOCUMENT_ID1)
@@ -64,9 +64,6 @@ contract("VWBLGateway test", async (accounts) => {
 
     const createdToken = await vwblGateway.documentIdToToken(TEST_DOCUMENT_ID2);
     assert.equal(createdToken.contractAddress, externalNFT.address)
-
-    const documentId = await vwblGateway.tokenToDocumentId(externalNFT.address, 0);
-    assert.equal(documentId, TEST_DOCUMENT_ID2);
 
     const isPermitted = await vwblGateway.hasAccessControl(accounts[1], TEST_DOCUMENT_ID2)
     assert.equal(isPermitted, true)

@@ -13,7 +13,6 @@ contract VWBLGateway is Ownable {
     uint256 public feeWei = 1000000000000000000; // 1MATIC
     uint256 public pendingFee;
     mapping(bytes32 => Token) public documentIdToToken;
-    mapping(address => mapping (uint256 => bytes32)) public tokenToDocumentId;
     bytes32[] public documentIds;
 
     event feeWeiChanged(uint256 oldPercentage, uint256 newPercentage);
@@ -44,7 +43,6 @@ contract VWBLGateway is Ownable {
     ) internal {
         documentIdToToken[documentId].contractAddress = contractAddress;
         documentIdToToken[documentId].tokenId = tokenId;
-        tokenToDocumentId[contractAddress][tokenId] = documentId;
 
         emit accessControlAdded(documentId, contractAddress, tokenId);
     }

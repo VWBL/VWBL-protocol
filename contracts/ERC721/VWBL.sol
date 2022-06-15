@@ -24,6 +24,7 @@ abstract contract VWBLProtocol is ERC721Enumerable, IERC2981 {
 
     mapping(uint256 => TokenInfo) public tokenIdToTokenInfo;
     mapping(uint256 => RoyaltyInfo) public tokenIdToRoyaltyInfo;
+    mapping(uint256 => bytes32) public tokenIdToDocumentId;
 
     uint256 public constant INVERSE_BASIS_POINT = 10000;
 
@@ -126,6 +127,7 @@ contract VWBL is VWBLProtocol, Ownable, IVWBL {
         uint256 tokenId = super._mint(_documentId, _getKeyURl, _royaltiesPercentage);
 
         IVWBLGateway(gatewayContract).grantAccessControl{value: msg.value}(_documentId, address(this), tokenId);
+        tokenIdToDocumentId[tokenId] = _documentId;
 
         return tokenId;
     }
