@@ -70,7 +70,7 @@ abstract contract VWBLProtocol is ERC721Enumerable, IERC2981 {
     }
 
     function royaltyInfo(uint256 _tokenId, uint256 _salePrice)
-        external
+        public
         view
         override
         returns (address receiver, uint256 royaltyAmount)

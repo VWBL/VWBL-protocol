@@ -3,6 +3,7 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "../IVWBL.sol";
+import "../extensions/IRentableVWBL.sol";
 
 contract VWBLGateway is Ownable {
     struct Token {
@@ -28,6 +29,7 @@ contract VWBLGateway is Ownable {
             (
                 IERC721(documentIdToToken[documentId].contractAddress).ownerOf(documentIdToToken[documentId].tokenId) == user
                 || IVWBL(documentIdToToken[documentId].contractAddress).getMinter(documentIdToToken[documentId].tokenId) == user
+                || IRentableVWBL(documentIdToToken[documentId].contractAddress).onRentalByUser(documentIdToToken[documentId].tokenId, user)
             )
         ) {
             return true;
