@@ -35,6 +35,10 @@ contract RentableVWBL is VWBL, IRentableVWBL {
         address _gatewayContract
     ) VWBL(_baseURI, _gatewayContract) {}
 
+    function getListedTokenIds() public returns (uint256[] memory) {
+        return onRentalMarketTokenIds;
+    }
+
     function listRentalMarket(
         uint256 _tokenId,
         uint256 _rentalFeePerBlockNumber
