@@ -14,5 +14,9 @@ module.exports={
   ropsten: {
     vwblMetadataUrl: process.env.VWBL_METADATA_URL || "http://xxx.yyy.com",
     lazyMetadataUrl: process.env.LAZY_METADATA_URL || "http://xxx.zzz.com",
+  },
+  rinkeby: {
+    vwblMetadataUrl: process.env.VWBL_METADATA_URL || "http://xxx.yyy.com",
+    lazyMetadataUrl: process.env.LAZY_METADATA_URL || "http://xxx.zzz.com",
   }
 };
