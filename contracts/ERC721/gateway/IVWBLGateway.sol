@@ -9,8 +9,7 @@ interface IVWBLGateway {
     event accessControlAddedToNFT(bytes32 documentId, address contractAddress, uint256 tokenId);
     event accessControlAddedToContract(bytes32 documentId, address contractAddress);
     event feeWeiChanged(uint256 oldPercentage, uint256 newPercentage);
-    event permissionAdded(bytes32 documentId, address contractAddress, uint256 tokenId);
-
+    
     function getToken(bytes32 documentId) external view returns (address contractAddress, uint256 tokenId);
 
     function hasAccessControl(address user, bytes32 documentId) external view returns (bool);
