@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
@@ -125,7 +126,7 @@ contract VWBL is VWBLProtocol, Ownable, IVWBL {
     function mint(string memory _getKeyURl, uint256 _royaltiesPercentage, bytes32 _documentId) public payable returns (uint256) {
         uint256 tokenId = super._mint(_documentId, _getKeyURl, _royaltiesPercentage);
 
-        IVWBLGateway(gatewayContract).grantAccessControl{value: msg.value}(_documentId, address(this), tokenId);
+        IVWBLGateway(gatewayContract).grantAccessControlToNFT{value: msg.value}(_documentId, address(this), tokenId);
 
         return tokenId;
     }

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 pragma abicoder v2; // required to accept structs as function parameters
 
@@ -45,7 +46,7 @@ contract VWBLLazyMinting is EIP712Adaptor {
         pendingWithdrawals[voucher.minter] += msg.value - vwblFeeAmount;
 
         // grant access control to nft and pay vwbl fee
-        IVWBLGateway(gatewayContract).grantAccessControl{value: vwblFeeAmount}(voucher.documentId, address(this), tokenId);
+        IVWBLGateway(gatewayContract).grantAccessControlToNFT{value: vwblFeeAmount}(voucher.documentId, address(this), tokenId);
 
         // emit sell event
         IVWBLMarket(voucher.emitSoldEventContract).emitSoldEvent(
