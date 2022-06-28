@@ -1,6 +1,5 @@
 const { assert } = require("chai")
 const VWBLGateway = artifacts.require("VWBLGateway")
-const AccessControlCheckerByNFT = artifacts.require("AccessControlCheckerByNFT")
 const AccessCondition = artifacts.require("AccessCondition")
 const ExternalNFT = artifacts.require("ExternalNFT")
 const VWBLERC721 = artifacts.require("VWBL")
@@ -22,8 +21,6 @@ contract("VWBLGateway test", async (accounts) => {
 
   it("should deploy", async () => {
     vwblGateway = await VWBLGateway.new(web3.utils.toWei("1", "ether"), { from: accounts[0] })
-    const accessControlCheckerByNFT = await AccessControlCheckerByNFT.new(vwblGateway.address, { from: accounts[0]})
-    await vwblGateway.setAccessControlCheckerByNFT(accessControlCheckerByNFT.address);
     accessCondition = await AccessCondition.new();
     externalNFT = await ExternalNFT.new({ from: accounts[0] })
     vwblERC721 = await VWBLERC721.new("http://xxx.yyy.com", vwblGateway.address, { from: accounts[0] })

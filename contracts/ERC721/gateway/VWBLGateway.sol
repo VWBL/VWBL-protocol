@@ -1,16 +1,20 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
+
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "./GrantAccessControl.sol";
 import "./IAccessControlChecker.sol";
+import "./AccessControlCheckerByNFT.sol";
 
 contract VWBLGateway is GrantAccessControl, Ownable {
     address public accessControlCheckerByNFT;
-    
+
     event feeWeiChanged(uint256 oldPercentage, uint256 newPercentage);
     event accessControlCheckerByNFTChanged(address oldContract, address newContract);
     
     constructor(uint256 _feeWei) {
+        AccessControlCheckerByNFT _contract = new AccessControlCheckerByNFT(address(this));
+        accessControlCheckerByNFT = address(_contract);
         feeWei = _feeWei;
     }
 
