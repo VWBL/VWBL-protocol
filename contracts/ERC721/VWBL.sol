@@ -8,6 +8,7 @@ import "@openzeppelin/contracts/interfaces/IERC2981.sol";
 import "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 
 import "./IVWBL.sol";
+import "./gateway/IAccessControlCheckerByNFT.sol";
 import "./gateway/IVWBLGateway.sol";
 
 abstract contract VWBLProtocol is ERC721Enumerable, IERC2981 {
@@ -95,12 +96,19 @@ abstract contract VWBLProtocol is ERC721Enumerable, IERC2981 {
 contract VWBL is VWBLProtocol, Ownable, IVWBL {
     string public baseURI;
     address public gatewayContract;
+    address public accessCheckerContract;
 
     event gatewayContractChanged(address oldGatewayContract, address newGatewayContract);
+    event accessCheckerContractChanged(address oldAccessCheckerContract, address newAccessCheckerContract);
 
-    constructor(string memory _baseURI, address _gatewayContract) ERC721("VWBL", "VWBL") {
+    constructor(
+        string memory _baseURI, 
+        address _gatewayContract, 
+        address _accessCheckerContract
+    ) ERC721("VWBL", "VWBL") {
         baseURI = _baseURI;
         gatewayContract = _gatewayContract;
+        accessCheckerContract = _accessCheckerContract;
     }
 
     function _baseURI() internal view override returns (string memory) {
@@ -119,6 +127,14 @@ contract VWBL is VWBLProtocol, Ownable, IVWBL {
         emit gatewayContractChanged(oldGatewayContract, newGatewayContract);
     }
 
+    function setAccessCheckerContract(address newAccessCheckerContract) public onlyOwner {
+        require(newAccessCheckerContract != accessCheckerContract);
+        address oldAccessCheckerContract = accessCheckerContract;
+        accessCheckerContract = newAccessCheckerContract;
+
+        emit accessCheckerContractChanged(oldAccessCheckerContract, newAccessCheckerContract);
+    }
+
     function getFee() public view returns (uint256) {
         return IVWBLGateway(gatewayContract).feeWei();
     }
@@ -126,7 +142,8 @@ contract VWBL is VWBLProtocol, Ownable, IVWBL {
     function mint(string memory _getKeyURl, uint256 _royaltiesPercentage, bytes32 _documentId) public payable returns (uint256) {
         uint256 tokenId = super._mint(_documentId, _getKeyURl, _royaltiesPercentage);
 
-        IVWBLGateway(gatewayContract).grantAccessControlToNFT{value: msg.value}(_documentId, address(this), tokenId);
+        // grant access control to nft and pay vwbl fee and register nft data to access control checker contract
+        IAccessControlCheckerByNFT(accessCheckerContract).grantAccessControlAndRegisterNFT{value: msg.value}(_documentId, address(this), tokenId);
 
         return tokenId;
     }

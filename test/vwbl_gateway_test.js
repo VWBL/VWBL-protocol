@@ -1,5 +1,6 @@
 const { assert } = require("chai")
 const VWBLGateway = artifacts.require("VWBLGateway")
+const AccessControlCheckerByNFT = artifacts.require("AccessControlCheckerByNFT")
 const AccessCondition = artifacts.require("AccessCondition")
 const ExternalNFT = artifacts.require("ExternalNFT")
 const VWBLERC721 = artifacts.require("VWBL")
@@ -9,11 +10,12 @@ const { web3 } = require("@openzeppelin/test-helpers/src/setup")
 
 contract("VWBLGateway test", async (accounts) => {
   let vwblGateway
+  let accessControlCheckerByNFT;
+  let accessCondition;
   let externalNFT
   let vwblERC721
   let transferVWBLNFTContract
-  let accessCondition;
-
+  
   const TEST_DOCUMENT_ID1 = "0x7c00000000000000000000000000000000000000000000000000000000000000";
   const TEST_DOCUMENT_ID2 = "0x3c00000000000000000000000000000000000000000000000000000000000000";
   const TEST_DOCUMENT_ID3 = "0x6c00000000000000000000000000000000000000000000000000000000000000";
@@ -21,9 +23,10 @@ contract("VWBLGateway test", async (accounts) => {
 
   it("should deploy", async () => {
     vwblGateway = await VWBLGateway.new(web3.utils.toWei("1", "ether"), { from: accounts[0] })
+    accessControlCheckerByNFT = await AccessControlCheckerByNFT.new(vwblGateway.address, { from: accounts[0] })
     accessCondition = await AccessCondition.new();
     externalNFT = await ExternalNFT.new({ from: accounts[0] })
-    vwblERC721 = await VWBLERC721.new("http://xxx.yyy.com", vwblGateway.address, { from: accounts[0] })
+    vwblERC721 = await VWBLERC721.new("http://xxx.yyy.com", vwblGateway.address, accessControlCheckerByNFT.address, { from: accounts[0] })
     transferVWBLNFTContract = await TransferVWBLNFT.new();
 
     await externalNFT.mint(accounts[1])

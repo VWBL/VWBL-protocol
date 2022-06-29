@@ -12,8 +12,8 @@ contract EIP712Adaptor is EIP712, AccessControl, VWBLLazySupport {
     string private constant SIGNING_DOMAIN = "LazyNFT-Voucher";
     string private constant SIGNATURE_VERSION = "1";
 
-    constructor(address _signer, string memory _baseURI, address _gatewayContract) 
-        VWBLLazySupport(_baseURI, _gatewayContract)
+    constructor(address _signer, string memory _baseURI, address _gatewayContract, address _accessCheckerContract) 
+        VWBLLazySupport(_baseURI, _gatewayContract, _accessCheckerContract)
         EIP712(SIGNING_DOMAIN, SIGNATURE_VERSION)
     {
         _setupRole(SIGNER_ROLE, _signer);
