@@ -10,13 +10,14 @@ import "./IAccessControlCheckerByNFT.sol";
 
 contract AccessControlCheckerByNFT is IAccessControlChecker, IAccessControlCheckerByNFT, Ownable {
     struct Token {
-        address nftContract;
+        address contractAddress;
         uint256 tokenId;
     }
     mapping(bytes32 => Token) public documentIdToToken;
+    
     address public vwblGateway;
 
-    event nftDataRegistered(address nftContract, uint256 tokenId);
+    event nftDataRegistered(address contractAddress, uint256 tokenId);
     event vwblGatewayChanged(address oldVWBLGateway, address newVWBLGateway);
     
     constructor(address _vwblGateway) public {
@@ -27,7 +28,7 @@ contract AccessControlCheckerByNFT is IAccessControlChecker, IAccessControlCheck
         bytes32[] memory allDocumentIds = IVWBLGateway(vwblGateway).getDocumentIds();
         uint256 documentIdLength;
         for (uint256 i = 0; i < allDocumentIds.length; i++) {
-            if (documentIdToToken[allDocumentIds[i]].nftContract != address(0)) {
+            if (documentIdToToken[allDocumentIds[i]].contractAddress != address(0)) {
                 documentIdLength++;
             }
         }
@@ -35,7 +36,7 @@ contract AccessControlCheckerByNFT is IAccessControlChecker, IAccessControlCheck
         bytes32[] memory documentIds = new bytes32[](documentIdLength);
         Token[] memory tokens = new Token[](documentIdLength);
         for (uint256 i = 0; i < allDocumentIds.length; i++) {
-            if (documentIdToToken[allDocumentIds[i]].nftContract != address(0)) {
+            if (documentIdToToken[allDocumentIds[i]].contractAddress != address(0)) {
                 documentIds[i] = allDocumentIds[i];
                 tokens[i] = documentIdToToken[allDocumentIds[i]];
             }
@@ -50,8 +51,8 @@ contract AccessControlCheckerByNFT is IAccessControlChecker, IAccessControlCheck
         Token memory token = documentIdToToken[documentId];
 
         if (
-            IERC721(token.nftContract).ownerOf(token.tokenId) == user
-            || IVWBL(token.nftContract).getMinter(token.tokenId) == user
+            IERC721(token.contractAddress).ownerOf(token.tokenId) == user
+            || IVWBL(token.contractAddress).getMinter(token.tokenId) == user
         ) {
             return true;
         }
@@ -62,7 +63,7 @@ contract AccessControlCheckerByNFT is IAccessControlChecker, IAccessControlCheck
     function grantAccessControlAndRegisterNFT(bytes32 documentId, address nftContract, uint256 tokenId) public payable {
         IVWBLGateway(vwblGateway).grantAccessControl{value: msg.value}(documentId, address(this));
     
-        documentIdToToken[documentId].nftContract = nftContract;
+        documentIdToToken[documentId].contractAddress = nftContract;
         documentIdToToken[documentId].tokenId = tokenId;
 
         emit nftDataRegistered(nftContract, tokenId);
