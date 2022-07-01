@@ -1,7 +1,9 @@
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 pragma abicoder v2; // required to accept structs as function parameters
 
 import "./EIP712Adaptor.sol";
+import "../gateway/IAccessControlCheckerByNFT.sol";
 import "../gateway/IVWBLGateway.sol";
 import "./IVWBLMarket.sol";
 
@@ -9,7 +11,12 @@ contract VWBLLazyMinting is EIP712Adaptor {
     mapping(address => uint256) public pendingWithdrawals;
     string[] public randomStringArray;
 
-    constructor(address _signer, string memory _baseURI, address _gatewayContract) EIP712Adaptor(_signer, _baseURI, _gatewayContract) {}
+    constructor(
+        address _signer, 
+        string memory _baseURI, 
+        address _gatewayContract,
+        address _accessCheckerContract
+    ) EIP712Adaptor(_signer, _baseURI, _gatewayContract, _accessCheckerContract) {}
 
     /// @notice Redeems an NFTVoucher for an actual NFT, creating it in the process.
     /// @param redeemer The address of the account which will receive the NFT upon success.
@@ -44,8 +51,8 @@ contract VWBLLazyMinting is EIP712Adaptor {
         // record payment to minter's withdrawal balance
         pendingWithdrawals[voucher.minter] += msg.value - vwblFeeAmount;
 
-        // grant access control to nft and pay vwbl fee
-        IVWBLGateway(gatewayContract).grantAccessControl{value: vwblFeeAmount}(voucher.documentId, address(this), tokenId);
+        // grant access control to nft and pay vwbl fee and register nft data to access control checker contract
+        IAccessControlCheckerByNFT(accessCheckerContract).grantAccessControlAndRegisterNFT{value: vwblFeeAmount}(voucher.documentId,address(this), tokenId);
 
         // emit sell event
         IVWBLMarket(voucher.emitSoldEventContract).emitSoldEvent(

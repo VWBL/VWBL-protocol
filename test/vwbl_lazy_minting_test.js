@@ -3,6 +3,7 @@ const hardhat = require("hardhat");
 const { LazyMinter } = require("../lib/index");
 const { ethers } = hardhat;
 const VWBLGateway = artifacts.require("VWBLGateway");
+const AccessControlCheckerByNFT = artifacts.require("AccessControlCheckerByNFT")
 const transferVWBLNFT = artifacts.require("TransferVWBLNFT");
 const lazyVWBL = artifacts.require("VWBLLazyMinting");
 const market = artifacts.require("Market");
@@ -14,6 +15,7 @@ contract ("VWBLLazyMinting test", async accounts => {
     let invalidSigner;
     let transferVWBLNFTContract;
     let vwblGateway;
+    let accessControlCheckerByNFT;
     let lazyVWBLContract;
     let marketContract;
     let chainId;
@@ -35,10 +37,12 @@ contract ("VWBLLazyMinting test", async accounts => {
         invalidSigner = _invalidSigner;
         signerAddress = await signer.getAddress();
         vwblGateway = await VWBLGateway.new(web3.utils.toWei("1", "ether"), { from: accounts[0] });
+        accessControlCheckerByNFT = await AccessControlCheckerByNFT.new(vwblGateway.address, { from: accounts[0] })
         lazyVWBLContract = await lazyVWBL.new(
             signerAddress, 
             "http://xxx.zzz.com",
             vwblGateway.address,
+            accessControlCheckerByNFT.address,
             {
                 from: accounts[0],
             }

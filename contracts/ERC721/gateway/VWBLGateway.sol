@@ -1,75 +1,53 @@
-// SPDX-License-Identifier: ISC
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
-import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
-import "../IVWBL.sol";
 
-contract VWBLGateway is Ownable {
-    struct Token {
-        address contractAddress;
-        uint256 tokenId;
-    }
-    
-    uint256 public feeWei = 1000000000000000000; // 1MATIC
-    uint256 public pendingFee;
-    mapping(bytes32 => Token) public documentIdToToken;
+import "@openzeppelin/contracts/access/Ownable.sol";
+import "./IAccessControlChecker.sol";
+import "./IVWBLGateway.sol";
+
+contract VWBLGateway is IVWBLGateway, Ownable {
+    mapping (bytes32 => address) public documentIdToConditionContract;
     bytes32[] public documentIds;
 
-    event feeWeiChanged(uint256 oldPercentage, uint256 newPercentage);
-    event accessControlAdded(bytes32 documentId, address contractAddress, uint256 tokenId);
+    uint256 public feeWei = 1000000000000000000; // 1MATIC
+    uint256 public pendingFee;
 
+    event accessControlAdded(bytes32 documentId, address conditionContract);
+    event feeWeiChanged(uint256 oldPercentage, uint256 newPercentage);
+    
     constructor(uint256 _feeWei) {
         feeWei = _feeWei;
     }
 
+    function getDocumentIds() public view returns (bytes32[] memory) {
+        return documentIds;
+    }
+
     function hasAccessControl(address user, bytes32 documentId) public view returns (bool) {
-        if (
-            documentIdToToken[documentId].contractAddress != address(0) &&
-            (
-                IERC721(documentIdToToken[documentId].contractAddress).ownerOf(documentIdToToken[documentId].tokenId) == user
-                || IVWBL(documentIdToToken[documentId].contractAddress).getMinter(documentIdToToken[documentId].tokenId) == user
-            )
-        ) {
-            return true;
+        address accessConditionContractAddress = documentIdToConditionContract[documentId];
+        if (accessConditionContractAddress != address(0)) {
+            return IAccessControlChecker(accessConditionContractAddress).checkAccessControl(user, documentId);
         }
 
         return false;
     }
 
-    function _addAccessControl(
-        bytes32 documentId,
-        address contractAddress,
-        uint256 tokenId
-    ) internal {
-        documentIdToToken[documentId].contractAddress = contractAddress;
-        documentIdToToken[documentId].tokenId = tokenId;
-
-        emit accessControlAdded(documentId, contractAddress, tokenId);
-    }
-
     function grantAccessControl(
         bytes32 documentId,
-        address contractAddress,
-        uint256 tokenId
+        address conditionContractAddress
     ) public payable {
-        require(msg.value >= feeWei, "Fee is insufficient");
         require(msg.value <= feeWei, "Fee is too high");
+        require(msg.value >= feeWei, "Fee is insufficient");
         require(
-            documentIdToToken[documentId].contractAddress == address(0), 
+            documentIdToConditionContract[documentId] == address(0),
             "documentId is already used"
         );
-
+        
         pendingFee += msg.value;
-        _addAccessControl(documentId, contractAddress, tokenId);
+        documentIdToConditionContract[documentId] = conditionContractAddress;
         documentIds.push(documentId);
-    }
 
-    function getNFTDatas() public view returns (bytes32[] memory, Token[] memory){
-        Token[] memory tokens = new Token[](documentIds.length);
-        for (uint32 i = 0; i < documentIds.length; i++) {
-            tokens[i] = documentIdToToken[documentIds[i]];
-        }
-        return (documentIds, tokens);
+        emit accessControlAdded(documentId, conditionContractAddress);
     }
 
     function withdrawFee() public onlyOwner {

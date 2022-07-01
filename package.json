@@ -16,7 +16,7 @@
     "url": "git+https://github.com/VWBL/VWBL-protocol.git"
   },
   "author": "Ango-ya",
-  "license": "ISC",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/VWBL/VWBL-protocol/issues"
   },

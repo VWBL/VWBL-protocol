@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: ISC
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
 /**
@@ -6,16 +6,13 @@ pragma solidity ^0.8.0;
  * https://github.com/VWBL-protocol/contracts/ERC721/gateway/VWBLGateway.sol
  */
 interface IVWBLGateway {
-    event accessControlAdded(bytes32 documentId, address contractAddress, uint256 tokenId);
-    event feeWeiChanged(uint256 oldPercentage, uint256 newPercentage);
-    event permissionAdded(bytes32 documentId, address contractAddress, uint256 tokenId);
+    function getDocumentIds() external view returns (bytes32[] memory);
 
     function hasAccessControl(address user, bytes32 documentId) external view returns (bool);
 
     function grantAccessControl(
         bytes32 documentId,
-        address contractAddress,
-        uint256 tokenId
+        address conditionContractAddress
     ) external payable;
 
     function withdrawFee() external;

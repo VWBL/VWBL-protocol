@@ -1,11 +1,13 @@
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 import "../VWBL.sol";
 
 contract VWBLLazySupport is VWBL {
     constructor(
         string memory _baseURI,
-        address _gatewayContract
-    ) VWBL(_baseURI, _gatewayContract) {}
+        address _gatewayContract,
+        address _accessCheckerContract
+    ) VWBL(_baseURI, _gatewayContract, _accessCheckerContract) {}
 
     function mint(address _minter, string memory _getKeyURl, uint256 _royaltiesPercentage) internal returns (uint256) {
         uint256 tokenId = ++counter;
