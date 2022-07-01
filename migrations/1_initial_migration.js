@@ -37,7 +37,7 @@ const migrateLazyVWBL = async (config) => {
 
 module.exports = async function (deployer, network, accounts) {
   const config = configs[network]
-  if (network === "develop") {
+  if (network === "test") {
     // when testing
     await migrateTest(config, deployer, accounts)
   } else {
