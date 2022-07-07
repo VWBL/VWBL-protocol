@@ -26,8 +26,6 @@
     "@openzeppelin/test-helpers": "^0.5.15",
     "@truffle/hdwallet-provider": "^2.0.4",
     "dotenv": "^16.0.1",
-    "ethers": "^5.5.4",
-    "hardhat": "^2.8.4",
     "truffle": "^5.5.14"
   }
 }
