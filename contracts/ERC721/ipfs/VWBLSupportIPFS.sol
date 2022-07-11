@@ -7,12 +7,15 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/interfaces/IERC2981.sol";
 import "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 
-import "./IVWBL.sol";
-import "./access-condition/IAccessControlCheckerByNFT.sol";
-import "./gateway/IVWBLGateway.sol";
+import "./IVWBLSupportIPFS.sol";
+import "../access-condition/IAccessControlCheckerByNFT.sol";
+import "../gateway/IVWBLGateway.sol";
 
 abstract contract VWBLProtocol is ERC721Enumerable, IERC2981 {
+    mapping(uint256 => string) private _tokenURIs;
+    
     uint256 public counter = 0;
+    
     struct TokenInfo {
         bytes32 documentId;
         address minterAddress;
@@ -29,11 +32,25 @@ abstract contract VWBLProtocol is ERC721Enumerable, IERC2981 {
 
     uint256 public constant INVERSE_BASIS_POINT = 10000;
 
-    function _mint(bytes32 _documentId, string memory _getKeyURl, uint256 _royaltiesPercentage) internal returns (uint256) {
+    function tokenURI(uint256 tokenId) public view override returns (string memory) {
+        require(
+            bytes(_tokenURIs[tokenId]).length != 0,
+            "ERC721: invalid token ID"
+        );
+        return _tokenURIs[tokenId];
+    }
+
+    function _mint(
+        bytes32 _documentId, 
+        string memory _metadataURl,
+        string memory _getKeyURl, 
+        uint256 _royaltiesPercentage
+    ) internal returns (uint256) {
         uint256 tokenId = ++counter;
         TokenInfo memory tokenInfo = TokenInfo(_documentId, msg.sender, _getKeyURl);
         tokenIdToTokenInfo[tokenId] = tokenInfo;
         _mint(msg.sender, tokenId);
+        _tokenURIs[tokenId] = _metadataURl;
         if (_royaltiesPercentage > 0) {
             _setRoyalty(tokenId, msg.sender, _royaltiesPercentage);
         }
@@ -93,8 +110,7 @@ abstract contract VWBLProtocol is ERC721Enumerable, IERC2981 {
     }
 }
 
-contract VWBL is VWBLProtocol, Ownable, IVWBL {
-    string public baseURI;
+contract VWBLSupportIPFS is VWBLProtocol, Ownable, IVWBLSupportIPFS {
     address public gatewayContract;
     address public accessCheckerContract;
 
@@ -102,21 +118,11 @@ contract VWBL is VWBLProtocol, Ownable, IVWBL {
     event accessCheckerContractChanged(address oldAccessCheckerContract, address newAccessCheckerContract);
 
     constructor(
-        string memory _baseURI, 
         address _gatewayContract, 
         address _accessCheckerContract
     ) ERC721("VWBL", "VWBL") {
-        baseURI = _baseURI;
         gatewayContract = _gatewayContract;
         accessCheckerContract = _accessCheckerContract;
-    }
-
-    function _baseURI() internal view override returns (string memory) {
-        return baseURI;
-    }
-
-    function setBaseURI(string memory _baseURI) public onlyOwner {
-        baseURI = _baseURI;
     }
 
     function setGatewayContract(address newGatewayContract) public onlyOwner {
@@ -139,8 +145,13 @@ contract VWBL is VWBLProtocol, Ownable, IVWBL {
         return IVWBLGateway(gatewayContract).feeWei();
     }
 
-    function mint(string memory _getKeyURl, uint256 _royaltiesPercentage, bytes32 _documentId) public payable returns (uint256) {
-        uint256 tokenId = super._mint(_documentId, _getKeyURl, _royaltiesPercentage);
+    function mint(
+        string memory _metadataURl,
+        string memory _getKeyURl, 
+        uint256 _royaltiesPercentage, 
+        bytes32 _documentId
+    ) public payable returns (uint256) {
+        uint256 tokenId = super._mint(_documentId, _metadataURl, _getKeyURl, _royaltiesPercentage);
 
         // grant access control to nft and pay vwbl fee and register nft data to access control checker contract
         IAccessControlCheckerByNFT(accessCheckerContract).grantAccessControlAndRegisterNFT{value: msg.value}(_documentId, address(this), tokenId);

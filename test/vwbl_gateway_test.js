@@ -4,22 +4,25 @@ const AccessControlCheckerByNFT = artifacts.require("AccessControlCheckerByNFT")
 const AccessCondition = artifacts.require("AccessCondition")
 const ExternalNFT = artifacts.require("ExternalNFT")
 const VWBLERC721 = artifacts.require("VWBL")
+const VWBLIPFS = artifacts.require("VWBLSupportIPFS")
 const TransferVWBLNFT = artifacts.require("TransferVWBLNFT")
 const { expectRevert } = require("@openzeppelin/test-helpers")
 const { web3 } = require("@openzeppelin/test-helpers/src/setup")
 
 contract("VWBLGateway test", async (accounts) => {
-  let vwblGateway
+  let vwblGateway;
   let accessControlCheckerByNFT;
   let accessCondition;
-  let externalNFT
-  let vwblERC721
-  let transferVWBLNFTContract
+  let externalNFT;
+  let vwblERC721;
+  let vwblIPFS;
+  let transferVWBLNFTContract;
   
   const TEST_DOCUMENT_ID1 = "0x7c00000000000000000000000000000000000000000000000000000000000000";
   const TEST_DOCUMENT_ID2 = "0x3c00000000000000000000000000000000000000000000000000000000000000";
   const TEST_DOCUMENT_ID3 = "0x6c00000000000000000000000000000000000000000000000000000000000000";
-  const TEST_DOCUMENT_ID4 = "0x1c00000000000000000000000000000000000000000000000000000000000000"
+  const TEST_DOCUMENT_ID4 = "0x1c00000000000000000000000000000000000000000000000000000000000000";
+  const TEST_DOCUMENT_ID5 = "0x8c00000000000000000000000000000000000000000000000000000000000000";
 
   it("should deploy", async () => {
     vwblGateway = await VWBLGateway.new(web3.utils.toWei("1", "ether"), { from: accounts[0] })
@@ -27,6 +30,7 @@ contract("VWBLGateway test", async (accounts) => {
     accessCondition = await AccessCondition.new();
     externalNFT = await ExternalNFT.new({ from: accounts[0] })
     vwblERC721 = await VWBLERC721.new("http://xxx.yyy.com", vwblGateway.address, accessControlCheckerByNFT.address, { from: accounts[0] })
+    vwblIPFS = await VWBLIPFS.new(vwblGateway.address, accessControlCheckerByNFT.address, { from: accounts[0] })
     transferVWBLNFTContract = await TransferVWBLNFT.new();
 
     await externalNFT.mint(accounts[1])
@@ -181,6 +185,51 @@ contract("VWBLGateway test", async (accounts) => {
     await accessCondition.setCondition(false);
     const isPermitted = await vwblGateway.hasAccessControl(accounts[1], TEST_DOCUMENT_ID4);
     assert.equal(isPermitted, false);
+  })
+
+  it("should successfully grant AccessControl under VWBLSupportIPFS.mint()", async () => {
+    const beforeBalance = await web3.eth.getBalance(vwblGateway.address)
+    await vwblIPFS.mint(
+      "https://infura-ipfs.io/ipfs/QmeGAVddnBSnKc1DLE7DLV9uuTqo5F7QbaveTjr45JUdQn",
+      "http://xxx.yyy.com", 
+      500, 
+      TEST_DOCUMENT_ID5, 
+    {
+      from: accounts[2],
+      value: web3.utils.toWei("1", "ether"),
+    })
+
+    const afterBalance = await web3.eth.getBalance(vwblGateway.address)
+    assert.equal(Number(afterBalance) - Number(beforeBalance), web3.utils.toWei("1", "ether"))
+
+    const createdToken = await accessControlCheckerByNFT.documentIdToToken(TEST_DOCUMENT_ID5);
+    assert.equal(createdToken.contractAddress, vwblIPFS.address)
+
+    const isPermitted = await vwblGateway.hasAccessControl(accounts[2], TEST_DOCUMENT_ID5)
+    assert.equal(isPermitted, true)
+
+    const metadataURI = await vwblIPFS.tokenURI(1);
+    assert.equal(metadataURI, "https://infura-ipfs.io/ipfs/QmeGAVddnBSnKc1DLE7DLV9uuTqo5F7QbaveTjr45JUdQn")
+  })
+
+  it("should not withdraw fee from not contract owner", async () => {
+    await expectRevert(
+      vwblGateway.withdrawFee({from: accounts[1]}),
+      "Ownable: caller is not the owner"
+    )
+  })
+
+  it("should withdraw fee from contract owner", async () => {
+    const beforeOwnerBalance = await web3.eth.getBalance(accounts[0]);
+    const beforeGatewayBalance = await web3.eth.getBalance(vwblGateway.address);
+    
+    await vwblGateway.withdrawFee({from: accounts[0]});
+
+    const afterOwnerBalance = await web3.eth.getBalance(accounts[0]);
+    const afterGatewayBalance = await web3.eth.getBalance(vwblGateway.address);
+    assert.equal(afterGatewayBalance, web3.utils.toWei("0"));
+    console.log("    Change of gateway contract balance:", Number(beforeGatewayBalance) - Number(afterGatewayBalance));
+    console.log("    Change of contract owner balance: ", Number(afterOwnerBalance) - Number(beforeOwnerBalance));
   })
 
   it("should not set feeWei from not contract owner", async () => {
