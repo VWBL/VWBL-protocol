@@ -3,10 +3,10 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
-import "../IVWBL.sol";
-import "./IVWBLGateway.sol";
-import "./IAccessControlChecker.sol";
-import "./IAccessControlCheckerByNFT.sol";
+import "../ERC721/IVWBL.sol";
+import "../ERC721/gateway/IVWBLGateway.sol";
+import "../access-condition/IAccessControlChecker.sol";
+import "../access-condition/IAccessControlCheckerByNFT.sol";
 
 contract AccessControlCheckerByNFT is IAccessControlChecker, IAccessControlCheckerByNFT, Ownable {
     struct Token {
