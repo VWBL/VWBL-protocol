@@ -3,8 +3,8 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
-import "../IVWBL.sol";
-import "../gateway/IVWBLGateway.sol";
+import "../ERC721/IVWBL.sol";
+import "../ERC721/gateway/IVWBLGateway.sol";
 import "./IAccessControlChecker.sol";
 import "./IAccessControlCheckerByNFT.sol";
 
