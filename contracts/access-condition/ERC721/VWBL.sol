@@ -8,8 +8,8 @@ import "@openzeppelin/contracts/interfaces/IERC2981.sol";
 import "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 
 import "./IVWBL.sol";
-import "../access-condition/IAccessControlCheckerByNFT.sol";
-import "../gateway/IVWBLGateway.sol";
+import "./IAccessControlCheckerByNFT.sol";
+import "../../gateway/IVWBLGateway.sol";
 
 abstract contract VWBLProtocol is ERC721Enumerable, IERC2981 {
     uint256 public counter = 0;

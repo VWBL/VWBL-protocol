@@ -5,8 +5,8 @@ import "./ERC1155Enumerable.sol";
 import "./dependencies/IERC2981.sol";
 import "./dependencies/IERC165.sol";
 import "./dependencies/Ownable.sol";
-import "../access-condition/IAccessControlCheckerByERC1155.sol";
-import "../gateway/IVWBLGateway.sol";
+import "./IAccessControlCheckerByERC1155.sol";
+import "../../gateway/IVWBLGateway.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
 contract VWBLERC1155 is IERC2981, Ownable, ERC1155Enumerable {

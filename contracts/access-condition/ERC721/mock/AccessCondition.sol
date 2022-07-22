@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "../../access-condition/IAccessControlChecker.sol";
+import "../../IAccessControlChecker.sol";
 
 contract AccessCondition is IAccessControlChecker {
     bool condition = true;
