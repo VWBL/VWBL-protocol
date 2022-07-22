@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "../../access-condition/IAccessControlChecker.sol";
+import "../access-condition/IAccessControlChecker.sol";
 import "./IVWBLGateway.sol";
 
 contract VWBLGateway is IVWBLGateway, Ownable {

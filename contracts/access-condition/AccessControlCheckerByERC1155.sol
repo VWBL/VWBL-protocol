@@ -2,13 +2,13 @@
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
-import "../ERC721/IVWBL.sol";
+import "../ERC1155/dependencies/IERC1155.sol";
 import "../gateway/IVWBLGateway.sol";
 import "./IAccessControlChecker.sol";
-import "./IAccessControlCheckerByNFT.sol";
+import "./IAccessControlCheckerByERC1155.sol";
+import "../ERC1155/IVWBLERC1155.sol";
 
-contract AccessControlCheckerByNFT is IAccessControlChecker, IAccessControlCheckerByNFT, Ownable {
+contract AccessControlCheckerByERC1155 is IAccessControlChecker, IAccessControlCheckerByERC1155, Ownable {
     struct Token {
         address contractAddress;
         uint256 tokenId;
@@ -17,14 +17,14 @@ contract AccessControlCheckerByNFT is IAccessControlChecker, IAccessControlCheck
     
     address public vwblGateway;
 
-    event nftDataRegistered(address contractAddress, uint256 tokenId);
+    event erc1155DataRegistered(address contractAddress, uint256 tokenId);
     event vwblGatewayChanged(address oldVWBLGateway, address newVWBLGateway);
     
-    constructor(address _vwblGateway) {
+    constructor(address _vwblGateway) public {
         vwblGateway = _vwblGateway;
     }
 
-    function getNFTDatas() public view returns (bytes32[] memory, Token[] memory) {
+    function getERC1155Datas() public view returns (bytes32[] memory, Token[] memory) {
         bytes32[] memory allDocumentIds = IVWBLGateway(vwblGateway).getDocumentIds();
         uint256 documentIdLength;
         for (uint256 i = 0; i < allDocumentIds.length; i++) {
@@ -51,8 +51,8 @@ contract AccessControlCheckerByNFT is IAccessControlChecker, IAccessControlCheck
         Token memory token = documentIdToToken[documentId];
 
         if (
-            IERC721(token.contractAddress).ownerOf(token.tokenId) == user
-            || IVWBL(token.contractAddress).getMinter(token.tokenId) == user
+            IERC1155(token.contractAddress).balanceOf(user, token.tokenId) > 0
+            || IVWBLERC1155(token.contractAddress).getMinter(token.tokenId) == user
         ) {
             return true;
         }
@@ -60,13 +60,13 @@ contract AccessControlCheckerByNFT is IAccessControlChecker, IAccessControlCheck
         return false;
     } 
 
-    function grantAccessControlAndRegisterNFT(bytes32 documentId, address nftContract, uint256 tokenId) public payable {
+    function grantAccessControlAndRegisterERC1155(bytes32 documentId, address erc1155Contract, uint256 tokenId) public payable {
         IVWBLGateway(vwblGateway).grantAccessControl{value: msg.value}(documentId, address(this));
     
-        documentIdToToken[documentId].contractAddress = nftContract;
+        documentIdToToken[documentId].contractAddress = erc1155Contract;
         documentIdToToken[documentId].tokenId = tokenId;
 
-        emit nftDataRegistered(nftContract, tokenId);
+        emit erc1155DataRegistered(erc1155Contract, tokenId);
     }
 
 

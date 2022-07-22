@@ -9,7 +9,7 @@ import "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 
 import "./IVWBLSupportIPFS.sol";
 import "../../access-condition/IAccessControlCheckerByNFT.sol";
-import "../gateway/IVWBLGateway.sol";
+import "../../gateway/IVWBLGateway.sol";
 
 abstract contract VWBLProtocol is ERC721Enumerable, IERC2981 {
     mapping(uint256 => string) private _tokenURIs;

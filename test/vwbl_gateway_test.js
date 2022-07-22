@@ -256,12 +256,23 @@ contract("VWBLGateway test", async (accounts) => {
       }),
       "Ownable: caller is not the owner"
     )
+
+    await expectRevert(
+      vwblERC721.setGatewayContract(accounts[5], {
+        from: accounts[1],
+      }),
+      "Ownable: caller is not the owner"
+    )
   })
 
   it ("should set VWBLGateway contract from contract owner", async () => {
     await accessControlCheckerByNFT.setVWBLGateway(accounts[4], { from: accounts[0] });
-    const newContract = await accessControlCheckerByNFT.vwblGateway();
+    let newContract = await accessControlCheckerByNFT.vwblGateway();
     assert.equal(newContract, accounts[4]);
+
+    await vwblERC721.setGatewayContract(accounts[5], { from: accounts[0] });
+    newContract = await vwblERC721.gatewayContract();
+    assert.equal(newContract, accounts[5]);
   })
 
   it("should not set Access check contract from not contract owner", async () => {
