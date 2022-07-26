@@ -2,11 +2,11 @@
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "../ERC1155/dependencies/IERC1155.sol";
-import "../gateway/IVWBLGateway.sol";
-import "./IAccessControlChecker.sol";
+import "./dependencies/IERC1155.sol";
+import "../../gateway/IVWBLGateway.sol";
+import "../IAccessControlChecker.sol";
 import "./IAccessControlCheckerByERC1155.sol";
-import "../ERC1155/IVWBLERC1155.sol";
+import "./IVWBLERC1155.sol";
 
 contract AccessControlCheckerByERC1155 is IAccessControlChecker, IAccessControlCheckerByERC1155, Ownable {
     struct Token {
