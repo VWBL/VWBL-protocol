@@ -57,6 +57,10 @@ abstract contract VWBLProtocol is ERC721Enumerable, IERC2981 {
         return tokenId;
     }
 
+    /**
+     * @notice Get token Info for each minter
+     * @param minter The address of NFT Minter
+     */
     function getTokenByMinter(address minter)
         public
         view
@@ -110,6 +114,10 @@ abstract contract VWBLProtocol is ERC721Enumerable, IERC2981 {
     }
 }
 
+/**
+ * @dev NFT which is added Viewable features that only NFT Owner can view digital content
+ *      Unlike the VWBL.sol, the metadata url is stored when mint.
+ */
 contract VWBLSupportIPFS is VWBLProtocol, Ownable, IVWBLSupportIPFS {
     address public gatewayContract;
     address public accessCheckerContract;
@@ -125,6 +133,10 @@ contract VWBLSupportIPFS is VWBLProtocol, Ownable, IVWBLSupportIPFS {
         accessCheckerContract = _accessCheckerContract;
     }
 
+    /**
+     * @notice Set new VWBL Gateway contract address
+     * @param newGatewayContract The contract address of new VWBLGateway
+     */
     function setGatewayContract(address newGatewayContract) public onlyOwner {
         require(newGatewayContract != gatewayContract);
         address oldGatewayContract = gatewayContract;
@@ -133,6 +145,10 @@ contract VWBLSupportIPFS is VWBLProtocol, Ownable, IVWBLSupportIPFS {
         emit gatewayContractChanged(oldGatewayContract, newGatewayContract);
     }
 
+    /**
+     * @notice Set new access condition contract address
+     * @param newAccessCheckerContract The contract address of new access condition contract
+     */
     function setAccessCheckerContract(address newAccessCheckerContract) public onlyOwner {
         require(newAccessCheckerContract != accessCheckerContract);
         address oldAccessCheckerContract = accessCheckerContract;
@@ -141,10 +157,20 @@ contract VWBLSupportIPFS is VWBLProtocol, Ownable, IVWBLSupportIPFS {
         emit accessCheckerContractChanged(oldAccessCheckerContract, newAccessCheckerContract);
     }
 
+    /**
+     * @notice Get VWBL Fee
+     */
     function getFee() public view returns (uint256) {
         return IVWBLGateway(gatewayContract).feeWei();
     }
 
+    /**
+     * @notice Mint NFT, grant access feature and register access condition of digital content.
+     * @param _metadataURl The URl of nft metadata
+     * @param _getKeyURl The URl of VWBL Network(Key management network)
+     * @param _royaltiesPercentage Royalty percentage of NFT
+     * @param _documentId The Identifier of digital content and decryption key
+     */
     function mint(
         string memory _metadataURl,
         string memory _getKeyURl, 
@@ -159,6 +185,10 @@ contract VWBLSupportIPFS is VWBLProtocol, Ownable, IVWBLSupportIPFS {
         return tokenId;
     }
 
+    /**
+     * @notice Get minter of NFT by tokenId
+     * @param tokenId The Identifier of NFT
+     */
     function getMinter(uint256 tokenId) public view returns (address) {
         return tokenIdToTokenInfo[tokenId].minterAddress;
     }

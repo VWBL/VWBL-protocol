@@ -40,6 +40,10 @@ abstract contract VWBLProtocol is ERC721Enumerable, IERC2981 {
         return tokenId;
     }
 
+    /**
+     * @notice Get token Info for each minter
+     * @param minter The address of NFT Minter
+     */
     function getTokenByMinter(address minter)
         public
         view
@@ -71,6 +75,13 @@ abstract contract VWBLProtocol is ERC721Enumerable, IERC2981 {
         return interfaceId == type(IERC2981).interfaceId || super.supportsInterface(interfaceId);
     }
 
+    /**
+     * @notice Called with the sale price to determine how much royalty is owned and to whom,
+     * @param _tokenId The NFT asset queried for royalty information
+     * @param _salePrice The sale price of the NFT asset specified by _tokenId
+     * @return receiver Address of who should be sent the royalty payment
+     * @return royaltyAmount The royalty payment amount for _salePrice
+     */
     function royaltyInfo(uint256 _tokenId, uint256 _salePrice)
         external
         view
@@ -93,6 +104,9 @@ abstract contract VWBLProtocol is ERC721Enumerable, IERC2981 {
     }
 }
 
+/**
+ * @dev NFT which is added Viewable features that only NFT Owner can view digital content
+ */
 contract VWBL is VWBLProtocol, Ownable, IVWBL {
     string public baseURI;
     address public gatewayContract;
@@ -111,14 +125,25 @@ contract VWBL is VWBLProtocol, Ownable, IVWBL {
         accessCheckerContract = _accessCheckerContract;
     }
 
+    /**
+     * @notice BaseURI for computing {tokenURI}.
+     */
     function _baseURI() internal view override returns (string memory) {
         return baseURI;
     }
 
+    /**
+     * @notice Set BaseURI.
+     * @param _baseURI new BaseURI
+     */
     function setBaseURI(string memory _baseURI) public onlyOwner {
         baseURI = _baseURI;
     }
 
+    /**
+     * @notice Set new VWBL Gateway contract address
+     * @param newGatewayContract The contract address of new VWBLGateway
+     */
     function setGatewayContract(address newGatewayContract) public onlyOwner {
         require(newGatewayContract != gatewayContract);
         address oldGatewayContract = gatewayContract;
@@ -127,6 +152,10 @@ contract VWBL is VWBLProtocol, Ownable, IVWBL {
         emit gatewayContractChanged(oldGatewayContract, newGatewayContract);
     }
 
+    /**
+     * @notice Set new access condition contract address
+     * @param newAccessCheckerContract The contract address of new access condition contract
+     */
     function setAccessCheckerContract(address newAccessCheckerContract) public onlyOwner {
         require(newAccessCheckerContract != accessCheckerContract);
         address oldAccessCheckerContract = accessCheckerContract;
@@ -135,10 +164,19 @@ contract VWBL is VWBLProtocol, Ownable, IVWBL {
         emit accessCheckerContractChanged(oldAccessCheckerContract, newAccessCheckerContract);
     }
 
+    /**
+     * @notice Get VWBL Fee
+     */
     function getFee() public view returns (uint256) {
         return IVWBLGateway(gatewayContract).feeWei();
     }
 
+    /**
+     * @notice Mint NFT, grant access feature and register access condition of digital content.
+     * @param _getKeyURl The URl of VWBL Network(Key management network)
+     * @param _royaltiesPercentage Royalty percentage of NFT
+     * @param _documentId The Identifier of digital content and decryption key
+     */
     function mint(string memory _getKeyURl, uint256 _royaltiesPercentage, bytes32 _documentId) public payable returns (uint256) {
         uint256 tokenId = super._mint(_documentId, _getKeyURl, _royaltiesPercentage);
 
@@ -148,6 +186,10 @@ contract VWBL is VWBLProtocol, Ownable, IVWBL {
         return tokenId;
     }
 
+    /**
+     * @notice Get minter of NFT by tokenId
+     * @param tokenId The Identifier of NFT
+     */
     function getMinter(uint256 tokenId) public view returns (address) {
         return tokenIdToTokenInfo[tokenId].minterAddress;
     }

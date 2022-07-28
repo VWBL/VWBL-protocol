@@ -9,6 +9,9 @@ import "./IAccessControlCheckerByERC1155.sol";
 import "../../gateway/IVWBLGateway.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
+/**
+ * @dev Erc1155 which is added Viewable features that only ERC1155 Owner can view digital content
+ */
 contract VWBLERC1155 is IERC2981, Ownable, ERC1155Enumerable {
     using SafeMath for uint256;
 
@@ -44,10 +47,18 @@ contract VWBLERC1155 is IERC2981, Ownable, ERC1155Enumerable {
         accessCheckerContract = _accessCheckerContract;
     }
 
+    /**
+     * @notice Set BaseURI.
+     * @param _baseURI new BaseURI
+     */
     function setBaseURI(string memory _baseURI) public onlyOwner {
         _setURI(_baseURI);
     }
 
+    /**
+     * @notice Set new VWBL Gateway contract address
+     * @param newGatewayContract The contract address of new VWBLGateway
+     */
     function setGatewayContract(address newGatewayContract) public onlyOwner {
         require(newGatewayContract != gatewayContract);
         address oldGatewayContract = gatewayContract;
@@ -56,6 +67,10 @@ contract VWBLERC1155 is IERC2981, Ownable, ERC1155Enumerable {
         emit gatewayContractChanged(oldGatewayContract, newGatewayContract);
     }
 
+    /**
+     * @notice Set new access condition contract address
+     * @param newAccessCheckerContract The contract address of new access condition contract
+     */
     function setAccessCheckerContract(address newAccessCheckerContract) public onlyOwner {
         require(newAccessCheckerContract != accessCheckerContract);
         address oldAccessCheckerContract = accessCheckerContract;
@@ -64,14 +79,28 @@ contract VWBLERC1155 is IERC2981, Ownable, ERC1155Enumerable {
         emit accessCheckerContractChanged(oldAccessCheckerContract, newAccessCheckerContract);
     }
 
+    /**
+     * @notice Get VWBL Fee
+     */
     function getFee() public view returns (uint256) {
         return IVWBLGateway(gatewayContract).feeWei();
     }
 
+    /**
+     * @notice Get minter of ERC1155 by tokenId
+     * @param tokenId The Identifier of ERC1155
+     */
     function getMinter(uint256 tokenId) public view returns (address) {
         return tokenIdToTokenInfo[tokenId].minterAddress;
     }
 
+    /**
+     * @notice Mint ERC1155, grant access feature and register access condition of digital content.
+     * @param _getKeyURl The URl of VWBL Network(Key management network)
+     * @param _amount The token quantity
+     * @param _royaltiesPercentage Royalty percentage of ERC1155
+     * @param _documentId The Identifier of digital content and decryption key
+     */
     function mint(
         string memory _getKeyURl, 
         uint256 _amount, 
@@ -95,8 +124,15 @@ contract VWBLERC1155 is IERC2981, Ownable, ERC1155Enumerable {
         return tokenId;
     }
 
+    /**
+     * @notice Batch mint ERC1155, grant access feature and register access condition of digital content.
+     * @param _getKeyURl The Url of VWBL Network(Key management network)
+     * @param _amounts The array of token quantity
+     * @param _royaltiesPercentages Array of Royalty percentage of ERC1155
+     * @param _documentIds The array of Identifier of digital content and decryption key
+     */
     function mintBatch(
-        string memory _getKeyUrl, 
+        string memory _getKeyURl, 
         uint256[] memory _amounts, 
         uint256[] memory _royaltiesPercentages,
         bytes32[] memory _documentIds
@@ -112,7 +148,7 @@ contract VWBLERC1155 is IERC2981, Ownable, ERC1155Enumerable {
             uint256 tokenId = ++counter;
             tokenIds[i] = tokenId;
             tokenIdToTokenInfo[tokenId].minterAddress = msg.sender;
-            tokenIdToTokenInfo[tokenId].getKeyURl = _getKeyUrl;
+            tokenIdToTokenInfo[tokenId].getKeyURl = _getKeyURl;
             if (_royaltiesPercentages[i] > 0) {
                 _setRoyalty(tokenId, msg.sender, _royaltiesPercentages[i]);
             } 
@@ -131,6 +167,10 @@ contract VWBLERC1155 is IERC2981, Ownable, ERC1155Enumerable {
         }
     }
 
+    /**
+     * @notice Get token Info for each minter
+     * @param minter The address of ERC1155 Minter
+     */
     function getTokenByMinter(address minter)
         public
         view
@@ -152,6 +192,13 @@ contract VWBLERC1155 is IERC2981, Ownable, ERC1155Enumerable {
             || super.supportsInterface(interfaceId);
     }
 
+    /**
+     * @notice Called with the sale price to determine how much royalty is owned and to whom,
+     * @param _tokenId The NFT asset queried for royalty information
+     * @param _salePrice The sale price of the NFT asset specified by _tokenId
+     * @return receiver Address of who should be sent the royalty payment
+     * @return royaltyAmount The royalty payment amount for _salePrice
+     */
     function royaltyInfo(uint256 _tokenId, uint256 _salePrice)
         external
         view

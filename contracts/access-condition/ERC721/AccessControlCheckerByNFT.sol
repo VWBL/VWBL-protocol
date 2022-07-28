@@ -8,6 +8,9 @@ import "../../gateway/IVWBLGateway.sol";
 import "../IAccessControlChecker.sol";
 import "./IAccessControlCheckerByNFT.sol";
 
+/**
+ * @dev VWBL's access condition contract which is defined by NFT Owner and Minter has access right of digital content.
+ */
 contract AccessControlCheckerByNFT is IAccessControlChecker, IAccessControlCheckerByNFT, Ownable {
     struct Token {
         address contractAddress;
@@ -24,6 +27,9 @@ contract AccessControlCheckerByNFT is IAccessControlChecker, IAccessControlCheck
         vwblGateway = _vwblGateway;
     }
 
+    /**
+     * @notice Get array of documentIds, NFT contract address, tokenId.
+     */
     function getNFTDatas() public view returns (bytes32[] memory, Token[] memory) {
         bytes32[] memory allDocumentIds = IVWBLGateway(vwblGateway).getDocumentIds();
         uint256 documentIdLength;
@@ -44,6 +50,12 @@ contract AccessControlCheckerByNFT is IAccessControlChecker, IAccessControlCheck
         return (documentIds, tokens);
     }
 
+    /**
+     * @notice Return true if user is NFT Owner or Minter of digital content. 
+     *         This function is called by VWBL Gateway contract.
+     * @param user The address of decryption key requester
+     * @param documentId The Identifier of digital content and decryption key
+     */
     function checkAccessControl(
         address user, 
         bytes32 documentId
@@ -60,6 +72,12 @@ contract AccessControlCheckerByNFT is IAccessControlChecker, IAccessControlCheck
         return false;
     } 
 
+    /**
+     * @notice Grant access control, register access condition and NFT info
+     * @param documentId The Identifier of digital content and decryption key
+     * @param nftContract The contract address of NFT
+     * @param tokenId The Identifier of NFT
+     */
     function grantAccessControlAndRegisterNFT(bytes32 documentId, address nftContract, uint256 tokenId) public payable {
         IVWBLGateway(vwblGateway).grantAccessControl{value: msg.value}(documentId, address(this));
     
@@ -70,6 +88,10 @@ contract AccessControlCheckerByNFT is IAccessControlChecker, IAccessControlCheck
     }
 
 
+    /**
+     * @notice Set new VWBL Gateway contract address
+     * @param newVWBLGateway The contract address of new VWBLGateway
+     */
     function setVWBLGateway(address newVWBLGateway) public onlyOwner {
         require(vwblGateway != newVWBLGateway);
         address oldVWBLGateway = vwblGateway;
