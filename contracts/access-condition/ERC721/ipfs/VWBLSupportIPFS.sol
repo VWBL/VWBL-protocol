@@ -92,6 +92,13 @@ abstract contract VWBLProtocol is ERC721Enumerable, IERC2981 {
         return interfaceId == type(IERC2981).interfaceId || super.supportsInterface(interfaceId);
     }
 
+    /**
+     * @notice Called with the sale price to determine how much royalty is owned and to whom,
+     * @param _tokenId The NFT asset queried for royalty information
+     * @param _salePrice The sale price of the NFT asset specified by _tokenId
+     * @return receiver Address of who should be sent the royalty payment
+     * @return royaltyAmount The royalty payment amount for _salePrice
+     */
     function royaltyInfo(uint256 _tokenId, uint256 _salePrice)
         external
         view
