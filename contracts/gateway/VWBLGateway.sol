@@ -19,10 +19,20 @@ contract VWBLGateway is IVWBLGateway, Ownable {
         feeWei = _feeWei;
     }
 
+    /**
+     * @notice Get array of documentIds
+     */
     function getDocumentIds() public view returns (bytes32[] memory) {
         return documentIds;
     }
 
+    /**
+     * @notice Returns whether user has access rights of digital content
+     *         This function is called by VWBL Network (Decryption key management network)
+     * @param user Decryption key requester 
+     * @param documentId The Identifier of digital content and decryption key
+     * @return True if user has access rights of digital content
+     */
     function hasAccessControl(address user, bytes32 documentId) public view returns (bool) {
         address accessConditionContractAddress = documentIdToConditionContract[documentId];
         if (accessConditionContractAddress != address(0)) {
@@ -32,6 +42,11 @@ contract VWBLGateway is IVWBLGateway, Ownable {
         return false;
     }
 
+    /**
+     * @notice Grant access control feature and registering access condition of digital content
+     * @param documentId The Identifier of digital content and decryption key
+     * @param conditionContractAddress The contract address of access condition
+     */
     function grantAccessControl(
         bytes32 documentId,
         address conditionContractAddress
@@ -50,6 +65,9 @@ contract VWBLGateway is IVWBLGateway, Ownable {
         emit accessControlAdded(documentId, conditionContractAddress);
     }
 
+    /**
+     * @notice Withdraw vwbl fee by contract owner
+     */
     function withdrawFee() public onlyOwner {
         uint256 amount = pendingFee;
         require(amount != 0);
@@ -59,6 +77,10 @@ contract VWBLGateway is IVWBLGateway, Ownable {
         payable(msg.sender).transfer(amount);
     }
 
+    /**
+     * @notice Set new VWBL fee
+     * @param newFeeWei new VWBL fee
+     */
     function setFeeWei(uint256 newFeeWei) public onlyOwner {
         require(newFeeWei != feeWei);
         uint256 oldFeeWei = feeWei;

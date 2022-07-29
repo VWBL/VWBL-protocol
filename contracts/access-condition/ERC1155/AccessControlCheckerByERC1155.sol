@@ -8,6 +8,9 @@ import "../IAccessControlChecker.sol";
 import "./IAccessControlCheckerByERC1155.sol";
 import "./IVWBLERC1155.sol";
 
+/**
+ * @dev VWBL's access condition contract which is defined by ERC1155 Owner and Minter has access right of digital content.
+ */
 contract AccessControlCheckerByERC1155 is IAccessControlChecker, IAccessControlCheckerByERC1155, Ownable {
     struct Token {
         address contractAddress;
@@ -24,6 +27,9 @@ contract AccessControlCheckerByERC1155 is IAccessControlChecker, IAccessControlC
         vwblGateway = _vwblGateway;
     }
 
+    /**
+     * @notice Get array of documentIds, ERC11555 contract address, tokenId.
+     */
     function getERC1155Datas() public view returns (bytes32[] memory, Token[] memory) {
         bytes32[] memory allDocumentIds = IVWBLGateway(vwblGateway).getDocumentIds();
         uint256 documentIdLength;
@@ -44,6 +50,12 @@ contract AccessControlCheckerByERC1155 is IAccessControlChecker, IAccessControlC
         return (documentIds, tokens);
     }
 
+    /**
+     * @notice Return true if user is ERC1155 Owner or Minter of digital content. 
+     *         This function is called by VWBL Gateway contract.
+     * @param user The address of decryption key requester
+     * @param documentId The Identifier of digital content and decryption key
+     */
     function checkAccessControl(
         address user, 
         bytes32 documentId
@@ -60,6 +72,12 @@ contract AccessControlCheckerByERC1155 is IAccessControlChecker, IAccessControlC
         return false;
     } 
 
+    /**
+     * @notice Grant access control, register access condition and ERC1155 info
+     * @param documentId The Identifier of digital content and decryption key
+     * @param erc1155Contract The contract address of ERC1155
+     * @param tokenId The Identifier of ERC1155
+     */
     function grantAccessControlAndRegisterERC1155(bytes32 documentId, address erc1155Contract, uint256 tokenId) public payable {
         IVWBLGateway(vwblGateway).grantAccessControl{value: msg.value}(documentId, address(this));
     
@@ -69,7 +87,10 @@ contract AccessControlCheckerByERC1155 is IAccessControlChecker, IAccessControlC
         emit erc1155DataRegistered(erc1155Contract, tokenId);
     }
 
-
+    /**
+     * @notice Set new VWBL Gateway contract address
+     * @param newVWBLGateway The contract address of new VWBLGateway
+     */
     function setVWBLGateway(address newVWBLGateway) public onlyOwner {
         require(vwblGateway != newVWBLGateway);
         address oldVWBLGateway = vwblGateway;
