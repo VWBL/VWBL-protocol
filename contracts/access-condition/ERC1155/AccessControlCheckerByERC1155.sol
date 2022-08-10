@@ -9,7 +9,8 @@ import "./IAccessControlCheckerByERC1155.sol";
 import "./IVWBLERC1155.sol";
 
 /**
- * @dev VWBL's access condition contract which is defined by ERC1155 Owner and Minter has access right of digital content.
+ * @dev VWBL's access condition contract which defines that ERC1155 Owner has access right of digital content 
+ *      and ERC1155 Minter is digital content creator(decryption key creator).
  */
 contract AccessControlCheckerByERC1155 is IAccessControlChecker, IAccessControlCheckerByERC1155, Ownable {
     struct Token {
@@ -53,7 +54,7 @@ contract AccessControlCheckerByERC1155 is IAccessControlChecker, IAccessControlC
     /**
      * @notice Return true if user is ERC1155 Owner or Minter of digital content. 
      *         This function is called by VWBL Gateway contract.
-     * @param user The address of decryption key requester
+     * @param user The address of decryption key requester or decryption key sender to VWBL Network
      * @param documentId The Identifier of digital content and decryption key
      */
     function checkAccessControl(

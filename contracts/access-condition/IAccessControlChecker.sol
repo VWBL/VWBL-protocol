@@ -5,7 +5,7 @@ interface IAccessControlChecker {
     /**
      * @dev Return whether user has access right of digital content
      *      This function is called by VWBLGateway contract
-     * @param user The address of decryption key requester
+     * @param user The address of decryption key requester or decryption key sender to VWBL Network
      * @param documentId The Identifier of digital content and decryption key
      * @return True if user has access rights of digital content
      */

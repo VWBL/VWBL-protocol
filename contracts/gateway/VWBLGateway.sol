@@ -5,6 +5,9 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "../access-condition/IAccessControlChecker.sol";
 import "./IVWBLGateway.sol";
 
+/**
+ * @dev VWBL Gateway Contract which manage who has access right of digital content.
+ */
 contract VWBLGateway is IVWBLGateway, Ownable {
     mapping (bytes32 => address) public documentIdToConditionContract;
     bytes32[] public documentIds;
@@ -27,11 +30,10 @@ contract VWBLGateway is IVWBLGateway, Ownable {
     }
 
     /**
-     * @notice Returns whether user has access rights of digital content
+     * @notice Returns True if user has access rights of digital content or digital content creator
      *         This function is called by VWBL Network (Decryption key management network)
-     * @param user Decryption key requester 
+     * @param user The address of decryption key requester or decryption key sender to VWBL Network
      * @param documentId The Identifier of digital content and decryption key
-     * @return True if user has access rights of digital content
      */
     function hasAccessControl(address user, bytes32 documentId) public view returns (bool) {
         address accessConditionContractAddress = documentIdToConditionContract[documentId];
