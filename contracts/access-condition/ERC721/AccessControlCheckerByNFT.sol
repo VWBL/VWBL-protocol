@@ -9,7 +9,8 @@ import "../IAccessControlChecker.sol";
 import "./IAccessControlCheckerByNFT.sol";
 
 /**
- * @dev VWBL's access condition contract which is defined by NFT Owner and Minter has access right of digital content.
+ * @dev VWBL's access condition contract which is defined by NFT Owner has access right of digital content 
+ *      and NFT Minter is digital contract creator(decryption key creator)
  */
 contract AccessControlCheckerByNFT is IAccessControlChecker, IAccessControlCheckerByNFT, Ownable {
     struct Token {
@@ -53,7 +54,7 @@ contract AccessControlCheckerByNFT is IAccessControlChecker, IAccessControlCheck
     /**
      * @notice Return true if user is NFT Owner or Minter of digital content. 
      *         This function is called by VWBL Gateway contract.
-     * @param user The address of decryption key requester
+     * @param user The address of decryption key requester or decryption key sender to VWBL Network
      * @param documentId The Identifier of digital content and decryption key
      */
     function checkAccessControl(

@@ -12,9 +12,9 @@ interface IVWBLGateway {
     function getDocumentIds() external view returns (bytes32[] memory);
 
     /**
-     * @notice Returns whether user has access rights of digital content
+     * @notice Returns True if user has access rights of digital content or digital content creator
      *         This function is called by VWBL Network (Decryption key management network)
-     * @param user Decryption key requester 
+     * @param user The address of decryption key requester or decryption key sender to VWBL Network
      * @param documentId The Identifier of digital content and decryption key
      * @return True if user has access rights of digital content
      */
