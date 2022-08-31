@@ -3,9 +3,9 @@ pragma solidity ^0.8.0;
 
 /**
  * @dev Interface of the VWBL Gateway as defined in the
- * https://github.com/VWBL-protocol/contracts/ERC721/VWBL.sol
+ * https://github.com/VWBL-protocol/contracts/ERC721/extensions/VWBLMetadata.sol
  */
-interface IVWBLSupportIPFS {
+interface IVWBLMetadata {
     /**
      * @notice Get VWBL Fee
      */
