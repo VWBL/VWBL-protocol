@@ -4,7 +4,7 @@ const AccessControlCheckerByNFT = artifacts.require("AccessControlCheckerByNFT")
 const AccessCondition = artifacts.require("AccessCondition")
 const ExternalNFT = artifacts.require("ExternalNFT")
 const VWBLERC721 = artifacts.require("VWBL")
-const VWBLIPFS = artifacts.require("VWBLSupportIPFS")
+const VWBLMetadata = artifacts.require("VWBLMetadata")
 const TransferVWBLNFT = artifacts.require("TransferVWBLNFT")
 const { expectRevert } = require("@openzeppelin/test-helpers")
 const { web3 } = require("@openzeppelin/test-helpers/src/setup")
@@ -15,7 +15,7 @@ contract("VWBLGateway test", async (accounts) => {
   let accessCondition;
   let externalNFT;
   let vwblERC721;
-  let vwblIPFS;
+  let vwblMetadata;
   let transferVWBLNFTContract;
   
   const TEST_DOCUMENT_ID1 = "0x7c00000000000000000000000000000000000000000000000000000000000000";
@@ -30,7 +30,7 @@ contract("VWBLGateway test", async (accounts) => {
     accessCondition = await AccessCondition.new();
     externalNFT = await ExternalNFT.new({ from: accounts[0] })
     vwblERC721 = await VWBLERC721.new("http://xxx.yyy.com", vwblGateway.address, accessControlCheckerByNFT.address, { from: accounts[0] })
-    vwblIPFS = await VWBLIPFS.new(vwblGateway.address, accessControlCheckerByNFT.address, { from: accounts[0] })
+    vwblMetadata = await VWBLMetadata.new(vwblGateway.address, accessControlCheckerByNFT.address, { from: accounts[0] })
     transferVWBLNFTContract = await TransferVWBLNFT.new();
 
     await externalNFT.mint(accounts[1])
@@ -187,9 +187,9 @@ contract("VWBLGateway test", async (accounts) => {
     assert.equal(isPermitted, false);
   })
 
-  it("should successfully grant AccessControl under VWBLSupportIPFS.mint()", async () => {
+  it("should successfully grant AccessControl under VWBLMetadata.mint()", async () => {
     const beforeBalance = await web3.eth.getBalance(vwblGateway.address)
-    await vwblIPFS.mint(
+    await vwblMetadata.mint(
       "https://infura-ipfs.io/ipfs/QmeGAVddnBSnKc1DLE7DLV9uuTqo5F7QbaveTjr45JUdQn",
       "http://xxx.yyy.com", 
       500, 
@@ -203,12 +203,12 @@ contract("VWBLGateway test", async (accounts) => {
     assert.equal(Number(afterBalance) - Number(beforeBalance), web3.utils.toWei("1", "ether"))
 
     const createdToken = await accessControlCheckerByNFT.documentIdToToken(TEST_DOCUMENT_ID5);
-    assert.equal(createdToken.contractAddress, vwblIPFS.address)
+    assert.equal(createdToken.contractAddress, vwblMetadata.address)
 
     const isPermitted = await vwblGateway.hasAccessControl(accounts[2], TEST_DOCUMENT_ID5)
     assert.equal(isPermitted, true)
 
-    const metadataURI = await vwblIPFS.tokenURI(1);
+    const metadataURI = await vwblMetadata.tokenURI(1);
     assert.equal(metadataURI, "https://infura-ipfs.io/ipfs/QmeGAVddnBSnKc1DLE7DLV9uuTqo5F7QbaveTjr45JUdQn")
   })
 

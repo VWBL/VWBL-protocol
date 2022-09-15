@@ -7,7 +7,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/interfaces/IERC2981.sol";
 import "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 
-import "./IVWBLSupportIPFS.sol";
+import "./IVWBLMetadata.sol";
 import "../IAccessControlCheckerByNFT.sol";
 import "../../../gateway/IVWBLGateway.sol";
 
@@ -125,7 +125,7 @@ abstract contract VWBLProtocol is ERC721Enumerable, IERC2981 {
  * @dev NFT which is added Viewable features that only NFT Owner can view digital content
  *      Unlike the VWBL.sol, the metadata url is stored when mint.
  */
-contract VWBLSupportIPFS is VWBLProtocol, Ownable, IVWBLSupportIPFS {
+contract VWBLMetadata is VWBLProtocol, Ownable, IVWBLMetadata {
     address public gatewayContract;
     address public accessCheckerContract;
 
