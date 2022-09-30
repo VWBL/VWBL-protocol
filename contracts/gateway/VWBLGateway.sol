@@ -5,13 +5,11 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "../access-condition/IAccessControlChecker.sol";
 import "./IVWBLGateway.sol";
 
-
 /**
  * @dev VWBL Gateway Contract which manage who has access right of digital content.
  */
 contract VWBLGateway is IVWBLGateway, Ownable {
     mapping (bytes32 => address) public documentIdToConditionContract;
-    mapping (bytes32 => address) public documentIdToTokenContract;
     mapping (bytes32 => mapping (address => bool)) public paidUsers;
     bytes32[] public documentIds;
 
@@ -67,7 +65,6 @@ contract VWBLGateway is IVWBLGateway, Ownable {
 
         pendingFee += msg.value;
         documentIdToConditionContract[documentId] = conditionContractAddress;
-        documentIdToTokenContract[documentId] = msg.sender;
         documentIds.push(documentId);
 
         emit accessControlAdded(documentId, conditionContractAddress);
