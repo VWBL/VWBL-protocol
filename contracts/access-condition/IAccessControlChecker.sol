@@ -18,5 +18,5 @@ interface IAccessControlChecker {
      */
     function getOwnerAddress(
         bytes32 documentId
-    ) external view returns (address)
+    ) external view returns (address);
 }
