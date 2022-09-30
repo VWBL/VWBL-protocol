@@ -9,21 +9,21 @@ import "../IAccessControlChecker.sol";
 import "./IAccessControlCheckerByNFT.sol";
 
 /**
- * @dev VWBL's access condition contract which is defined by NFT Owner has access right of digital content 
+ * @dev VWBL's access condition contract which is defined by NFT Owner has access right of digital content
  *      and NFT Minter is digital contract creator(decryption key creator)
  */
-contract AccessControlCheckerByNFT is IAccessControlChecker, IAccessControlCheckerByNFT, Ownable {
+contract AccessControlCheckerByNFT is IAccessControlCheckerByNFT, Ownable {
     struct Token {
         address contractAddress;
         uint256 tokenId;
     }
     mapping(bytes32 => Token) public documentIdToToken;
-    
+
     address public vwblGateway;
 
     event nftDataRegistered(address contractAddress, uint256 tokenId);
     event vwblGatewayChanged(address oldVWBLGateway, address newVWBLGateway);
-    
+
     constructor(address _vwblGateway) {
         vwblGateway = _vwblGateway;
     }
@@ -47,31 +47,40 @@ contract AccessControlCheckerByNFT is IAccessControlChecker, IAccessControlCheck
                 documentIds[i] = allDocumentIds[i];
                 tokens[i] = documentIdToToken[allDocumentIds[i]];
             }
-        }        
+        }
         return (documentIds, tokens);
     }
 
     /**
-     * @notice Return true if user is NFT Owner or Minter of digital content. 
+     * @notice Return owner address
+     * @param documentId The Identifier of digital content and decryption key
+     */
+    function getOwnerAddress(
+        bytes32 documentId
+    ) external view returns (address) {
+        return IERC721(token.contractAddress).ownerOf(token.tokenId);
+    }
+
+    /**
+     * @notice Return true if user is NFT Owner or Minter of digital content.
      *         This function is called by VWBL Gateway contract.
      * @param user The address of decryption key requester or decryption key sender to VWBL Network
      * @param documentId The Identifier of digital content and decryption key
      */
     function checkAccessControl(
-        address user, 
+        address user,
         bytes32 documentId
     ) external view returns (bool) {
         Token memory token = documentIdToToken[documentId];
 
         if (
-            IERC721(token.contractAddress).ownerOf(token.tokenId) == user
-            || IVWBL(token.contractAddress).getMinter(token.tokenId) == user
+            IVWBL(token.contractAddress).getMinter(token.tokenId) == user
         ) {
             return true;
         }
 
         return false;
-    } 
+    }
 
     /**
      * @notice Grant access control, register access condition and NFT info
@@ -81,7 +90,7 @@ contract AccessControlCheckerByNFT is IAccessControlChecker, IAccessControlCheck
      */
     function grantAccessControlAndRegisterNFT(bytes32 documentId, address nftContract, uint256 tokenId) public payable {
         IVWBLGateway(vwblGateway).grantAccessControl{value: msg.value}(documentId, address(this));
-    
+
         documentIdToToken[documentId].contractAddress = nftContract;
         documentIdToToken[documentId].tokenId = tokenId;
 

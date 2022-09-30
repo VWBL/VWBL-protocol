@@ -5,11 +5,14 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "../access-condition/IAccessControlChecker.sol";
 import "./IVWBLGateway.sol";
 
+
 /**
  * @dev VWBL Gateway Contract which manage who has access right of digital content.
  */
 contract VWBLGateway is IVWBLGateway, Ownable {
     mapping (bytes32 => address) public documentIdToConditionContract;
+    mapping (bytes32 => address) public documentIdToTokenContract;
+    mapping (bytes32 => mapping (address => bool)) public paidUsers;
     bytes32[] public documentIds;
 
     uint256 public feeWei = 1000000000000000000; // 1MATIC
@@ -17,7 +20,8 @@ contract VWBLGateway is IVWBLGateway, Ownable {
 
     event accessControlAdded(bytes32 documentId, address conditionContract);
     event feeWeiChanged(uint256 oldPercentage, uint256 newPercentage);
-    
+    event feePaid(bytes32 documentId, address sender, address to);
+
     constructor(uint256 _feeWei) {
         feeWei = _feeWei;
     }
@@ -37,8 +41,9 @@ contract VWBLGateway is IVWBLGateway, Ownable {
      */
     function hasAccessControl(address user, bytes32 documentId) public view returns (bool) {
         address accessConditionContractAddress = documentIdToConditionContract[documentId];
+        IAccessControlChecker checker = IAccessControlChecker(accessConditionContractAddress);
         if (accessConditionContractAddress != address(0)) {
-            return IAccessControlChecker(accessConditionContractAddress).checkAccessControl(user, documentId);
+            return checker.getOwnerAddress(documentId) == user || (paidUsers[documentId][user] && checker.checkAccessControl(user, documentId));
         }
 
         return false;
@@ -59,12 +64,34 @@ contract VWBLGateway is IVWBLGateway, Ownable {
             documentIdToConditionContract[documentId] == address(0),
             "documentId is already used"
         );
-        
+
         pendingFee += msg.value;
         documentIdToConditionContract[documentId] = conditionContractAddress;
+        documentIdToTokenContract[documentId] = msg.sender;
         documentIds.push(documentId);
 
         emit accessControlAdded(documentId, conditionContractAddress);
+    }
+
+    /**
+     * @notice Pay fee to grant access
+     * @param documentId The Identifier of digital content and decryption key
+     * @param user address to grant
+     */
+    function payFee(
+        bytes32 documentId,
+        address user
+    ) public payable {
+        require(msg.value <= feeWei, "Fee is too high");
+        require(msg.value >= feeWei, "Fee is insufficient");
+        require(
+            documentIdToConditionContract[documentId] != address(0),
+            "document id is not registered"
+        );
+
+        pendingFee += msg.value;
+        paidUsers[documentId][user] = true;
+        emit feePaid(documentId, msg.sender, user);
     }
 
     /**
