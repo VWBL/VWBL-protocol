@@ -39,15 +39,14 @@ contract VWBLGateway is IVWBLGateway, Ownable {
      */
     function hasAccessControl(address user, bytes32 documentId) public view returns (bool) {
         address accessConditionContractAddress = documentIdToConditionContract[documentId];
+        if (accessConditionContractAddress == address(0)) {
+            return false;
+        }
         IAccessControlChecker checker = IAccessControlChecker(accessConditionContractAddress);
         bool isPaidUser = paidUsers[documentId][user] || feeWei == 0;
         bool isOwner = checker.getOwnerAddress(documentId) == user;
         bool hasAccess = checker.checkAccessControl(user, documentId);
-        if (accessConditionContractAddress != address(0)) {
-            return  isOwner || (isPaidUser && hasAccess);
-        }
-
-        return false;
+        return  isOwner || (isPaidUser && hasAccess);
     }
 
     /**

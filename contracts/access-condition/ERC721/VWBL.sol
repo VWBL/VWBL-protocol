@@ -29,7 +29,7 @@ abstract contract VWBLProtocol is ERC721Enumerable, IERC2981 {
 
     uint256 public constant INVERSE_BASIS_POINT = 10000;
 
-    function _mint(bytes32 _documentId, string memory _getKeyURl, uint256 _royaltiesPercentage) internal returns (uint256) {
+    function _mint(string memory _getKeyURl, uint256 _royaltiesPercentage, bytes32 _documentId) internal returns (uint256) {
         uint256 tokenId = ++counter;
         TokenInfo memory tokenInfo = TokenInfo(_documentId, msg.sender, _getKeyURl);
         tokenIdToTokenInfo[tokenId] = tokenInfo;
@@ -116,8 +116,8 @@ contract VWBL is VWBLProtocol, Ownable, IVWBL {
     event accessCheckerContractChanged(address oldAccessCheckerContract, address newAccessCheckerContract);
 
     constructor(
-        string memory _baseURI, 
-        address _gatewayContract, 
+        string memory _baseURI,
+        address _gatewayContract,
         address _accessCheckerContract
     ) ERC721("VWBL", "VWBL") {
         baseURI = _baseURI;
@@ -178,7 +178,7 @@ contract VWBL is VWBLProtocol, Ownable, IVWBL {
      * @param _documentId The Identifier of digital content and decryption key
      */
     function mint(string memory _getKeyURl, uint256 _royaltiesPercentage, bytes32 _documentId) public payable returns (uint256) {
-        uint256 tokenId = super._mint(_documentId, _getKeyURl, _royaltiesPercentage);
+        uint256 tokenId = super._mint(_getKeyURl, _royaltiesPercentage, _documentId);
 
         // grant access control to nft and pay vwbl fee and register nft data to access control checker contract
         IAccessControlCheckerByNFT(accessCheckerContract).grantAccessControlAndRegisterNFT{value: msg.value}(_documentId, address(this), tokenId);
