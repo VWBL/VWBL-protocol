@@ -1,4 +1,7 @@
 // SPDX-License-Identifier: MIT
+     * @notice Return owner address
+     * @param documentId The Identifier of digital content and decryption key
+     */
 pragma solidity ^0.8.0;
 
 import "../IAccessControlChecker.sol";

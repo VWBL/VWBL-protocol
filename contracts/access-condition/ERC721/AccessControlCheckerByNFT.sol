@@ -58,6 +58,7 @@ contract AccessControlCheckerByNFT is IAccessControlCheckerByNFT, Ownable {
     function getOwnerAddress(
         bytes32 documentId
     ) external view returns (address) {
+        Token memory token = documentIdToToken[documentId];
         return IERC721(token.contractAddress).ownerOf(token.tokenId);
     }
 
