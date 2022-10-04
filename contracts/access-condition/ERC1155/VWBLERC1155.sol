@@ -22,6 +22,7 @@ contract VWBLERC1155 is IERC2981, Ownable, ERC1155Enumerable {
 
     struct TokenInfo {
         address minterAddress;
+        bytes32 documentId;
         string getKeyURl;
     }
 
@@ -109,6 +110,7 @@ contract VWBLERC1155 is IERC2981, Ownable, ERC1155Enumerable {
     ) public payable returns (uint256) {
         uint256 tokenId = ++counter;
         tokenIdToTokenInfo[tokenId].minterAddress = msg.sender;
+        tokenIdToTokenInfo[tokenId].documentId = _documentId;
         tokenIdToTokenInfo[tokenId].getKeyURl = _getKeyURl;
         _mint(msg.sender, tokenId, _amount, "");
         if (_royaltiesPercentage > 0) {
@@ -148,6 +150,7 @@ contract VWBLERC1155 is IERC2981, Ownable, ERC1155Enumerable {
             uint256 tokenId = ++counter;
             tokenIds[i] = tokenId;
             tokenIdToTokenInfo[tokenId].minterAddress = msg.sender;
+            tokenIdToTokenInfo[tokenId].documentId = _documentIds[i];
             tokenIdToTokenInfo[tokenId].getKeyURl = _getKeyURl;
             if (_royaltiesPercentages[i] > 0) {
                 _setRoyalty(tokenId, msg.sender, _royaltiesPercentages[i]);
@@ -164,6 +167,31 @@ contract VWBLERC1155 is IERC2981, Ownable, ERC1155Enumerable {
                 address(this),
                 tokenIds[i]
             );
+        }
+    }
+
+    function safeTransferAndPayFee(
+        address from,
+        address to,
+        uint256 id,
+        uint256 amount,
+        bytes memory data
+    ) public payable {
+        safeTransferFrom(from, to, id, amount, data);
+        IVWBLGateway(gatewayContract).payFee{value: msg.value}(tokenIdToTokenInfo[id].documentId, to);
+    }
+
+    function safeBatchTransferAndPayFee(
+        address from,
+        address to,
+        uint256[] memory ids,
+        uint256[] memory amounts,
+        bytes memory data
+    ) public payable {
+        safeBatchTransferAndPayFee(from, to, ids, amounts, data);
+        (bool calResult, uint256 fee) = msg.value.tryDiv(ids.length);
+        for(uint32 i = 0; i < ids.length; i++){
+            IVWBLGateway(gatewayContract).payFee{value: fee}(tokenIdToTokenInfo[ids[i]].documentId, to);
         }
     }
 
