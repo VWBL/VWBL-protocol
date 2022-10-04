@@ -56,6 +56,16 @@ contract AccessControlCheckerByERC1155 is IAccessControlCheckerByERC1155, Ownabl
      * @param documentId The Identifier of digital content and decryption key
      */
     function getOwnerAddress(bytes32 documentId) external view returns (address) {
+        return address(0);
+    }
+
+    /**
+     * @notice Return owner address
+     * @param documentId The Identifier of digital content and decryption key
+     */
+    function getMinterAddress(
+        bytes32 documentId
+    ) external view returns (address) {
         Token memory token = documentIdToToken[documentId];
         return IVWBLERC1155(token.contractAddress).getMinter(token.tokenId);
     }

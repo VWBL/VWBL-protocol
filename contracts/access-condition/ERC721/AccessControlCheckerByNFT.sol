@@ -63,6 +63,18 @@ contract AccessControlCheckerByNFT is IAccessControlCheckerByNFT, Ownable {
     }
 
     /**
+     * @notice Return owner address
+     * @param documentId The Identifier of digital content and decryption key
+     */
+    function getMinterAddress(
+        bytes32 documentId
+    ) external view returns (address) {
+        Token memory token = documentIdToToken[documentId];
+        return IVWBL(token.contractAddress).getMinter(token.tokenId);
+    }
+
+
+    /**
      * @notice Return true if user is NFT Owner or Minter of digital content.
      *         This function is called by VWBL Gateway contract.
      * @param user The address of decryption key requester or decryption key sender to VWBL Network
@@ -72,14 +84,6 @@ contract AccessControlCheckerByNFT is IAccessControlCheckerByNFT, Ownable {
         address user,
         bytes32 documentId
     ) external view returns (bool) {
-        Token memory token = documentIdToToken[documentId];
-
-        if (
-            IVWBL(token.contractAddress).getMinter(token.tokenId) == user
-        ) {
-            return true;
-        }
-
         return false;
     }
 

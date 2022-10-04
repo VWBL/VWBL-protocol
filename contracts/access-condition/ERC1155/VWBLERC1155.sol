@@ -19,7 +19,7 @@ contract VWBLERC1155 is IERC2981, Ownable, ERC1155Enumerable {
     address public accessCheckerContract;
 
     uint256 public counter = 0;
-    
+
     struct TokenInfo {
         address minterAddress;
         string getKeyURl;
@@ -102,9 +102,9 @@ contract VWBLERC1155 is IERC2981, Ownable, ERC1155Enumerable {
      * @param _documentId The Identifier of digital content and decryption key
      */
     function mint(
-        string memory _getKeyURl, 
-        uint256 _amount, 
-        uint256 _royaltiesPercentage, 
+        string memory _getKeyURl,
+        uint256 _amount,
+        uint256 _royaltiesPercentage,
         bytes32 _documentId
     ) public payable returns (uint256) {
         uint256 tokenId = ++counter;
@@ -132,13 +132,13 @@ contract VWBLERC1155 is IERC2981, Ownable, ERC1155Enumerable {
      * @param _documentIds The array of Identifier of digital content and decryption key
      */
     function mintBatch(
-        string memory _getKeyURl, 
-        uint256[] memory _amounts, 
+        string memory _getKeyURl,
+        uint256[] memory _amounts,
         uint256[] memory _royaltiesPercentages,
         bytes32[] memory _documentIds
     ) public payable {
         require(
-            _amounts.length == _royaltiesPercentages.length 
+            _amounts.length == _royaltiesPercentages.length
             && _royaltiesPercentages.length == _documentIds.length,
             "Invalid array length"
         );
@@ -151,7 +151,7 @@ contract VWBLERC1155 is IERC2981, Ownable, ERC1155Enumerable {
             tokenIdToTokenInfo[tokenId].getKeyURl = _getKeyURl;
             if (_royaltiesPercentages[i] > 0) {
                 _setRoyalty(tokenId, msg.sender, _royaltiesPercentages[i]);
-            } 
+            }
         }
 
         _mintBatch(msg.sender, tokenIds, _amounts, "");
@@ -186,7 +186,7 @@ contract VWBLERC1155 is IERC2981, Ownable, ERC1155Enumerable {
         return tokens;
     }
 
-    function supportsInterface(bytes4 interfaceId) public view 
+    function supportsInterface(bytes4 interfaceId) public view
         virtual override(IERC165, ERC1155) returns (bool) {
         return interfaceId == type(IERC2981).interfaceId
             || super.supportsInterface(interfaceId);
