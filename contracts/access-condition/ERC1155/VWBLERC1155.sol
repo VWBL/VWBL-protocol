@@ -188,7 +188,7 @@ contract VWBLERC1155 is IERC2981, Ownable, ERC1155Enumerable {
         uint256[] memory amounts,
         bytes memory data
     ) public payable {
-        safeBatchTransferAndPayFee(from, to, ids, amounts, data);
+        safeBatchTransferFrom(from, to, ids, amounts, data);
         (bool calResult, uint256 fee) = msg.value.tryDiv(ids.length);
         for(uint32 i = 0; i < ids.length; i++){
             IVWBLGateway(gatewayContract).payFee{value: fee}(tokenIdToTokenInfo[ids[i]].documentId, to);

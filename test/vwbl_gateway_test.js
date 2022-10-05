@@ -17,15 +17,16 @@ contract("VWBLGateway test", async (accounts) => {
   let vwblERC721;
   let vwblMetadata;
   let transferVWBLNFTContract;
-  
+
   const TEST_DOCUMENT_ID1 = "0x7c00000000000000000000000000000000000000000000000000000000000000";
   const TEST_DOCUMENT_ID2 = "0x3c00000000000000000000000000000000000000000000000000000000000000";
   const TEST_DOCUMENT_ID3 = "0x6c00000000000000000000000000000000000000000000000000000000000000";
   const TEST_DOCUMENT_ID4 = "0x1c00000000000000000000000000000000000000000000000000000000000000";
   const TEST_DOCUMENT_ID5 = "0x8c00000000000000000000000000000000000000000000000000000000000000";
+  const fee = web3.utils.toWei("1", "ether");
 
   it("should deploy", async () => {
-    vwblGateway = await VWBLGateway.new(web3.utils.toWei("1", "ether"), { from: accounts[0] })
+    vwblGateway = await VWBLGateway.new(fee, { from: accounts[0] })
     accessControlCheckerByNFT = await AccessControlCheckerByNFT.new(vwblGateway.address, { from: accounts[0] })
     accessCondition = await AccessCondition.new();
     externalNFT = await ExternalNFT.new({ from: accounts[0] })
@@ -61,7 +62,7 @@ contract("VWBLGateway test", async (accounts) => {
   })
 
   it("should successfully grant AccessControl calling from external nft EOA", async () => {
-    const beforeBalance = await web3.eth.getBalance(vwblGateway.address)
+    const beforeBalance = await web3.eth.getBalance(vwblGateway.address);
     await accessControlCheckerByNFT.grantAccessControlAndRegisterNFT(TEST_DOCUMENT_ID2, externalNFT.address, 0, {
       value: web3.utils.toWei("1", "ether"),
       from: accounts[1],
@@ -71,16 +72,19 @@ contract("VWBLGateway test", async (accounts) => {
     assert.equal(Number(afterBalance) - Number(beforeBalance), web3.utils.toWei("1", "ether"))
 
     const createdToken = await accessControlCheckerByNFT.documentIdToToken(TEST_DOCUMENT_ID2);
-    assert.equal(createdToken.contractAddress, externalNFT.address)
-
-    const isPermitted = await vwblGateway.hasAccessControl(accounts[1], TEST_DOCUMENT_ID2)
+    assert.equal(createdToken.contractAddress, externalNFT.address);
+    const owner = await accessControlCheckerByNFT.getOwnerAddress(TEST_DOCUMENT_ID2);
+    assert(owner, accounts[2]);
+    const minter = await accessControlCheckerByNFT.getMinterAddress(TEST_DOCUMENT_ID2);
+    assert(minter, accounts[2]);
+    const isPermitted = await vwblGateway.hasAccessControl(accounts[1], TEST_DOCUMENT_ID2);
     assert.equal(isPermitted, true)
-  })
+  });
 
   it("should successfully transfer nft and minter has access control", async () => {
     await vwblERC721.setApprovalForAll(transferVWBLNFTContract.address, true, {from: accounts[2]});
     await transferVWBLNFTContract.transferNFT(vwblERC721.address, accounts[3], 1, { from: accounts[2] });
-    
+
     const isPermittedOfMinter = await vwblGateway.hasAccessControl(accounts[2], TEST_DOCUMENT_ID1)
     assert.equal(isPermittedOfMinter, true)
 
@@ -165,9 +169,10 @@ contract("VWBLGateway test", async (accounts) => {
     assert.equal(Number(afterBalance) - Number(beforeBalance), web3.utils.toWei("1", "ether"))
 
     const contractAddress = await vwblGateway.documentIdToConditionContract(TEST_DOCUMENT_ID4);
-    assert.equal(contractAddress, accessCondition.address)
+    assert.equal(contractAddress, accessCondition.address);
+    await vwblGateway.payFee(TEST_DOCUMENT_ID4, accounts[1],{value: fee});
 
-    const isPermitted = await vwblGateway.hasAccessControl(accounts[1], TEST_DOCUMENT_ID4)
+    const isPermitted = await vwblGateway.hasAccessControl(accounts[1], TEST_DOCUMENT_ID4);
     assert.equal(isPermitted, true)
   })
 
@@ -191,9 +196,9 @@ contract("VWBLGateway test", async (accounts) => {
     const beforeBalance = await web3.eth.getBalance(vwblGateway.address)
     await vwblMetadata.mint(
       "https://infura-ipfs.io/ipfs/QmeGAVddnBSnKc1DLE7DLV9uuTqo5F7QbaveTjr45JUdQn",
-      "http://xxx.yyy.com", 
-      500, 
-      TEST_DOCUMENT_ID5, 
+      "http://xxx.yyy.com",
+      500,
+      TEST_DOCUMENT_ID5,
     {
       from: accounts[2],
       value: web3.utils.toWei("1", "ether"),
@@ -222,7 +227,7 @@ contract("VWBLGateway test", async (accounts) => {
   it("should withdraw fee from contract owner", async () => {
     const beforeOwnerBalance = await web3.eth.getBalance(accounts[0]);
     const beforeGatewayBalance = await web3.eth.getBalance(vwblGateway.address);
-    
+
     await vwblGateway.withdrawFee({from: accounts[0]});
 
     const afterOwnerBalance = await web3.eth.getBalance(accounts[0]);
