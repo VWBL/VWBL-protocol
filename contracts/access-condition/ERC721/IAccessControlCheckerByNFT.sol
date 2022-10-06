@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-interface IAccessControlCheckerByNFT {
+import "../IAccessControlChecker.sol";
+
+interface IAccessControlCheckerByNFT is IAccessControlChecker {
     /**
      * @notice Grant access control to NFT and register access condition of digital content
      * @param documentId The Identifier of digital content and decryption key

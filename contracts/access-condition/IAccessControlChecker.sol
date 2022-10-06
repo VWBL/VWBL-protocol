@@ -10,4 +10,13 @@ interface IAccessControlChecker {
      * @return True if user has access rights of digital content
      */
     function checkAccessControl(address user, bytes32 documentId) external view returns (bool);
+
+    /**
+     * @dev Return owner address of document id
+     * @param documentId The Identifier of digital content and decryption key
+     * @return owner address
+     */
+    function getOwnerAddress(
+        bytes32 documentId
+    ) external view returns (address);
 }

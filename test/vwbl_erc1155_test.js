@@ -13,9 +13,10 @@ contract ("VWBLERC1155 test", async accounts => {
     const TEST_DOCUMENT_ID2 = "0xbc00000000000000000000000000000000000000000000000000000000000000";
     const TEST_DOCUMENT_ID3 = "0xcc00000000000000000000000000000000000000000000000000000000000000";
     const TEST_DOCUMENT_ID4 = "0xdc00000000000000000000000000000000000000000000000000000000000000";
-    
+    const fee = web3.utils.toWei("1", "ether");
+
     it ("should deploy", async () => {
-        vwblGateway = await VWBLGateway.new(web3.utils.toWei("1", "ether"), { from: accounts[0] })
+        vwblGateway = await VWBLGateway.new(fee, { from: accounts[0] })
         accessControlCheckerByERC1155 = await AccessControlCheckerByERC1155.new(vwblGateway.address, { from: accounts[0] })
         vwblERC1155 = await VWBLERC1155.new(
             "http://xxx.zzz.com",
@@ -40,7 +41,7 @@ contract ("VWBLERC1155 test", async accounts => {
             100, // token amount
             500, // royalty = 5%
             TEST_DOCUMENT_ID1,
-            { 
+            {
                 value: web3.utils.toWei("1", "ether"),
                 from: accounts[1]
             }
@@ -74,7 +75,7 @@ contract ("VWBLERC1155 test", async accounts => {
         );
 
         console.log("     accounts[1] mint tokenId = 1, amount =", tokenAmount.toString(), " nft");
-    
+
         const createdToken = await accessControlCheckerByERC1155.documentIdToToken(TEST_DOCUMENT_ID1);
         assert.equal(createdToken.contractAddress, vwblERC1155.address);
 
@@ -95,7 +96,7 @@ contract ("VWBLERC1155 test", async accounts => {
             200, // token amount
             500, // royalty = 5%
             TEST_DOCUMENT_ID2,
-            { 
+            {
                 value: web3.utils.toWei("1", "ether"),
                 from: accounts[1]
             }
@@ -129,7 +130,7 @@ contract ("VWBLERC1155 test", async accounts => {
         );
 
         console.log("     accounts[1] mint tokenId = 2, amount =", tokenAmount.toString(), " nft");
-    
+
         const createdToken = await accessControlCheckerByERC1155.documentIdToToken(TEST_DOCUMENT_ID2);
         assert.equal(createdToken.contractAddress, vwblERC1155.address);
 
@@ -164,16 +165,20 @@ contract ("VWBLERC1155 test", async accounts => {
             tokenAmountOfOwner2,
             10
         );
-
         console.log("     accounts[1] transfer tokenId = 1 and amount = 10 to accounts[2]");
-    
-        const isPermitted = await vwblGateway.hasAccessControl(accounts[2], TEST_DOCUMENT_ID1);
-        assert.equal(isPermitted, true);
+    });
+
+    it ("should permitted if pay fee", async () => {
+        const isPermittedBeforePayFee = await vwblGateway.hasAccessControl(accounts[2], TEST_DOCUMENT_ID1);
+        assert.equal(isPermittedBeforePayFee, false);
+        await vwblGateway.payFee(TEST_DOCUMENT_ID1, accounts[2],{value: fee});
+        const isPermittedAfterPayFee = await vwblGateway.hasAccessControl(accounts[2], TEST_DOCUMENT_ID1);
+        assert.equal(isPermittedAfterPayFee, true);
     });
 
     it ("should batch transfer", async () => {
         await vwblERC1155.safeBatchTransferFrom(accounts[1], accounts[2], [1, 2], [90, 10], '0x0', {from: accounts[1]});
-        
+
         const token1AmountOfOwner1 = await vwblERC1155.balanceOf(accounts[1], 1);
         assert.equal(
             token1AmountOfOwner1,
@@ -258,7 +263,19 @@ contract ("VWBLERC1155 test", async accounts => {
             const tokenId = await vwblERC1155.tokenOfOwnerByIndex(accounts[1], i);
             console.log("     accounts[1] has tokenId =", tokenId.toString(), "nft");
         }
-    })
+    });
+
+    it("should permitted if transferAndPayFee", async () =>{
+        await vwblERC1155.safeTransferAndPayFee(accounts[1], accounts[3], 3, 10, '0x0', {from: accounts[1], value: fee});
+        const isPermitted = await vwblGateway.hasAccessControl(accounts[3], TEST_DOCUMENT_ID3);
+        assert.equal(isPermitted, true);
+    });
+
+    it("should permitted if batchTransferAndPayFee", async () =>{
+        await vwblERC1155.safeBatchTransferAndPayFee(accounts[1], accounts[3], [3,4], [10,10], '0x0', {from: accounts[1], value: fee * 2});
+        const isPermitted = await vwblGateway.hasAccessControl(accounts[3], TEST_DOCUMENT_ID4);
+        assert.equal(isPermitted, true);
+    });
 
     it ("should not set VWBLGateway contract from not contract owner", async () => {
         await expectRevert(
@@ -267,7 +284,7 @@ contract ("VWBLERC1155 test", async accounts => {
           }),
           "Ownable: caller is not the owner"
         )
-    
+
         await expectRevert(
           vwblERC1155.setGatewayContract(accounts[5], {
             from: accounts[1],
@@ -275,12 +292,12 @@ contract ("VWBLERC1155 test", async accounts => {
           "Ownable: caller is not the owner"
         )
     })
-    
+
     it ("should set VWBLGateway contract from contract owner", async () => {
         await accessControlCheckerByERC1155.setVWBLGateway(accounts[4], { from: accounts[0] });
         let newContract = await accessControlCheckerByERC1155.vwblGateway();
         assert.equal(newContract, accounts[4]);
-    
+
         await vwblERC1155.setGatewayContract(accounts[5], { from: accounts[0] });
         newContract = await vwblERC1155.gatewayContract();
         assert.equal(newContract, accounts[5]);
@@ -309,11 +326,11 @@ contract ("VWBLERC1155 test", async accounts => {
           }),
           "Ownable: caller is not the owner"
         )
-    })
-    
+    });
+
     it("should set Access check contract from contract owner", async () => {
         await vwblERC1155.setAccessCheckerContract(accounts[4], { from: accounts[0] });
         const newContract = await vwblERC1155.accessCheckerContract();
         assert.equal(newContract, accounts[4]);
-    })
+    });
 });

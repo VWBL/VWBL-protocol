@@ -27,7 +27,18 @@ interface IVWBLGateway {
      */
     function grantAccessControl(
         bytes32 documentId,
-        address conditionContractAddress
+        address conditionContractAddress,
+        address minter
+    ) external payable;
+
+    /**
+     * @notice Pay fee to grant access
+     * @param documentId The Identifier of digital content and decryption key
+     * @param user address to grant
+     */
+    function  payFee(
+        bytes32 documentId,
+        address user
     ) external payable;
 
     /**
