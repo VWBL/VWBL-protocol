@@ -27,7 +27,8 @@ interface IVWBLGateway {
      */
     function grantAccessControl(
         bytes32 documentId,
-        address conditionContractAddress
+        address conditionContractAddress,
+        address minter
     ) external payable;
 
     /**

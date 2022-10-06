@@ -60,17 +60,6 @@ contract AccessControlCheckerByERC1155 is IAccessControlCheckerByERC1155, Ownabl
     }
 
     /**
-     * @notice Return owner address
-     * @param documentId The Identifier of digital content and decryption key
-     */
-    function getMinterAddress(
-        bytes32 documentId
-    ) external view returns (address) {
-        Token memory token = documentIdToToken[documentId];
-        return IVWBLERC1155(token.contractAddress).getMinter(token.tokenId);
-    }
-
-    /**
      * @notice Return true if user is ERC1155 Owner or Minter of digital content.
      *         This function is called by VWBL Gateway contract.
      * @param user The address of decryption key requester or decryption key sender to VWBL Network
@@ -98,7 +87,7 @@ contract AccessControlCheckerByERC1155 is IAccessControlCheckerByERC1155, Ownabl
      * @param tokenId The Identifier of ERC1155
      */
     function grantAccessControlAndRegisterERC1155(bytes32 documentId, address erc1155Contract, uint256 tokenId) public payable {
-        IVWBLGateway(vwblGateway).grantAccessControl{value: msg.value}(documentId, address(this));
+        IVWBLGateway(vwblGateway).grantAccessControl{value: msg.value}(documentId, address(this), IVWBLERC1155(erc1155Contract).getMinter(tokenId));
 
         documentIdToToken[documentId].contractAddress = erc1155Contract;
         documentIdToToken[documentId].tokenId = tokenId;

@@ -19,13 +19,4 @@ interface IAccessControlChecker {
     function getOwnerAddress(
         bytes32 documentId
     ) external view returns (address);
-
-    /**
-     * @dev Return minter address of document id
-     * @param documentId The Identifier of digital content and decryption key
-     * @return minter address
-     */
-    function getMinterAddress(
-        bytes32 documentId
-    ) external view returns (address);
 }

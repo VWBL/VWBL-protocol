@@ -10,6 +10,7 @@ import "./IVWBLGateway.sol";
  */
 contract VWBLGateway is IVWBLGateway, Ownable {
     mapping (bytes32 => address) public documentIdToConditionContract;
+    mapping (bytes32 => address) public documentIdToMinter;
     mapping (bytes32 => mapping (address => bool)) public paidUsers;
     bytes32[] public documentIds;
 
@@ -45,7 +46,7 @@ contract VWBLGateway is IVWBLGateway, Ownable {
         IAccessControlChecker checker = IAccessControlChecker(accessConditionContractAddress);
         bool isPaidUser = paidUsers[documentId][user] || feeWei == 0;
         bool isOwner = checker.getOwnerAddress(documentId) == user;
-        bool isMinter = checker.getMinterAddress(documentId) == user;
+        bool isMinter = documentIdToMinter[documentId] == user;
         bool hasAccess = checker.checkAccessControl(user, documentId);
         return  isOwner || isMinter || (isPaidUser && hasAccess);
     }
@@ -57,7 +58,8 @@ contract VWBLGateway is IVWBLGateway, Ownable {
      */
     function grantAccessControl(
         bytes32 documentId,
-        address conditionContractAddress
+        address conditionContractAddress,
+        address minter
     ) public payable {
         require(msg.value <= feeWei, "Fee is too high");
         require(msg.value >= feeWei, "Fee is insufficient");
@@ -69,7 +71,7 @@ contract VWBLGateway is IVWBLGateway, Ownable {
         pendingFee += msg.value;
         documentIdToConditionContract[documentId] = conditionContractAddress;
         documentIds.push(documentId);
-
+        documentIdToMinter[documentId] = minter;
         emit accessControlAdded(documentId, conditionContractAddress);
     }
 
