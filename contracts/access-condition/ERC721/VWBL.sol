@@ -9,6 +9,7 @@ import "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 
 import "./IVWBL.sol";
 import "./IAccessControlCheckerByNFT.sol";
+import "../../gateway/IGatewayProxy.sol";
 import "../../gateway/IVWBLGateway.sol";
 
 abstract contract VWBLProtocol is ERC721Enumerable, IERC2981 {
@@ -109,19 +110,18 @@ abstract contract VWBLProtocol is ERC721Enumerable, IERC2981 {
  */
 contract VWBL is VWBLProtocol, Ownable, IVWBL {
     string public baseURI;
-    address public gatewayContract;
+    address public gatewayProxy;
     address public accessCheckerContract;
 
-    event gatewayContractChanged(address oldGatewayContract, address newGatewayContract);
     event accessCheckerContractChanged(address oldAccessCheckerContract, address newAccessCheckerContract);
 
     constructor(
         string memory _baseURI,
-        address _gatewayContract,
+        address _gatewayProxy,
         address _accessCheckerContract
     ) ERC721("VWBL", "VWBL") {
         baseURI = _baseURI;
-        gatewayContract = _gatewayContract;
+        gatewayProxy = _gatewayProxy;
         accessCheckerContract = _accessCheckerContract;
     }
 
@@ -141,18 +141,6 @@ contract VWBL is VWBLProtocol, Ownable, IVWBL {
     }
 
     /**
-     * @notice Set new VWBL Gateway contract address
-     * @param newGatewayContract The contract address of new VWBLGateway
-     */
-    function setGatewayContract(address newGatewayContract) public onlyOwner {
-        require(newGatewayContract != gatewayContract);
-        address oldGatewayContract = gatewayContract;
-        gatewayContract = newGatewayContract;
-
-        emit gatewayContractChanged(oldGatewayContract, newGatewayContract);
-    }
-
-    /**
      * @notice Set new access condition contract address
      * @param newAccessCheckerContract The contract address of new access condition contract
      */
@@ -165,10 +153,17 @@ contract VWBL is VWBLProtocol, Ownable, IVWBL {
     }
 
     /**
+     * @notice Get VWBL gateway address
+     */
+    function getGatewayAddress() public view returns (address) {
+        return IGatewayProxy(gatewayProxy).getGatewayAddress();
+    }
+
+    /**
      * @notice Get VWBL Fee
      */
     function getFee() public view returns (uint256) {
-        return IVWBLGateway(gatewayContract).feeWei();
+        return IVWBLGateway(getGatewayAddress()).feeWei();
     }
 
     /**

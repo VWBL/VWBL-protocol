@@ -9,13 +9,14 @@ import "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 
 import "./IVWBLMetadata.sol";
 import "../IAccessControlCheckerByNFT.sol";
+import "../../../gateway/IGatewayProxy.sol";
 import "../../../gateway/IVWBLGateway.sol";
 
 abstract contract VWBLProtocol is ERC721Enumerable, IERC2981 {
     mapping(uint256 => string) private _tokenURIs;
-    
+
     uint256 public counter = 0;
-    
+
     struct TokenInfo {
         bytes32 documentId;
         address minterAddress;
@@ -41,9 +42,9 @@ abstract contract VWBLProtocol is ERC721Enumerable, IERC2981 {
     }
 
     function _mint(
-        bytes32 _documentId, 
+        bytes32 _documentId,
         string memory _metadataURl,
-        string memory _getKeyURl, 
+        string memory _getKeyURl,
         uint256 _royaltiesPercentage
     ) internal returns (uint256) {
         uint256 tokenId = ++counter;
@@ -126,30 +127,24 @@ abstract contract VWBLProtocol is ERC721Enumerable, IERC2981 {
  *      Unlike the VWBL.sol, the metadata url is stored when mint.
  */
 contract VWBLMetadata is VWBLProtocol, Ownable, IVWBLMetadata {
-    address public gatewayContract;
+    address public gatewayProxy;
     address public accessCheckerContract;
 
-    event gatewayContractChanged(address oldGatewayContract, address newGatewayContract);
     event accessCheckerContractChanged(address oldAccessCheckerContract, address newAccessCheckerContract);
 
     constructor(
-        address _gatewayContract, 
+        address _gatewayProxy,
         address _accessCheckerContract
     ) ERC721("VWBL", "VWBL") {
-        gatewayContract = _gatewayContract;
+        gatewayProxy = _gatewayProxy;
         accessCheckerContract = _accessCheckerContract;
     }
 
     /**
-     * @notice Set new VWBL Gateway contract address
-     * @param newGatewayContract The contract address of new VWBLGateway
+     * @notice Get VWBL gateway address
      */
-    function setGatewayContract(address newGatewayContract) public onlyOwner {
-        require(newGatewayContract != gatewayContract);
-        address oldGatewayContract = gatewayContract;
-        gatewayContract = newGatewayContract;
-
-        emit gatewayContractChanged(oldGatewayContract, newGatewayContract);
+    function getGatewayAddress() public view returns (address) {
+        return IGatewayProxy(gatewayProxy).getGatewayAddress();
     }
 
     /**
@@ -168,7 +163,7 @@ contract VWBLMetadata is VWBLProtocol, Ownable, IVWBLMetadata {
      * @notice Get VWBL Fee
      */
     function getFee() public view returns (uint256) {
-        return IVWBLGateway(gatewayContract).feeWei();
+        return IVWBLGateway(getGatewayAddress()).feeWei();
     }
 
     /**
@@ -180,8 +175,8 @@ contract VWBLMetadata is VWBLProtocol, Ownable, IVWBLMetadata {
      */
     function mint(
         string memory _metadataURl,
-        string memory _getKeyURl, 
-        uint256 _royaltiesPercentage, 
+        string memory _getKeyURl,
+        uint256 _royaltiesPercentage,
         bytes32 _documentId
     ) public payable returns (uint256) {
         uint256 tokenId = super._mint(_documentId, _metadataURl, _getKeyURl, _royaltiesPercentage);
