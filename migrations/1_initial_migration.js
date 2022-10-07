@@ -1,5 +1,5 @@
 const vwblERC721 = artifacts.require("VWBL")
-const vwblIPFS = artifacts.require("VWBLSupportIPFS")
+const vwblMetadata = artifacts.require("VWBLMetadata")
 const ExternalNFT = artifacts.require("ExternalNFT")
 const vwblGateway = artifacts.require("VWBLGateway")
 const accessControlCheckerByNFT = artifacts.require("AccessControlCheckerByNFT")
@@ -13,7 +13,7 @@ const migrateTest = async (config, deployer) => {
   const accessControlCheckerByNFTContract = await accessControlCheckerByNFT.deployed();
   await deployer.deploy(vwblERC721, config.vwblMetadataUrl, vwblGatewayContract.address, accessControlCheckerByNFTContract.address)
   await deployer.deploy(ExternalNFT)
-  await deployer.deploy(vwblIPFS, vwblGatewayContract.address, accessControlCheckerByNFTContract.address)
+  await deployer.deploy(vwblMetadata, vwblGatewayContract.address, accessControlCheckerByNFTContract.address)
 }
 
 const migrateERC721 = async (config, deployer) => {
@@ -23,7 +23,7 @@ const migrateERC721 = async (config, deployer) => {
   await deployer.deploy(accessControlCheckerByNFT, vwblGatewayContract.address);
   const accessControlCheckerByNFTContract = await accessControlCheckerByNFT.deployed();
   await deployer.deploy(vwblERC721, config.vwblMetadataUrl, vwblGatewayContract.address, accessControlCheckerByNFTContract.address)
-  await deployer.deploy(vwblIPFS, vwblGatewayContract.address, accessControlCheckerByNFTContract.address)
+  await deployer.deploy(vwblMetadata, vwblGatewayContract.address, accessControlCheckerByNFTContract.address)
 }
 
 module.exports = async function (deployer, network) {
