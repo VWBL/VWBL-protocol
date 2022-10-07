@@ -1,5 +1,6 @@
 const { assert } = require("chai")
 const VWBLGateway = artifacts.require("VWBLGateway")
+const GatewayProxy = artifacts.require("GatewayProxy");
 const AccessControlCheckerByNFT = artifacts.require("AccessControlCheckerByNFT")
 const AccessCondition = artifacts.require("AccessCondition")
 const ExternalNFT = artifacts.require("ExternalNFT")
@@ -11,6 +12,7 @@ const { web3 } = require("@openzeppelin/test-helpers/src/setup")
 
 contract("VWBLGateway test", async (accounts) => {
   let vwblGateway;
+  let gatewayProxy;
   let accessControlCheckerByNFT;
   let accessCondition;
   let externalNFT;
@@ -26,12 +28,13 @@ contract("VWBLGateway test", async (accounts) => {
   const fee = web3.utils.toWei("1", "ether");
 
   it("should deploy", async () => {
-    vwblGateway = await VWBLGateway.new(fee, { from: accounts[0] })
-    accessControlCheckerByNFT = await AccessControlCheckerByNFT.new(vwblGateway.address, { from: accounts[0] })
+    vwblGateway = await VWBLGateway.new(fee, { from: accounts[0] });
+    gatewayProxy = await GatewayProxy.new(vwblGateway.address, { from: accounts[0] });
+    accessControlCheckerByNFT = await AccessControlCheckerByNFT.new(gatewayProxy.address, { from: accounts[0] })
     accessCondition = await AccessCondition.new();
     externalNFT = await ExternalNFT.new({ from: accounts[0] })
-    vwblERC721 = await VWBLERC721.new("http://xxx.yyy.com", vwblGateway.address, accessControlCheckerByNFT.address, { from: accounts[0] })
-    vwblMetadata = await VWBLMetadata.new(vwblGateway.address, accessControlCheckerByNFT.address, { from: accounts[0] })
+    vwblERC721 = await VWBLERC721.new("http://xxx.yyy.com", gatewayProxy.address, accessControlCheckerByNFT.address, { from: accounts[0] })
+    vwblMetadata = await VWBLMetadata.new(gatewayProxy.address, accessControlCheckerByNFT.address, { from: accounts[0] })
     transferVWBLNFTContract = await TransferVWBLNFT.new();
 
     await externalNFT.mint(accounts[1])
@@ -254,14 +257,14 @@ contract("VWBLGateway test", async (accounts) => {
 
   it ("should not set VWBLGateway contract from not contract owner", async () => {
     await expectRevert(
-      accessControlCheckerByNFT.setVWBLGateway(accounts[4], {
+      gatewayProxy.setGatewayAddress(accounts[4], {
         from: accounts[1],
       }),
       "Ownable: caller is not the owner"
     )
 
     await expectRevert(
-      vwblERC721.setGatewayContract(accounts[5], {
+      gatewayProxy.setGatewayAddress(accounts[5], {
         from: accounts[1],
       }),
       "Ownable: caller is not the owner"
@@ -269,12 +272,12 @@ contract("VWBLGateway test", async (accounts) => {
   })
 
   it ("should set VWBLGateway contract from contract owner", async () => {
-    await accessControlCheckerByNFT.setVWBLGateway(accounts[4], { from: accounts[0] });
-    let newContract = await accessControlCheckerByNFT.vwblGateway();
+    await gatewayProxy.setGatewayAddress(accounts[4], { from: accounts[0] });
+    let newContract = await gatewayProxy.getGatewayAddress();
     assert.equal(newContract, accounts[4]);
 
-    await vwblERC721.setGatewayContract(accounts[5], { from: accounts[0] });
-    newContract = await vwblERC721.gatewayContract();
+    await gatewayProxy.setGatewayAddress(accounts[5], { from: accounts[0] });
+    newContract = await gatewayProxy.getGatewayAddress();
     assert.equal(newContract, accounts[5]);
   })
 

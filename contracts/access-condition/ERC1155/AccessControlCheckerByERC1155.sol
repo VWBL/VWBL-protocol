@@ -3,6 +3,7 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "./dependencies/IERC1155.sol";
+import "../../gateway/IGatewayProxy.sol";
 import "../../gateway/IVWBLGateway.sol";
 import "../IAccessControlChecker.sol";
 import "./IAccessControlCheckerByERC1155.sol";
@@ -19,20 +20,27 @@ contract AccessControlCheckerByERC1155 is IAccessControlCheckerByERC1155, Ownabl
     }
     mapping(bytes32 => Token) public documentIdToToken;
 
-    address public vwblGateway;
+    address public gatewayProxy;
 
     event erc1155DataRegistered(address contractAddress, uint256 tokenId);
-    event vwblGatewayChanged(address oldVWBLGateway, address newVWBLGateway);
 
-    constructor(address _vwblGateway) public {
-        vwblGateway = _vwblGateway;
+    constructor(address _gatewayProxy) public {
+        gatewayProxy = _gatewayProxy;
+    }
+
+
+    /**
+     * @notice Get VWBL gateway address
+     */
+    function getGatewayAddress() public view returns (address) {
+        return IGatewayProxy(gatewayProxy).getGatewayAddress();
     }
 
     /**
      * @notice Get array of documentIds, ERC11555 contract address, tokenId.
      */
     function getERC1155Datas() public view returns (bytes32[] memory, Token[] memory) {
-        bytes32[] memory allDocumentIds = IVWBLGateway(vwblGateway).getDocumentIds();
+        bytes32[] memory allDocumentIds = IVWBLGateway(getGatewayAddress()).getDocumentIds();
         uint256 documentIdLength;
         for (uint256 i = 0; i < allDocumentIds.length; i++) {
             if (documentIdToToken[allDocumentIds[i]].contractAddress != address(0)) {
@@ -87,22 +95,11 @@ contract AccessControlCheckerByERC1155 is IAccessControlCheckerByERC1155, Ownabl
      * @param tokenId The Identifier of ERC1155
      */
     function grantAccessControlAndRegisterERC1155(bytes32 documentId, address erc1155Contract, uint256 tokenId) public payable {
-        IVWBLGateway(vwblGateway).grantAccessControl{value: msg.value}(documentId, address(this), IVWBLERC1155(erc1155Contract).getMinter(tokenId));
+        IVWBLGateway(getGatewayAddress()).grantAccessControl{value: msg.value}(documentId, address(this), IVWBLERC1155(erc1155Contract).getMinter(tokenId));
 
         documentIdToToken[documentId].contractAddress = erc1155Contract;
         documentIdToToken[documentId].tokenId = tokenId;
 
         emit erc1155DataRegistered(erc1155Contract, tokenId);
-    }
-
-    /**
-     * @notice Set new VWBL Gateway contract address
-     * @param newVWBLGateway The contract address of new VWBLGateway
-     */
-    function setVWBLGateway(address newVWBLGateway) public onlyOwner {
-        require(vwblGateway != newVWBLGateway);
-        address oldVWBLGateway = vwblGateway;
-        vwblGateway = newVWBLGateway;
-        emit vwblGatewayChanged(oldVWBLGateway, newVWBLGateway);
     }
 }

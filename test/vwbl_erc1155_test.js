@@ -1,11 +1,13 @@
 const { assert } = require("chai");
 const VWBLERC1155 = artifacts.require("VWBLERC1155");
 const VWBLGateway = artifacts.require("VWBLGateway");
+const GatewayProxy = artifacts.require("GatewayProxy");
 const AccessControlCheckerByERC1155 = artifacts.require("AccessControlCheckerByERC1155");
 const { expectRevert } = require("@openzeppelin/test-helpers");
 
 contract ("VWBLERC1155 test", async accounts => {
     let vwblGateway;
+    let gatewayProxy;
     let accessControlCheckerByERC1155;
     let vwblERC1155;
 
@@ -16,11 +18,12 @@ contract ("VWBLERC1155 test", async accounts => {
     const fee = web3.utils.toWei("1", "ether");
 
     it ("should deploy", async () => {
-        vwblGateway = await VWBLGateway.new(fee, { from: accounts[0] })
-        accessControlCheckerByERC1155 = await AccessControlCheckerByERC1155.new(vwblGateway.address, { from: accounts[0] })
+        vwblGateway = await VWBLGateway.new(fee, { from: accounts[0] });
+        gatewayProxy = await GatewayProxy.new(vwblGateway.address);
+        accessControlCheckerByERC1155 = await AccessControlCheckerByERC1155.new(gatewayProxy.address, { from: accounts[0] })
         vwblERC1155 = await VWBLERC1155.new(
             "http://xxx.zzz.com",
-            vwblGateway.address,
+            gatewayProxy.address,
             accessControlCheckerByERC1155.address,
             {from: accounts[0]}
         );
@@ -276,32 +279,6 @@ contract ("VWBLERC1155 test", async accounts => {
         const isPermitted = await vwblGateway.hasAccessControl(accounts[3], TEST_DOCUMENT_ID4);
         assert.equal(isPermitted, true);
     });
-
-    it ("should not set VWBLGateway contract from not contract owner", async () => {
-        await expectRevert(
-          accessControlCheckerByERC1155.setVWBLGateway(accounts[4], {
-            from: accounts[1],
-          }),
-          "Ownable: caller is not the owner"
-        )
-
-        await expectRevert(
-          vwblERC1155.setGatewayContract(accounts[5], {
-            from: accounts[1],
-          }),
-          "Ownable: caller is not the owner"
-        )
-    })
-
-    it ("should set VWBLGateway contract from contract owner", async () => {
-        await accessControlCheckerByERC1155.setVWBLGateway(accounts[4], { from: accounts[0] });
-        let newContract = await accessControlCheckerByERC1155.vwblGateway();
-        assert.equal(newContract, accounts[4]);
-
-        await vwblERC1155.setGatewayContract(accounts[5], { from: accounts[0] });
-        newContract = await vwblERC1155.gatewayContract();
-        assert.equal(newContract, accounts[5]);
-    })
 
     it ("should not set BaseURI from not contract owner", async () => {
         await expectRevert(

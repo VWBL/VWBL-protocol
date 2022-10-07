@@ -4,10 +4,11 @@ pragma solidity ^0.8.0;
 import "./ERC1155Enumerable.sol";
 import "./dependencies/IERC2981.sol";
 import "./dependencies/IERC165.sol";
-import "./dependencies/Ownable.sol";
 import "./IAccessControlCheckerByERC1155.sol";
+import "../../gateway/IGatewayProxy.sol";
 import "../../gateway/IVWBLGateway.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import "./dependencies/Ownable.sol";
 
 /**
  * @dev Erc1155 which is added Viewable features that only ERC1155 Owner can view digital content
@@ -15,7 +16,7 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 contract VWBLERC1155 is IERC2981, Ownable, ERC1155Enumerable {
     using SafeMath for uint256;
 
-    address public gatewayContract;
+    address public gatewayProxy;
     address public accessCheckerContract;
 
     uint256 public counter = 0;
@@ -36,15 +37,14 @@ contract VWBLERC1155 is IERC2981, Ownable, ERC1155Enumerable {
 
     uint public constant INVERSE_BASIS_POINT = 10000;
 
-    event gatewayContractChanged(address oldGatewayContract, address newGatewayContract);
     event accessCheckerContractChanged(address oldAccessCheckerContract, address newAccessCheckerContract);
 
     constructor(
         string memory _baseURI,
-        address _gatewayContract,
+        address _gatewayProxy,
         address _accessCheckerContract
     ) ERC1155(_baseURI) {
-        gatewayContract = _gatewayContract;
+        gatewayProxy = _gatewayProxy;
         accessCheckerContract = _accessCheckerContract;
     }
 
@@ -54,18 +54,6 @@ contract VWBLERC1155 is IERC2981, Ownable, ERC1155Enumerable {
      */
     function setBaseURI(string memory _baseURI) public onlyOwner {
         _setURI(_baseURI);
-    }
-
-    /**
-     * @notice Set new VWBL Gateway contract address
-     * @param newGatewayContract The contract address of new VWBLGateway
-     */
-    function setGatewayContract(address newGatewayContract) public onlyOwner {
-        require(newGatewayContract != gatewayContract);
-        address oldGatewayContract = gatewayContract;
-        gatewayContract = newGatewayContract;
-
-        emit gatewayContractChanged(oldGatewayContract, newGatewayContract);
     }
 
     /**
@@ -81,10 +69,17 @@ contract VWBLERC1155 is IERC2981, Ownable, ERC1155Enumerable {
     }
 
     /**
+     * @notice Get VWBL gateway address
+     */
+    function getGatewayAddress() public view returns (address) {
+        return IGatewayProxy(gatewayProxy).getGatewayAddress();
+    }
+
+    /**
      * @notice Get VWBL Fee
      */
     function getFee() public view returns (uint256) {
-        return IVWBLGateway(gatewayContract).feeWei();
+        return IVWBLGateway(getGatewayAddress()).feeWei();
     }
 
     /**
@@ -178,7 +173,7 @@ contract VWBLERC1155 is IERC2981, Ownable, ERC1155Enumerable {
         bytes memory data
     ) public payable {
         safeTransferFrom(from, to, id, amount, data);
-        IVWBLGateway(gatewayContract).payFee{value: msg.value}(tokenIdToTokenInfo[id].documentId, to);
+        IVWBLGateway(getGatewayAddress()).payFee{value: msg.value}(tokenIdToTokenInfo[id].documentId, to);
     }
 
     function safeBatchTransferAndPayFee(
@@ -191,7 +186,7 @@ contract VWBLERC1155 is IERC2981, Ownable, ERC1155Enumerable {
         safeBatchTransferFrom(from, to, ids, amounts, data);
         (bool calResult, uint256 fee) = msg.value.tryDiv(ids.length);
         for(uint32 i = 0; i < ids.length; i++){
-            IVWBLGateway(gatewayContract).payFee{value: fee}(tokenIdToTokenInfo[ids[i]].documentId, to);
+            IVWBLGateway(getGatewayAddress()).payFee{value: fee}(tokenIdToTokenInfo[ids[i]].documentId, to);
         }
     }
 
