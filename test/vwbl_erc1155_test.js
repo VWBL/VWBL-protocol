@@ -1,5 +1,6 @@
 const { assert } = require("chai");
 const VWBLERC1155 = artifacts.require("VWBLERC1155");
+const VWBLERC1155Metadata = artifacts.require("VWBLERC1155Metadata");
 const VWBLGateway = artifacts.require("VWBLGateway");
 const GatewayProxy = artifacts.require("GatewayProxy");
 const AccessControlCheckerByERC1155 = artifacts.require("AccessControlCheckerByERC1155");
@@ -309,5 +310,138 @@ contract ("VWBLERC1155 test", async accounts => {
         await vwblERC1155.setAccessCheckerContract(accounts[4], { from: accounts[0] });
         const newContract = await vwblERC1155.accessCheckerContract();
         assert.equal(newContract, accounts[4]);
+    });
+});
+
+contract ("VWBLERC1155Metadata test", async accounts => {
+    let vwblGateway;
+    let gatewayProxy;
+    let accessControlCheckerByERC1155;
+    let vwblERC1155Metadata;
+
+    const TEST_DOCUMENT_ID1 = "0xac00000000000000000000000000000000000000000000000000000000000000";
+    const TEST_DOCUMENT_ID2 = "0xbc00000000000000000000000000000000000000000000000000000000000000";
+    const TEST_DOCUMENT_ID3 = "0xcc00000000000000000000000000000000000000000000000000000000000000";
+    const TEST_DOCUMENT_ID4 = "0xdc00000000000000000000000000000000000000000000000000000000000000";
+    const fee = web3.utils.toWei("1", "ether");
+
+    it ("should deploy", async () => {
+        vwblGateway = await VWBLGateway.new(fee, { from: accounts[0] });
+        gatewayProxy = await GatewayProxy.new(vwblGateway.address);
+        accessControlCheckerByERC1155 = await AccessControlCheckerByERC1155.new(gatewayProxy.address, { from: accounts[0] })
+        vwblERC1155Metadata = await VWBLERC1155Metadata.new(
+            gatewayProxy.address,
+            accessControlCheckerByERC1155.address,
+            {from: accounts[0]}
+        );
+
+        const INTERFACE_ID_ERC2981 = "0x2a55205a";
+        const supported = await vwblERC1155Metadata.supportsInterface(INTERFACE_ID_ERC2981);
+        assert.equal(supported, true);
+    });
+
+    it ("should mint nft", async () => {
+        await vwblERC1155Metadata.mint(
+            "http://xxx.yyy.com/metadata/cid",
+            "http://xxx.yyy.com",
+            100, // token amount
+            500, // royalty = 5%
+            TEST_DOCUMENT_ID1,
+            {
+                value: web3.utils.toWei("1", "ether"),
+                from: accounts[1]
+            }
+        );
+
+
+        const tokens = await vwblERC1155Metadata.getTokenByMinter(accounts[1]);
+        assert.equal(
+            tokens[0].minterAddress,
+            accounts[1],
+            "Minter is not correct"
+        );
+        assert.equal(
+            tokens[0].getKeyURl,
+            'http://xxx.yyy.com',
+            "keyURL is not correct"
+        );
+
+        const tokenAmount = await vwblERC1155Metadata.balanceOf(accounts[1], 1);
+        assert.equal(
+            tokenAmount,
+            100
+        );
+
+        const royaltyInfo = await vwblERC1155Metadata.tokenIdToRoyaltyInfo(1);
+        assert.equal(
+            royaltyInfo.recipient,
+            accounts[1]
+        );
+        assert.equal(
+            royaltyInfo.royaltiesPercentage,
+            500
+        );
+
+        console.log("     accounts[1] mint tokenId = 1, amount =", tokenAmount.toString(), " nft");
+
+        const createdToken = await accessControlCheckerByERC1155.documentIdToToken(TEST_DOCUMENT_ID1);
+        assert.equal(createdToken.contractAddress, vwblERC1155Metadata.address);
+
+        const isPermitted = await vwblGateway.hasAccessControl(accounts[1], TEST_DOCUMENT_ID1);
+        assert.equal(isPermitted, true);
+
+
+        // check metadata url
+        const metadataUrl = await vwblERC1155Metadata.tokenURI(1)
+        assert.equal(metadataUrl, "http://xxx.yyy.com/metadata/cid");
+    });
+
+    it ("should batch mint nft", async () => {
+        await vwblERC1155Metadata.mintBatch(
+            "http://xxx.yyy.com/metadata/cid",
+            "http://aaa.yyy.zzz.com",
+            [100, 200],
+            [500, 500],
+            [TEST_DOCUMENT_ID3, TEST_DOCUMENT_ID4],
+            {
+                value: web3.utils.toWei("2", "ether"),
+                from: accounts[1]
+            }
+        );
+
+        console.log("     accounts[1] mint tokenId = 3 , amount = 100 nft");
+        console.log("     accounts[1] mint tokenId = 4 , amount = 200 nft");
+
+        const isPermittedOfId3 = await vwblGateway.hasAccessControl(accounts[1], TEST_DOCUMENT_ID3);
+        assert.equal(isPermittedOfId3, true);
+
+        const isPermittedOfId4 = await vwblGateway.hasAccessControl(accounts[1], TEST_DOCUMENT_ID4);
+        assert.equal(isPermittedOfId4, true);
+
+        const metadataUrlOfId3 = await vwblERC1155Metadata.tokenURI(2);
+        assert.equal(metadataUrlOfId3, "http://xxx.yyy.com/metadata/cid");
+
+        const metadataUrlOfId4 = await vwblERC1155Metadata.tokenURI(3);
+        assert.equal(metadataUrlOfId4, "http://xxx.yyy.com/metadata/cid");
+    });
+
+    it("should burn nft by owner", async () => {
+        console.log(accounts[1]);
+        await vwblERC1155Metadata.burn('0x6a5E59CcBF8ad072075579dcd7AC844894e60804', 1, 90, { from: accounts[1] });
+
+        // const tokenAmount = await vwblERC1155Metadata.balanceOf(accounts[1], 1);
+        // assert.equal(tokenAmount, 10);
+    })
+
+    it ("should not burn nft by not owner", async () => {
+        await expectRevert(
+            vwblERC1155Metadata.burn(
+                accounts[2],
+                1,
+                90,
+                {from: accounts[1]}
+            ),
+            "ERC1155: caller is not token owner or approved"
+          );
     });
 });

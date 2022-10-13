@@ -41,11 +41,7 @@ contract VWBLERC1155Metadata is IERC2981, Ownable, ERC1155Enumerable, ERC1155Bur
 
     event accessCheckerContractChanged(address oldAccessCheckerContract, address newAccessCheckerContract);
 
-    constructor(
-        string memory _baseURI,
-        address _gatewayProxy,
-        address _accessCheckerContract
-    ) ERC1155(_baseURI) {
+    constructor(address _gatewayProxy, address _accessCheckerContract) ERC1155("") {
         gatewayProxy = _gatewayProxy;
         accessCheckerContract = _accessCheckerContract;
     }
@@ -121,6 +117,7 @@ contract VWBLERC1155Metadata is IERC2981, Ownable, ERC1155Enumerable, ERC1155Bur
 
     /**
      * @notice Mint ERC1155, grant access feature and register access condition of digital content.
+     * @param _metadataURl The URl of nft metadata
      * @param _getKeyURl The URl of VWBL Network(Key management network)
      * @param _amount The token quantity
      * @param _royaltiesPercentage Royalty percentage of ERC1155
@@ -146,6 +143,7 @@ contract VWBLERC1155Metadata is IERC2981, Ownable, ERC1155Enumerable, ERC1155Bur
 
     /**
      * @notice Batch mint ERC1155, grant access feature and register access condition of digital content.
+     * @param _metadataURl The URl of nft metadata
      * @param _getKeyURl The Url of VWBL Network(Key management network)
      * @param _amounts The array of token quantity
      * @param _royaltiesPercentages Array of Royalty percentage of ERC1155
@@ -157,7 +155,7 @@ contract VWBLERC1155Metadata is IERC2981, Ownable, ERC1155Enumerable, ERC1155Bur
         uint256[] memory _amounts,
         uint256[] memory _royaltiesPercentages,
         bytes32[] memory _documentIds
-    ) public payable {
+    ) public payable returns (uint256[] memory) {
         require(
             _amounts.length == _royaltiesPercentages.length && _royaltiesPercentages.length == _documentIds.length,
             "Invalid array length"
@@ -187,6 +185,8 @@ contract VWBLERC1155Metadata is IERC2981, Ownable, ERC1155Enumerable, ERC1155Bur
                 tokenIds[i]
             );
         }
+
+        return tokenIds;
     }
 
     function safeTransferAndPayFee(
