@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 // OpenZeppelin Contracts (last updated v4.7.0) (token/ERC1155/extensions/ERC1155Burnable.sol)
-pragma solidity ^0.8.17;
+pragma solidity ^0.8.0;
 
 import "./ERC1155.sol";
 
