@@ -24,6 +24,7 @@ interface IVWBLGateway {
      * @notice Grant access control feature and registering access condition of digital content
      * @param documentId The Identifier of digital content and decryption key
      * @param conditionContractAddress The contract address of access condition
+     * @param minter The address of digital content creator
      */
     function grantAccessControl(
         bytes32 documentId,
