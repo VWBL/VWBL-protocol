@@ -426,11 +426,10 @@ contract ("VWBLERC1155Metadata test", async accounts => {
     });
 
     it("should burn nft by owner", async () => {
-        console.log(accounts[1]);
-        await vwblERC1155Metadata.burn('0x6a5E59CcBF8ad072075579dcd7AC844894e60804', 1, 90, { from: accounts[1] });
+        await vwblERC1155Metadata.burn(accounts[1], 1, 90, { from: accounts[1] });
 
-        // const tokenAmount = await vwblERC1155Metadata.balanceOf(accounts[1], 1);
-        // assert.equal(tokenAmount, 10);
+        const tokenAmount = await vwblERC1155Metadata.balanceOf(accounts[1], 1);
+        assert.equal(tokenAmount, 10);
     })
 
     it ("should not burn nft by not owner", async () => {
