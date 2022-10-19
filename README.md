@@ -18,7 +18,12 @@ yarn test
 ```
 
 ## Deployment
-1. Write contract deployment script to [migrations/1_initial_migration.js](https://github.com/VWBL/VWBL-protocol/blob/master/migrations/1_initial_migration.js). 
+1. Set VWBL `vwblMetadataUrl` in [migrations/config.js](https://github.com/VWBL/VWBL-protocol/blob/fix/doc/migrations/config.js)
+   
+   ex)https://d45qadrq9y0ty7.cloudfront.net/metadata/
+      
+
+2. Write contract deployment script to [migrations/1_initial_migration.js](https://github.com/VWBL/VWBL-protocol/blob/master/migrations/1_initial_migration.js). 
 
    ＊See [VWBL docs](https://app.gitbook.com/o/XKJRuS9VhgLSsEarEY4P/s/CNC1YmYHucLw7YmJFhGF/end-point-for-vwbl) for VWBL contract already deployed.
 
