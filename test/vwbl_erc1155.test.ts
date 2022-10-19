@@ -3,15 +3,8 @@ import { assert, expect } from "chai"
 import { ethers } from "hardhat"
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers"
 
-
 describe("VWBLERC1155", async () => {
   let accounts: SignerWithAddress[]
-
-  before(async () => {
-    const [...signers] = await ethers.getSigners()
-    accounts = signers
-  })
-
   let vwblGateway: Contract
   let gatewayProxy: Contract
   let accessControlCheckerByERC1155: Contract
@@ -22,6 +15,10 @@ describe("VWBLERC1155", async () => {
   const TEST_DOCUMENT_ID3 = "0xcc00000000000000000000000000000000000000000000000000000000000000"
   const TEST_DOCUMENT_ID4 = "0xdc00000000000000000000000000000000000000000000000000000000000000"
   const fee = utils.parseEther("1")
+
+  before(async () => {
+    accounts = await ethers.getSigners()
+  })
 
   it("should deploy", async () => {
     const VWBLGateway = await ethers.getContractFactory("VWBLGateway")

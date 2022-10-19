@@ -5,12 +5,6 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers"
 
 describe("VWBLGateway", async () => {
   let accounts: SignerWithAddress[]
-
-  before(async () => {
-    const [...signers] = await ethers.getSigners()
-    accounts = signers
-  })
-
   let vwblGateway: Contract
   let gatewayProxy: Contract
   let accessControlCheckerByNFT: Contract
@@ -25,8 +19,11 @@ describe("VWBLGateway", async () => {
   const TEST_DOCUMENT_ID3 = "0x6c00000000000000000000000000000000000000000000000000000000000000"
   const TEST_DOCUMENT_ID4 = "0x1c00000000000000000000000000000000000000000000000000000000000000"
   const TEST_DOCUMENT_ID5 = "0x8c00000000000000000000000000000000000000000000000000000000000000"
-
   const fee = utils.parseEther("1.0")
+
+  before(async () => {
+    accounts = await ethers.getSigners()
+  })
 
   it("should deploy", async () => {
     const VWBLGateway = await ethers.getContractFactory("VWBLGateway")
