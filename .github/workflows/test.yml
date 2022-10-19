@@ -1,0 +1,31 @@
+name: Test Contract
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: ["*"]
+
+jobs:
+  test-contract:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [14.x]
+
+    steps:
+      - name: Checkout 🛎
+        uses: actions/checkout@v2
+      - name: Install packages
+        uses: borales/actions-yarn@v3.0.0
+        with:
+          cmd: install
+      # - name: Lint Contract
+      #   uses: borales/actions-yarn@v3.0.0
+      #   with:
+      #     cmd: lint
+      - name: Test Contract
+        uses: borales/actions-yarn@v3.0.0
+        with:
+          cmd: test
