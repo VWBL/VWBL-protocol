@@ -45,3 +45,7 @@ yarn compile
 ```bash
 yarn test
 ```
+## Output Solidity contract sizes with Hardhat.
+```bash
+yarn run hardhat size-contracts
+```
