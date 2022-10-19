@@ -15,6 +15,7 @@
   "scripts": {
     "lint": "solhint 'contracts/**/*.sol'",
     "format": "solhint 'contracts/**/*.sol' --fix",
+    "compile": "hardhat compile",
     "test": "hardhat test",
     "local": "hardhat node",
     "deploy": "hardhat run scripts/deploy.ts",
