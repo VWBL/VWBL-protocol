@@ -1,12 +1,16 @@
-import { Contract } from "ethers"
+import { Contract, utils } from "ethers"
 import { ethers } from "hardhat"
-import { assert } from "chai"
+import { assert, expect } from "chai"
+import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers"
 
-const { expectRevert } = require("@openzeppelin/test-helpers")
-const { web3 } = require("@openzeppelin/test-helpers/src/setup")
+describe("VWBLGateway", async () => {
+  let accounts: SignerWithAddress[]
 
-describe("VWBLGateway test", async () => {
-  const [owner, ...accounts] = await ethers.getSigners()
+  before(async () => {
+    const [...signers] = await ethers.getSigners()
+    accounts = signers
+  })
+
   let vwblGateway: Contract
   let gatewayProxy: Contract
   let accessControlCheckerByNFT: Contract
@@ -21,7 +25,8 @@ describe("VWBLGateway test", async () => {
   const TEST_DOCUMENT_ID3 = "0x6c00000000000000000000000000000000000000000000000000000000000000"
   const TEST_DOCUMENT_ID4 = "0x1c00000000000000000000000000000000000000000000000000000000000000"
   const TEST_DOCUMENT_ID5 = "0x8c00000000000000000000000000000000000000000000000000000000000000"
-  const fee = web3.utils.toWei("1", "ether")
+
+  const fee = utils.parseEther("1.0")
 
   it("should deploy", async () => {
     const VWBLGateway = await ethers.getContractFactory("VWBLGateway")
@@ -39,15 +44,11 @@ describe("VWBLGateway test", async () => {
     const ExternalNFT = await ethers.getContractFactory("ExternalNFT")
     externalNFT = await ExternalNFT.deploy()
 
-    const VWBLERC721 = await ethers.getContractFactory("VWBLERC721")
+    const VWBLERC721 = await ethers.getContractFactory("VWBL")
     vwblERC721 = await VWBLERC721.deploy("http://xxx.yyy.com", gatewayProxy.address, accessControlCheckerByNFT.address)
 
     const VWBLMetadata = await ethers.getContractFactory("VWBLMetadata")
-    vwblMetadata = await VWBLMetadata.deploy(
-      "http://xxx.yyy.com",
-      gatewayProxy.address,
-      accessControlCheckerByNFT.address
-    )
+    vwblMetadata = await VWBLMetadata.deploy(gatewayProxy.address, accessControlCheckerByNFT.address)
 
     const TransferVWBLNFT = await ethers.getContractFactory("TransferVWBLNFT")
     transferVWBLNFTContract = await TransferVWBLNFT.deploy()
@@ -63,43 +64,43 @@ describe("VWBLGateway test", async () => {
   })
 
   it("should successfully grant AccessControl under VWBL.mint()", async () => {
-    const beforeBalance = await web3.eth.getBalance(vwblGateway.address)
-    await vwblERC721.mint("http://xxx.yyy.com", 500, TEST_DOCUMENT_ID1, {
-      from: accounts[2],
-      value: web3.utils.toWei("1", "ether"),
+    const beforeBalance = await vwblGateway.provider.getBalance(vwblGateway.address)
+    await vwblERC721.connect(accounts[2]).mint("http://xxx.yyy.com", 500, TEST_DOCUMENT_ID1, {
+      value: utils.parseEther("1"),
     })
 
-    const afterBalance = await web3.eth.getBalance(vwblGateway.address)
-    assert.equal(Number(afterBalance) - Number(beforeBalance), web3.utils.toWei("1", "ether"))
+    const afterBalance = await vwblGateway.provider.getBalance(vwblGateway.address)
+    assert.deepEqual(afterBalance.sub(beforeBalance).eq(utils.parseEther("1.0")), true)
 
     const createdToken = await accessControlCheckerByNFT.documentIdToToken(TEST_DOCUMENT_ID1)
     assert.equal(createdToken.contractAddress, vwblERC721.address)
 
-    const isPermitted = await vwblGateway.hasAccessControl(accounts[2], TEST_DOCUMENT_ID1)
+    const isPermitted = await vwblGateway.hasAccessControl(accounts[2].address, TEST_DOCUMENT_ID1)
     assert.equal(isPermitted, true)
   })
 
   it("should successfully grant AccessControl calling from external nft EOA", async () => {
-    const beforeBalance = await web3.eth.getBalance(vwblGateway.address)
-    await accessControlCheckerByNFT.grantAccessControlAndRegisterNFT(TEST_DOCUMENT_ID2, externalNFT.address, 0, {
-      value: web3.utils.toWei("1", "ether"),
-      from: accounts[1].address,
-    })
+    const beforeBalance = await vwblGateway.provider.getBalance(vwblGateway.address)
+    await accessControlCheckerByNFT
+      .connect(accounts[1])
+      .grantAccessControlAndRegisterNFT(TEST_DOCUMENT_ID2, externalNFT.address, 0, {
+        value: utils.parseEther("1"),
+      })
 
-    const afterBalance = await web3.eth.getBalance(vwblGateway.address)
-    assert.equal(Number(afterBalance) - Number(beforeBalance), web3.utils.toWei("1", "ether"))
+    const afterBalance = await vwblGateway.provider.getBalance(vwblGateway.address)
+    assert.deepEqual(afterBalance.sub(beforeBalance).eq(utils.parseEther("1")), true)
 
     const createdToken = await accessControlCheckerByNFT.documentIdToToken(TEST_DOCUMENT_ID2)
     assert.equal(createdToken.contractAddress, externalNFT.address)
     const owner = await accessControlCheckerByNFT.getOwnerAddress(TEST_DOCUMENT_ID2)
     assert(owner, accounts[2].address)
-    const isPermitted = await vwblGateway.hasAccessControl(accounts[1], TEST_DOCUMENT_ID2)
+    const isPermitted = await vwblGateway.hasAccessControl(accounts[1].address, TEST_DOCUMENT_ID2)
     assert.equal(isPermitted, true)
   })
 
   it("should successfully transfer nft and minter has access control", async () => {
-    await vwblERC721.setApprovalForAll(transferVWBLNFTContract.address, true, { from: accounts[2].address })
-    await transferVWBLNFTContract.transferNFT(vwblERC721.address, accounts[3].address, 1, { from: accounts[2].address })
+    await vwblERC721.connect(accounts[2]).setApprovalForAll(transferVWBLNFTContract.address, true)
+    await transferVWBLNFTContract.connect(accounts[2]).transferNFT(vwblERC721.address, accounts[3].address, 1)
 
     const isPermittedOfMinter = await vwblGateway.hasAccessControl(accounts[2].address, TEST_DOCUMENT_ID1)
     assert.equal(isPermittedOfMinter, true)
@@ -109,31 +110,31 @@ describe("VWBLGateway test", async () => {
   })
 
   it("should fail to grant AccessControl to NFT when fee amount is invalid", async () => {
-    await expectRevert(
-      accessControlCheckerByNFT.grantAccessControlAndRegisterNFT(TEST_DOCUMENT_ID3, externalNFT.address, 0, {
-        value: web3.utils.toWei("0.9", "ether"),
-        from: accounts[1].address,
-      }),
-      "Fee is insufficient"
-    )
+    await expect(
+      accessControlCheckerByNFT
+        .connect(accounts[1])
+        .grantAccessControlAndRegisterNFT(TEST_DOCUMENT_ID3, externalNFT.address, 0, {
+          value: utils.parseEther("0.9"),
+        })
+    ).to.be.revertedWith("Fee is insufficient")
 
-    await expectRevert(
-      accessControlCheckerByNFT.grantAccessControlAndRegisterNFT(TEST_DOCUMENT_ID3, externalNFT.address, 0, {
-        value: web3.utils.toWei("1.1", "ether"),
-        from: accounts[1].address,
-      }),
-      "Fee is too high"
-    )
+    await expect(
+      accessControlCheckerByNFT
+        .connect(accounts[1])
+        .grantAccessControlAndRegisterNFT(TEST_DOCUMENT_ID3, externalNFT.address, 0, {
+          value: utils.parseEther("1.1"),
+        })
+    ).to.be.revertedWith("Fee is too high")
   })
 
   it("should fail to grant AccessControl to NFT when documentId is already used", async () => {
-    await expectRevert(
-      accessControlCheckerByNFT.grantAccessControlAndRegisterNFT(TEST_DOCUMENT_ID1, externalNFT.address, 0, {
-        value: web3.utils.toWei("1", "ether"),
-        from: accounts[1].address,
-      }),
-      "documentId is already used"
-    )
+    await expect(
+      accessControlCheckerByNFT
+        .connect(accounts[1])
+        .grantAccessControlAndRegisterNFT(TEST_DOCUMENT_ID1, externalNFT.address, 0, {
+          value: utils.parseEther("1"),
+        })
+    ).to.be.revertedWith("documentId is already used")
   })
 
   it("should get nft datas", async () => {
@@ -147,42 +148,43 @@ describe("VWBLGateway test", async () => {
   })
 
   it("should fail to grant AccessControl to condition contract when fee amount is invalid", async () => {
-    await expectRevert(
-      vwblGateway.grantAccessControl(TEST_DOCUMENT_ID4, accessCondition.address, accounts[0].address, {
-        value: web3.utils.toWei("0.9", "ether"),
-        from: accounts[1].address,
-      }),
-      "Fee is insufficient"
-    )
+    await expect(
+      vwblGateway
+        .connect(accounts[1])
+        .grantAccessControl(TEST_DOCUMENT_ID4, accessCondition.address, accounts[0].address, {
+          value: utils.parseEther("0.9"),
+        })
+    ).to.be.revertedWith("Fee is insufficient")
 
-    await expectRevert(
-      vwblGateway.grantAccessControl(TEST_DOCUMENT_ID4, accessCondition.address, accounts[0].address, {
-        value: web3.utils.toWei("1.1", "ether"),
-        from: accounts[1].address,
-      }),
-      "Fee is too high"
-    )
+    await expect(
+      vwblGateway
+        .connect(accounts[1])
+        .grantAccessControl(TEST_DOCUMENT_ID4, accessCondition.address, accounts[0].address, {
+          value: utils.parseEther("1.1"),
+        })
+    ).to.be.revertedWith("Fee is too high")
   })
 
   it("should fail to grant AccessControl to condition contract when documentId is already used", async () => {
-    await expectRevert(
-      vwblGateway.grantAccessControl(TEST_DOCUMENT_ID1, accessCondition.address, accounts[0].address, {
-        value: web3.utils.toWei("1", "ether"),
-        from: accounts[1].address,
-      }),
-      "documentId is already used"
-    )
+    await expect(
+      vwblGateway
+        .connect(accounts[1])
+        .grantAccessControl(TEST_DOCUMENT_ID1, accessCondition.address, accounts[0].address, {
+          value: utils.parseEther("1"),
+        })
+    ).to.be.revertedWith("documentId is already used")
   })
 
   it("should successfully grant AccessControl to condition contract", async () => {
-    const beforeBalance = await web3.eth.getBalance(vwblGateway.address)
-    await vwblGateway.grantAccessControl(TEST_DOCUMENT_ID4, accessCondition.address, accounts[0].address, {
-      from: accounts[1].address,
-      value: web3.utils.toWei("1", "ether"),
-    })
+    const beforeBalance = await vwblGateway.provider.getBalance(vwblGateway.address)
+    await vwblGateway
+      .connect(accounts[1])
+      .grantAccessControl(TEST_DOCUMENT_ID4, accessCondition.address, accounts[0].address, {
+        value: utils.parseEther("1"),
+      })
 
-    const afterBalance = await web3.eth.getBalance(vwblGateway.address)
-    assert.equal(Number(afterBalance) - Number(beforeBalance), web3.utils.toWei("1", "ether"))
+    const afterBalance = await vwblGateway.provider.getBalance(vwblGateway.address)
+    assert.deepEqual(afterBalance.sub(beforeBalance).eq(utils.parseEther("1")), true)
 
     const contractAddress = await vwblGateway.documentIdToConditionContract(TEST_DOCUMENT_ID4)
     assert.equal(contractAddress, accessCondition.address)
@@ -193,13 +195,13 @@ describe("VWBLGateway test", async () => {
   })
 
   it("should fail to grant AccessControl to condition contract when documentId is already used", async () => {
-    await expectRevert(
-      vwblGateway.grantAccessControl(TEST_DOCUMENT_ID4, accessCondition.address, accounts[0].address, {
-        value: web3.utils.toWei("1", "ether"),
-        from: accounts[2],
-      }),
-      "documentId is already used"
-    )
+    await expect(
+      vwblGateway
+        .connect(accounts[2])
+        .grantAccessControl(TEST_DOCUMENT_ID4, accessCondition.address, accounts[0].address, {
+          value: utils.parseEther("1"),
+        })
+    ).to.be.revertedWith("documentId is already used")
   })
 
   it("should hasAccessControl return false when condition contract return false", async () => {
@@ -209,25 +211,26 @@ describe("VWBLGateway test", async () => {
   })
 
   it("should successfully grant AccessControl under VWBLMetadata.mint()", async () => {
-    const beforeBalance = await web3.eth.getBalance(vwblGateway.address)
-    await vwblMetadata.mint(
-      "https://infura-ipfs.io/ipfs/QmeGAVddnBSnKc1DLE7DLV9uuTqo5F7QbaveTjr45JUdQn",
-      "http://xxx.yyy.com",
-      500,
-      TEST_DOCUMENT_ID5,
-      {
-        from: accounts[2],
-        value: web3.utils.toWei("1", "ether"),
-      }
-    )
+    const beforeBalance = await vwblGateway.provider.getBalance(vwblGateway.address)
+    await vwblMetadata
+      .connect(accounts[2])
+      .mint(
+        "https://infura-ipfs.io/ipfs/QmeGAVddnBSnKc1DLE7DLV9uuTqo5F7QbaveTjr45JUdQn",
+        "http://xxx.yyy.com",
+        500,
+        TEST_DOCUMENT_ID5,
+        {
+          value: utils.parseEther("1"),
+        }
+      )
 
-    const afterBalance = await web3.eth.getBalance(vwblGateway.address)
-    assert.equal(Number(afterBalance) - Number(beforeBalance), web3.utils.toWei("1", "ether"))
+    const afterBalance = await vwblGateway.provider.getBalance(vwblGateway.address)
+    assert.deepEqual(afterBalance.sub(beforeBalance).eq(utils.parseEther("1.0")), true)
 
     const createdToken = await accessControlCheckerByNFT.documentIdToToken(TEST_DOCUMENT_ID5)
     assert.equal(createdToken.contractAddress, vwblMetadata.address)
 
-    const isPermitted = await vwblGateway.hasAccessControl(accounts[2], TEST_DOCUMENT_ID5)
+    const isPermitted = await vwblGateway.hasAccessControl(accounts[2].address, TEST_DOCUMENT_ID5)
     assert.equal(isPermitted, true)
 
     const metadataURI = await vwblMetadata.tokenURI(1)
@@ -235,76 +238,66 @@ describe("VWBLGateway test", async () => {
   })
 
   it("should not withdraw fee from not contract owner", async () => {
-    await expectRevert(vwblGateway.withdrawFee({ from: accounts[1].address }), "Ownable: caller is not the owner")
+    await expect(vwblGateway.connect(accounts[1]).withdrawFee()).to.be.revertedWith("Ownable: caller is not the owner")
   })
 
   it("should withdraw fee from contract owner", async () => {
-    const beforeOwnerBalance = await web3.eth.getBalance(accounts[0].address)
-    const beforeGatewayBalance = await web3.eth.getBalance(vwblGateway.address)
+    const beforeOwnerBalance = await vwblGateway.provider.getBalance(accounts[0].address)
+    const beforeGatewayBalance = await vwblGateway.provider.getBalance(vwblGateway.address)
 
-    await vwblGateway.withdrawFee({ from: accounts[0].address })
+    await vwblGateway.connect(accounts[0]).withdrawFee()
 
-    const afterOwnerBalance = await web3.eth.getBalance(accounts[0].address)
-    const afterGatewayBalance = await web3.eth.getBalance(vwblGateway.address)
-    assert.equal(afterGatewayBalance, web3.utils.toWei("0"))
-    console.log("    Change of gateway contract balance:", Number(beforeGatewayBalance) - Number(afterGatewayBalance))
-    console.log("    Change of contract owner balance: ", Number(afterOwnerBalance) - Number(beforeOwnerBalance))
+    const afterOwnerBalance = await vwblGateway.provider.getBalance(accounts[0].address)
+    const afterGatewayBalance = await vwblGateway.provider.getBalance(vwblGateway.address)
+    assert.equal(afterGatewayBalance.toNumber(), 0)
+    console.log("    Change of gateway contract balance:", beforeGatewayBalance.sub(afterGatewayBalance).toString())
+    console.log("    Change of contract owner balance: ", afterOwnerBalance.sub(beforeOwnerBalance).toString())
   })
 
   it("should not set feeWei from not contract owner", async () => {
-    await expectRevert(
-      vwblGateway.setFeeWei(web3.utils.toWei("2", "ether"), { from: accounts[1].address }),
+    await expect(vwblGateway.connect(accounts[1]).setFeeWei(utils.parseEther("2"))).to.be.revertedWith(
       "Ownable: caller is not the owner"
     )
   })
 
   it("should set feeWei from contract owner", async () => {
     const oldFeeWei = await vwblGateway.feeWei()
-    assert.equal(oldFeeWei.toString(), web3.utils.toWei("1", "ether"))
+    assert.equal(oldFeeWei.toString(), utils.parseEther("1"))
 
-    await vwblGateway.setFeeWei(web3.utils.toWei("2", "ether"), { from: accounts[0].address })
+    await vwblGateway.connect(accounts[0]).setFeeWei(utils.parseEther("2"))
 
     const newFeeWei = await vwblGateway.feeWei()
-    assert.equal(newFeeWei.toString(), web3.utils.toWei("2", "ether"))
+    assert.equal(newFeeWei.toString(), utils.parseEther("2"))
   })
 
   it("should not set VWBLGateway contract from not contract owner", async () => {
-    await expectRevert(
-      gatewayProxy.setGatewayAddress(accounts[4].address, {
-        from: accounts[1].address,
-      }),
+    await expect(gatewayProxy.connect(accounts[1]).setGatewayAddress(accounts[4].address)).to.be.revertedWith(
       "Ownable: caller is not the owner"
     )
 
-    await expectRevert(
-      gatewayProxy.setGatewayAddress(accounts[5].address, {
-        from: accounts[1].address,
-      }),
+    await expect(gatewayProxy.connect(accounts[1]).setGatewayAddress(accounts[5].address)).to.be.revertedWith(
       "Ownable: caller is not the owner"
     )
   })
 
   it("should set VWBLGateway contract from contract owner", async () => {
-    await gatewayProxy.setGatewayAddress(accounts[4].address, { from: accounts[0].address })
+    await gatewayProxy.connect(accounts[0]).setGatewayAddress(accounts[4].address)
     let newContract = await gatewayProxy.getGatewayAddress()
     assert.equal(newContract, accounts[4].address)
 
-    await gatewayProxy.setGatewayAddress(accounts[5].address, { from: accounts[0].address })
+    await gatewayProxy.connect(accounts[0]).setGatewayAddress(accounts[5].address)
     newContract = await gatewayProxy.getGatewayAddress()
     assert.equal(newContract, accounts[5].address)
   })
 
   it("should not set Access check contract from not contract owner", async () => {
-    await expectRevert(
-      vwblERC721.setAccessCheckerContract(accounts[4].address, {
-        from: accounts[1].address,
-      }),
+    await expect(vwblERC721.connect(accounts[1]).setAccessCheckerContract(accounts[4].address)).to.be.revertedWith(
       "Ownable: caller is not the owner"
     )
   })
 
   it("should set Access check contract from contract owner", async () => {
-    await vwblERC721.setAccessCheckerContract(accounts[4].address, { from: accounts[0].address })
+    await vwblERC721.connect(accounts[0]).setAccessCheckerContract(accounts[4].address)
     const newContract = await vwblERC721.accessCheckerContract()
     assert.equal(newContract, accounts[4].address)
   })

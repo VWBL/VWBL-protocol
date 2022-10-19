@@ -1,17 +1,15 @@
-import { Contract } from "ethers"
-import { assert } from "chai"
+import { Contract, utils } from "ethers"
+import { assert, expect } from "chai"
 import { ethers } from "hardhat"
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers"
 
-const { expectRevert } = require("@openzeppelin/test-helpers")
-const { web3 } = require("@openzeppelin/test-helpers/src/setup")
 
-describe("VWBLERC1155 test", async () => {
-  let accounts: SignerWithAddress[];
+describe("VWBLERC1155", async () => {
+  let accounts: SignerWithAddress[]
 
   before(async () => {
-    const [owner, ...signers] = await ethers.getSigners()
-    accounts = signers;
+    const [...signers] = await ethers.getSigners()
+    accounts = signers
   })
 
   let vwblGateway: Contract
@@ -23,7 +21,7 @@ describe("VWBLERC1155 test", async () => {
   const TEST_DOCUMENT_ID2 = "0xbc00000000000000000000000000000000000000000000000000000000000000"
   const TEST_DOCUMENT_ID3 = "0xcc00000000000000000000000000000000000000000000000000000000000000"
   const TEST_DOCUMENT_ID4 = "0xdc00000000000000000000000000000000000000000000000000000000000000"
-  const fee = web3.utils.toWei("1", "ether")
+  const fee = utils.parseEther("1")
 
   it("should deploy", async () => {
     const VWBLGateway = await ethers.getContractFactory("VWBLGateway")
@@ -53,14 +51,13 @@ describe("VWBLERC1155 test", async () => {
   })
 
   it("should mint nft", async () => {
-    await vwblERC1155.mint(
+    await vwblERC1155.connect(accounts[1]).mint(
       "http://xxx.yyy.com",
       100, // token amount
       500, // royalty = 5%
       TEST_DOCUMENT_ID1,
       {
-        value: web3.utils.toWei("1", "ether"),
-        from: accounts[1].address,
+        value: utils.parseEther("1"),
       }
     )
     const tokens = await vwblERC1155.getTokenByMinter(accounts[1].address)
@@ -91,14 +88,13 @@ describe("VWBLERC1155 test", async () => {
   })
 
   it("should mint multiple nfts", async () => {
-    await vwblERC1155.mint(
+    await vwblERC1155.connect(accounts[1]).mint(
       "http://xxx.yyy.zzz.com",
       200, // token amount
       500, // royalty = 5%
       TEST_DOCUMENT_ID2,
       {
-        value: web3.utils.toWei("1", "ether"),
-        from: accounts[1].address,
+        value: utils.parseEther("1"),
       }
     )
     const tokens = await vwblERC1155.getTokenByMinter(accounts[1].address)
@@ -132,9 +128,7 @@ describe("VWBLERC1155 test", async () => {
   })
 
   it("should transfer", async () => {
-    await vwblERC1155.safeTransferFrom(accounts[1].address, accounts[2].address, 1, 10, "0x0", {
-      from: accounts[1].address,
-    })
+    await vwblERC1155.connect(accounts[1]).safeTransferFrom(accounts[1].address, accounts[2].address, 1, 10, "0x00")
 
     const tokenAmountOfOwner1 = await vwblERC1155.balanceOf(accounts[1].address, 1)
     assert.equal(tokenAmountOfOwner1, 90)
@@ -153,9 +147,9 @@ describe("VWBLERC1155 test", async () => {
   })
 
   it("should batch transfer", async () => {
-    await vwblERC1155.safeBatchTransferFrom(accounts[1].address, accounts[2].address, [1, 2], [90, 10], "0x0", {
-      from: accounts[1].address,
-    })
+    await vwblERC1155
+      .connect(accounts[1])
+      .safeBatchTransferFrom(accounts[1].address, accounts[2].address, [1, 2], [90, 10], "0x00")
 
     const token1AmountOfOwner1 = await vwblERC1155.balanceOf(accounts[1].address, 1)
     assert.equal(token1AmountOfOwner1, 0)
@@ -191,16 +185,11 @@ describe("VWBLERC1155 test", async () => {
   })
 
   it("should batch mint nft", async () => {
-    await vwblERC1155.mintBatch(
-      "http://aaa.yyy.zzz.com",
-      [100, 200],
-      [500, 500],
-      [TEST_DOCUMENT_ID3, TEST_DOCUMENT_ID4],
-      {
-        value: web3.utils.toWei("2", "ether"),
-        from: accounts[1].address,
-      }
-    )
+    await vwblERC1155
+      .connect(accounts[1])
+      .mintBatch("http://aaa.yyy.zzz.com", [100, 200], [500, 500], [TEST_DOCUMENT_ID3, TEST_DOCUMENT_ID4], {
+        value: utils.parseEther("2"),
+      })
 
     console.log("     accounts[1].address mint tokenId = 3 , amount = 100 nft")
     console.log("     accounts[1].address mint tokenId = 4 , amount = 200 nft")
@@ -223,48 +212,46 @@ describe("VWBLERC1155 test", async () => {
   })
 
   it("should permitted if transferAndPayFee", async () => {
-    await vwblERC1155.safeTransferAndPayFee(accounts[1].address, accounts[3].address, 3, 10, "0x0", {
-      from: accounts[1].address,
-      value: fee,
-    })
+    await vwblERC1155
+      .connect(accounts[1])
+      .safeTransferAndPayFee(accounts[1].address, accounts[3].address, 3, 10, "0x00", {
+        value: fee,
+      })
     const isPermitted = await vwblGateway.hasAccessControl(accounts[3].address, TEST_DOCUMENT_ID3)
     assert.equal(isPermitted, true)
   })
 
   it("should permitted if batchTransferAndPayFee", async () => {
-    await vwblERC1155.safeBatchTransferAndPayFee(accounts[1].address, accounts[3].address, [3, 4], [10, 10], "0x0", {
-      from: accounts[1].address,
-      value: fee * 2,
-    })
+    await vwblERC1155
+      .connect(accounts[1])
+      .safeBatchTransferAndPayFee(accounts[1].address, accounts[3].address, [3, 4], [10, 10], "0x00", {
+        value: fee.mul(2),
+      })
     const isPermitted = await vwblGateway.hasAccessControl(accounts[3].address, TEST_DOCUMENT_ID4)
     assert.equal(isPermitted, true)
   })
 
   it("should not set BaseURI from not contract owner", async () => {
-    await expectRevert(
-      vwblERC1155.setBaseURI("http://xxx.com", { from: accounts[2].address }),
+    await expect(vwblERC1155.connect(accounts[2]).setBaseURI("http://xxx.com")).to.be.revertedWith(
       "Ownable: caller is not the owner"
     )
   })
 
   it("should set BaseURI from contract owner", async () => {
-    await vwblERC1155.setBaseURI("http://xxx.com", { from: accounts[0].address })
+    await vwblERC1155.connect(accounts[0]).setBaseURI("http://xxx.com")
     const baseURI = await vwblERC1155.uri(1)
     assert.equal(baseURI, "http://xxx.com")
   })
 
   it("should not set Access check contract from not contract owner", async () => {
-    await expectRevert(
-      vwblERC1155.setAccessCheckerContract(accounts[4], {
-        from: accounts[1].address,
-      }),
+    await expect(vwblERC1155.connect(accounts[1]).setAccessCheckerContract(accounts[4].address)).to.be.revertedWith(
       "Ownable: caller is not the owner"
     )
   })
 
   it("should set Access check contract from contract owner", async () => {
-    await vwblERC1155.setAccessCheckerContract(accounts[4], { from: accounts[0].address })
+    await vwblERC1155.connect(accounts[0]).setAccessCheckerContract(accounts[4].address)
     const newContract = await vwblERC1155.accessCheckerContract()
-    assert.equal(newContract, accounts[4])
+    assert.equal(newContract, accounts[4].address)
   })
 })
