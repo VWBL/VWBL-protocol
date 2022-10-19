@@ -20,8 +20,10 @@ const migrateTest = async (config, deployer) => {
 
 const migrateERC721 = async (config, deployer) => {
   console.log('VWBL Metadata URL: ', config.vwblMetadataUrl)
-  const gatewayProxyContractAddress = "";
-  const accessControlCheckerByNFTContractAddress = "";
+  const gatewayProxyContractAddress = config.gatewayProxyContractAddress;
+  console.log("GatewayProxy contract address:", gatewayProxyContractAddress);
+  const accessControlCheckerByNFTContractAddress = config.accessControlCheckerByNFTContractAddress;
+  console.log("AccessControlCheckerByNFT contract address:", accessControlCheckerByNFTContractAddress);
   await deployer.deploy(vwblERC721, config.vwblMetadataUrl, gatewayProxyContractAddress, accessControlCheckerByNFTContractAddress);
   await vwblERC721.deployed();
   // If you want to set the NFT metadata url with the full path, run the script below.
