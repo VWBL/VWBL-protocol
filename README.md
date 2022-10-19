@@ -18,6 +18,11 @@ yarn test
 ```
 
 ## Deployment
+1. Write contract deployment script to [migrations/1_initial_migration.js](https://github.com/VWBL/VWBL-protocol/blob/master/migrations/1_initial_migration.js). 
+＊See [doc](https://app.gitbook.com/o/XKJRuS9VhgLSsEarEY4P/s/CNC1YmYHucLw7YmJFhGF/end-point-for-vwbl) for VWBL contract already deployed.
+2. Set deploy config to [truffle-config.js](https://github.com/VWBL/VWBL-protocol/blob/master/truffle-config.js#L60)
+3. Run deployment script
 ```bash
 yarn deploy --network <network name>
 ```
+
