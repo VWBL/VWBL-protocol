@@ -207,10 +207,10 @@ contract VWBLERC1155 is IERC2981, Ownable, ERC1155Enumerable, ERC1155Burnable {
      */
     function getTokenByMinter(address minter) public view returns (TokenInfo[] memory) {
         uint256 currentCounter = 0;
-        uint256[] memory tokens = new uint256[](counter);
+        TokenInfo[] memory tokens = new TokenInfo[](counter);
         for (uint256 i = 1; i <= counter; i++) {
             if (tokenIdToTokenInfo[i].minterAddress == minter) {
-                tokens[currentCounter++] = i;
+                tokens[currentCounter++] = tokenIdToTokenInfo[i];
             }
         }
         return tokens;
