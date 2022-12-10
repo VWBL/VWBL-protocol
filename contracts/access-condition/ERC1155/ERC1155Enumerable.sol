@@ -58,7 +58,7 @@ abstract contract ERC1155Enumerable is ERC1155 {
                 _tokenCountOfOwner[from] -= 1;
             }
 
-            if (to != from && balanceOf(to, id) == 0) {
+            if (to != from && to != address(0) && balanceOf(to, id) == 0) {
                 _addTokenToOwnerEnumeration(to, id);
                 _tokenCountOfOwner[to] += 1;
             } else if (to == address(0) && _tokenIdToTokenBalance[id] == amount) {
