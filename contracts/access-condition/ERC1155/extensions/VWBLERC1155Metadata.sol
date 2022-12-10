@@ -1,20 +1,20 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "./ERC1155Enumerable.sol";
-import "./dependencies/ERC1155Burnable.sol";
-import "./dependencies/IERC2981.sol";
-import "./dependencies/IERC165.sol";
-import "./IAccessControlCheckerByERC1155.sol";
-import "../../gateway/IGatewayProxy.sol";
-import "../../gateway/IVWBLGateway.sol";
+import "../ERC1155Enumerable.sol";
+import "../dependencies/ERC1155Burnable.sol";
+import "../dependencies/IERC2981.sol";
+import "../dependencies/IERC165.sol";
+import "../IAccessControlCheckerByERC1155.sol";
+import "../../../gateway/IGatewayProxy.sol";
+import "../../../gateway/IVWBLGateway.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
-import "./dependencies/Ownable.sol";
+import "../dependencies/Ownable.sol";
 
 /**
  * @dev Erc1155 which is added Viewable features that only ERC1155 Owner can view digital content
  */
-contract VWBLERC1155 is IERC2981, Ownable, ERC1155Enumerable, ERC1155Burnable {
+contract VWBLERC1155Metadata is IERC2981, Ownable, ERC1155Enumerable, ERC1155Burnable {
     using SafeMath for uint256;
 
     address public gatewayProxy;
@@ -33,6 +33,7 @@ contract VWBLERC1155 is IERC2981, Ownable, ERC1155Enumerable, ERC1155Burnable {
         uint256 royaltiesPercentage; // if percentage is 3.5, royaltiesPercentage=3.5*10^2 (decimal is 2)
     }
 
+    mapping(uint256 => string) private _tokenURIs;
     mapping(uint256 => TokenInfo) public tokenIdToTokenInfo;
     mapping(uint256 => RoyaltyInfo) public tokenIdToRoyaltyInfo;
 
@@ -40,11 +41,7 @@ contract VWBLERC1155 is IERC2981, Ownable, ERC1155Enumerable, ERC1155Burnable {
 
     event accessCheckerContractChanged(address oldAccessCheckerContract, address newAccessCheckerContract);
 
-    constructor(
-        string memory _baseURI,
-        address _gatewayProxy,
-        address _accessCheckerContract
-    ) ERC1155(_baseURI) {
+    constructor(address _gatewayProxy, address _accessCheckerContract) ERC1155("") {
         gatewayProxy = _gatewayProxy;
         accessCheckerContract = _accessCheckerContract;
     }
@@ -60,12 +57,28 @@ contract VWBLERC1155 is IERC2981, Ownable, ERC1155Enumerable, ERC1155Burnable {
         super._beforeTokenTransfer(operator, from, to, ids, amounts, data);
     }
 
-    /**
-     * @notice Set BaseURI.
-     * @param _baseURI new BaseURI
-     */
-    function setBaseURI(string memory _baseURI) public onlyOwner {
-        _setURI(_baseURI);
+    function tokenURI(uint256 tokenId) public view returns (string memory) {
+        require(bytes(_tokenURIs[tokenId]).length != 0, "ERC1155: invalid token ID");
+        return _tokenURIs[tokenId];
+    }
+
+    function _mint(
+        string memory _metadataURl,
+        string memory _getKeyURl,
+        uint256 _amount,
+        uint256 _royaltiesPercentage,
+        bytes32 _documentId
+    ) internal returns (uint256) {
+        uint256 tokenId = ++counter;
+        tokenIdToTokenInfo[tokenId].minterAddress = msg.sender;
+        tokenIdToTokenInfo[tokenId].documentId = _documentId;
+        tokenIdToTokenInfo[tokenId].getKeyURl = _getKeyURl;
+        super._mint(msg.sender, tokenId, _amount, "");
+        _tokenURIs[tokenId] = _metadataURl;
+        if (_royaltiesPercentage > 0) {
+            _setRoyalty(tokenId, msg.sender, _royaltiesPercentage);
+        }
+        return tokenId;
     }
 
     /**
@@ -104,25 +117,20 @@ contract VWBLERC1155 is IERC2981, Ownable, ERC1155Enumerable, ERC1155Burnable {
 
     /**
      * @notice Mint ERC1155, grant access feature and register access condition of digital content.
+     * @param _metadataURl The URl of nft metadata
      * @param _getKeyURl The URl of VWBL Network(Key management network)
      * @param _amount The token quantity
      * @param _royaltiesPercentage Royalty percentage of ERC1155
      * @param _documentId The Identifier of digital content and decryption key
      */
     function mint(
+        string memory _metadataURl,
         string memory _getKeyURl,
         uint256 _amount,
         uint256 _royaltiesPercentage,
         bytes32 _documentId
     ) public payable returns (uint256) {
-        uint256 tokenId = ++counter;
-        tokenIdToTokenInfo[tokenId].minterAddress = msg.sender;
-        tokenIdToTokenInfo[tokenId].documentId = _documentId;
-        tokenIdToTokenInfo[tokenId].getKeyURl = _getKeyURl;
-        _mint(msg.sender, tokenId, _amount, "");
-        if (_royaltiesPercentage > 0) {
-            _setRoyalty(tokenId, msg.sender, _royaltiesPercentage);
-        }
+        uint256 tokenId = _mint(_metadataURl, _getKeyURl, _amount, _royaltiesPercentage, _documentId);
 
         IAccessControlCheckerByERC1155(accessCheckerContract).grantAccessControlAndRegisterERC1155{value: msg.value}(
             _documentId,
@@ -135,17 +143,19 @@ contract VWBLERC1155 is IERC2981, Ownable, ERC1155Enumerable, ERC1155Burnable {
 
     /**
      * @notice Batch mint ERC1155, grant access feature and register access condition of digital content.
+     * @param _metadataURl The URl of nft metadata
      * @param _getKeyURl The Url of VWBL Network(Key management network)
      * @param _amounts The array of token quantity
      * @param _royaltiesPercentages Array of Royalty percentage of ERC1155
      * @param _documentIds The array of Identifier of digital content and decryption key
      */
     function mintBatch(
+        string memory _metadataURl,
         string memory _getKeyURl,
         uint256[] memory _amounts,
         uint256[] memory _royaltiesPercentages,
         bytes32[] memory _documentIds
-    ) public payable {
+    ) public payable returns (uint256[] memory) {
         require(
             _amounts.length == _royaltiesPercentages.length && _royaltiesPercentages.length == _documentIds.length,
             "Invalid array length"
@@ -158,6 +168,7 @@ contract VWBLERC1155 is IERC2981, Ownable, ERC1155Enumerable, ERC1155Burnable {
             tokenIdToTokenInfo[tokenId].minterAddress = msg.sender;
             tokenIdToTokenInfo[tokenId].documentId = _documentIds[i];
             tokenIdToTokenInfo[tokenId].getKeyURl = _getKeyURl;
+            _tokenURIs[tokenId] = _metadataURl;
             if (_royaltiesPercentages[i] > 0) {
                 _setRoyalty(tokenId, msg.sender, _royaltiesPercentages[i]);
             }
@@ -174,6 +185,8 @@ contract VWBLERC1155 is IERC2981, Ownable, ERC1155Enumerable, ERC1155Burnable {
                 tokenIds[i]
             );
         }
+
+        return tokenIds;
     }
 
     function safeTransferAndPayFee(
