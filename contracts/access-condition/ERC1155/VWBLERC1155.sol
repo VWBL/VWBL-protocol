@@ -2,6 +2,7 @@
 pragma solidity ^0.8.17;
 
 import "./ERC1155Enumerable.sol";
+import "./dependencies/ERC1155Burnable.sol";
 import "./dependencies/IERC2981.sol";
 import "./dependencies/IERC165.sol";
 import "./IAccessControlCheckerByERC1155.sol";
@@ -13,7 +14,7 @@ import "./dependencies/Ownable.sol";
 /**
  * @dev Erc1155 which is added Viewable features that only ERC1155 Owner can view digital content
  */
-contract VWBLERC1155 is IERC2981, Ownable, ERC1155Enumerable {
+contract VWBLERC1155 is IERC2981, Ownable, ERC1155Enumerable, ERC1155Burnable {
     using SafeMath for uint256;
 
     address public gatewayProxy;
@@ -35,7 +36,7 @@ contract VWBLERC1155 is IERC2981, Ownable, ERC1155Enumerable {
     mapping(uint256 => TokenInfo) public tokenIdToTokenInfo;
     mapping(uint256 => RoyaltyInfo) public tokenIdToRoyaltyInfo;
 
-    uint public constant INVERSE_BASIS_POINT = 10000;
+    uint256 public constant INVERSE_BASIS_POINT = 10000;
 
     event accessCheckerContractChanged(address oldAccessCheckerContract, address newAccessCheckerContract);
 
@@ -46,6 +47,17 @@ contract VWBLERC1155 is IERC2981, Ownable, ERC1155Enumerable {
     ) ERC1155(_baseURI) {
         gatewayProxy = _gatewayProxy;
         accessCheckerContract = _accessCheckerContract;
+    }
+
+    function _beforeTokenTransfer(
+        address operator,
+        address from,
+        address to,
+        uint256[] memory ids,
+        uint256[] memory amounts,
+        bytes memory data
+    ) internal override(ERC1155, ERC1155Enumerable) {
+        super._beforeTokenTransfer(operator, from, to, ids, amounts, data);
     }
 
     /**
@@ -135,8 +147,7 @@ contract VWBLERC1155 is IERC2981, Ownable, ERC1155Enumerable {
         bytes32[] memory _documentIds
     ) public payable {
         require(
-            _amounts.length == _royaltiesPercentages.length
-            && _royaltiesPercentages.length == _documentIds.length,
+            _amounts.length == _royaltiesPercentages.length && _royaltiesPercentages.length == _documentIds.length,
             "Invalid array length"
         );
 
@@ -185,7 +196,7 @@ contract VWBLERC1155 is IERC2981, Ownable, ERC1155Enumerable {
     ) public payable {
         safeBatchTransferFrom(from, to, ids, amounts, data);
         (bool calResult, uint256 fee) = msg.value.tryDiv(ids.length);
-        for(uint32 i = 0; i < ids.length; i++){
+        for (uint32 i = 0; i < ids.length; i++) {
             IVWBLGateway(getGatewayAddress()).payFee{value: fee}(tokenIdToTokenInfo[ids[i]].documentId, to);
         }
     }
@@ -194,11 +205,7 @@ contract VWBLERC1155 is IERC2981, Ownable, ERC1155Enumerable {
      * @notice Get token Info for each minter
      * @param minter The address of ERC1155 Minter
      */
-    function getTokenByMinter(address minter)
-        public
-        view
-        returns (uint256[] memory)
-    {
+    function getTokenByMinter(address minter) public view returns (TokenInfo[] memory) {
         uint256 currentCounter = 0;
         uint256[] memory tokens = new uint256[](counter);
         for (uint256 i = 1; i <= counter; i++) {
@@ -209,10 +216,8 @@ contract VWBLERC1155 is IERC2981, Ownable, ERC1155Enumerable {
         return tokens;
     }
 
-    function supportsInterface(bytes4 interfaceId) public view
-        virtual override(IERC165, ERC1155) returns (bool) {
-        return interfaceId == type(IERC2981).interfaceId
-            || super.supportsInterface(interfaceId);
+    function supportsInterface(bytes4 interfaceId) public view virtual override(IERC165, ERC1155) returns (bool) {
+        return interfaceId == type(IERC2981).interfaceId || super.supportsInterface(interfaceId);
     }
 
     /**
