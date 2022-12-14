@@ -9,9 +9,9 @@ import "./IVWBLGateway.sol";
  * @dev VWBL Gateway Contract which manage who has access right of digital content.
  */
 contract VWBLGateway is IVWBLGateway, Ownable {
-    mapping (bytes32 => address) public documentIdToConditionContract;
-    mapping (bytes32 => address) public documentIdToMinter;
-    mapping (bytes32 => mapping (address => bool)) public paidUsers;
+    mapping(bytes32 => address) public documentIdToConditionContract;
+    mapping(bytes32 => address) public documentIdToMinter;
+    mapping(bytes32 => mapping(address => bool)) public paidUsers;
     bytes32[] public documentIds;
 
     uint256 public feeWei = 1000000000000000000; // 1MATIC
@@ -48,7 +48,7 @@ contract VWBLGateway is IVWBLGateway, Ownable {
         bool isOwner = checker.getOwnerAddress(documentId) == user;
         bool isMinter = documentIdToMinter[documentId] == user;
         bool hasAccess = checker.checkAccessControl(user, documentId);
-        return  isOwner || isMinter || (isPaidUser && hasAccess);
+        return isOwner || isMinter || (isPaidUser && hasAccess);
     }
 
     /**
@@ -64,10 +64,7 @@ contract VWBLGateway is IVWBLGateway, Ownable {
     ) public payable {
         require(msg.value <= feeWei, "Fee is too high");
         require(msg.value >= feeWei, "Fee is insufficient");
-        require(
-            documentIdToConditionContract[documentId] == address(0),
-            "documentId is already used"
-        );
+        require(documentIdToConditionContract[documentId] == address(0), "documentId is already used");
 
         pendingFee += msg.value;
         documentIdToConditionContract[documentId] = conditionContractAddress;
@@ -81,16 +78,10 @@ contract VWBLGateway is IVWBLGateway, Ownable {
      * @param documentId The Identifier of digital content and decryption key
      * @param user address to grant
      */
-    function payFee(
-        bytes32 documentId,
-        address user
-    ) public payable {
+    function payFee(bytes32 documentId, address user) public payable {
         require(msg.value <= feeWei, "Fee is too high");
         require(msg.value >= feeWei, "Fee is insufficient");
-        require(
-            documentIdToConditionContract[documentId] != address(0),
-            "document id is not registered"
-        );
+        require(documentIdToConditionContract[documentId] != address(0), "document id is not registered");
 
         pendingFee += msg.value;
         paidUsers[documentId][user] = true;

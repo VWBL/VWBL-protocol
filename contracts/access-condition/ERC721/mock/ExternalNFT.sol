@@ -4,6 +4,7 @@ import "@openzeppelin/contracts/token/ERC721/presets/ERC721PresetMinterPauserAut
 
 contract ExternalNFT is ERC721PresetMinterPauserAutoId {
     constructor() ERC721PresetMinterPauserAutoId("VWBL NFT", "VWBL", "http://xxx.zzz.com") {}
+
     function getMinter(uint256 tokenId) public view returns (address) {
         return address(0);
     }

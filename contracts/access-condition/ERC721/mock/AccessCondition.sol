@@ -8,10 +8,7 @@ contract AccessCondition is IAccessControlChecker {
 
     constructor() public {}
 
-    function checkAccessControl(
-        address user,
-        bytes32 documentId
-    ) external view returns (bool) {
+    function checkAccessControl(address user, bytes32 documentId) external view returns (bool) {
         return condition;
     }
 

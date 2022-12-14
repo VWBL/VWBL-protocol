@@ -10,5 +10,9 @@ interface IAccessControlCheckerByNFT is IAccessControlChecker {
      * @param nftContract The contract address of NFT
      * @param tokenId The Identifier of NFT
      */
-    function grantAccessControlAndRegisterNFT(bytes32 documentId, address nftContract, uint256 tokenId) external payable;
+    function grantAccessControlAndRegisterNFT(
+        bytes32 documentId,
+        address nftContract,
+        uint256 tokenId
+    ) external payable;
 }
