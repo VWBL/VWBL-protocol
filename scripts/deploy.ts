@@ -15,35 +15,19 @@ async function main() {
     // If this script is run directly using `node` you may want to call compile
     // manually to make sure everything is compiled
     // await hre.run('compile');
-    const baseURI = process.env.METADATA_URL || "http://xxx.yyy.com"
-    console.log({ baseURI })
+    const baseURI = process.env.METADATA_URL!
+    console.log("VWBL Metadata URL: ", baseURI)
+
+    const gatewayProxyContractAddress = "0xa0cbAF6872f80172Bf0a471bC447440edFEC4475"
+    const accessControlCheckerByNFTContractAddress = "0x9c9bd1b3376ccf3d695d9233c04e865e556f8980"
 
     let VWBLERC721Contract: Contract
-    let GatewayContract: Contract
-    let GatewayProxyContract: Contract
-    let AccessControlCheckerByNFT: Contract
-    const feeWei = "100"
-
-    const vwblGateway = await ethers.getContractFactory("VWBLGateway")
-    GatewayContract = await vwblGateway.deploy(feeWei)
-
-    console.log("Gateway Contract deployed to:", GatewayContract.address)
-
-    const gatewayProxy = await ethers.getContractFactory("GatewayProxy")
-    GatewayProxyContract = await gatewayProxy.deploy(GatewayContract.address)
-
-    console.log("GatewayProxy Contract deployed to:", GatewayProxyContract.address)
-
-    const accessControlCheckerByNFT = await ethers.getContractFactory("AccessControlCheckerByNFT")
-    AccessControlCheckerByNFT = await accessControlCheckerByNFT.deploy(GatewayProxyContract.address)
-
-    console.log("AccessControlChecker Contract deployed to:", GatewayContract.address)
 
     const vwblERC721 = await ethers.getContractFactory("VWBL")
     VWBLERC721Contract = await vwblERC721.deploy(
         baseURI,
-        GatewayProxyContract.address,
-        AccessControlCheckerByNFT.address
+        gatewayProxyContractAddress,
+        accessControlCheckerByNFTContractAddress
     )
 
     console.log("VWBLERC721 Contract deployed to:", VWBLERC721Contract.address)
