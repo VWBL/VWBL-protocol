@@ -22,7 +22,7 @@ contract GatewayProxy is Ownable, IGatewayProxy {
         emit gatewayContractChanged(old, _gatewayAddress);
     }
 
-    function getGatewayAddress() public view returns (address){
+    function getGatewayAddress() public view returns (address) {
         return gatewayAddress;
     }
 }

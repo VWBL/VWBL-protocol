@@ -28,7 +28,6 @@ contract AccessControlCheckerByERC1155 is IAccessControlCheckerByERC1155, Ownabl
         gatewayProxy = _gatewayProxy;
     }
 
-
     /**
      * @notice Get VWBL gateway address
      */
@@ -73,15 +72,10 @@ contract AccessControlCheckerByERC1155 is IAccessControlCheckerByERC1155, Ownabl
      * @param user The address of decryption key requester or decryption key sender to VWBL Network
      * @param documentId The Identifier of digital content and decryption key
      */
-    function checkAccessControl(
-        address user,
-        bytes32 documentId
-    ) external view returns (bool) {
+    function checkAccessControl(address user, bytes32 documentId) external view returns (bool) {
         Token memory token = documentIdToToken[documentId];
 
-        if (
-            IERC1155(token.contractAddress).balanceOf(user, token.tokenId) > 0
-        ) {
+        if (IERC1155(token.contractAddress).balanceOf(user, token.tokenId) > 0) {
             return true;
         }
 
@@ -94,8 +88,16 @@ contract AccessControlCheckerByERC1155 is IAccessControlCheckerByERC1155, Ownabl
      * @param erc1155Contract The contract address of ERC1155
      * @param tokenId The Identifier of ERC1155
      */
-    function grantAccessControlAndRegisterERC1155(bytes32 documentId, address erc1155Contract, uint256 tokenId) public payable {
-        IVWBLGateway(getGatewayAddress()).grantAccessControl{value: msg.value}(documentId, address(this), IVWBLERC1155(erc1155Contract).getMinter(tokenId));
+    function grantAccessControlAndRegisterERC1155(
+        bytes32 documentId,
+        address erc1155Contract,
+        uint256 tokenId
+    ) public payable {
+        IVWBLGateway(getGatewayAddress()).grantAccessControl{value: msg.value}(
+            documentId,
+            address(this),
+            IVWBLERC1155(erc1155Contract).getMinter(tokenId)
+        );
 
         documentIdToToken[documentId].contractAddress = erc1155Contract;
         documentIdToToken[documentId].tokenId = tokenId;

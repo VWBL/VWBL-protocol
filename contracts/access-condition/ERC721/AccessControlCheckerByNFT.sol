@@ -62,9 +62,7 @@ contract AccessControlCheckerByNFT is IAccessControlCheckerByNFT, Ownable {
      * @notice Return owner address
      * @param documentId The Identifier of digital content and decryption key
      */
-    function getOwnerAddress(
-        bytes32 documentId
-    ) external view returns (address) {
+    function getOwnerAddress(bytes32 documentId) external view returns (address) {
         Token memory token = documentIdToToken[documentId];
         return IERC721(token.contractAddress).ownerOf(token.tokenId);
     }
@@ -75,10 +73,7 @@ contract AccessControlCheckerByNFT is IAccessControlCheckerByNFT, Ownable {
      * @param user The address of decryption key requester or decryption key sender to VWBL Network
      * @param documentId The Identifier of digital content and decryption key
      */
-    function checkAccessControl(
-        address user,
-        bytes32 documentId
-    ) external view returns (bool) {
+    function checkAccessControl(address user, bytes32 documentId) external view returns (bool) {
         return false;
     }
 
@@ -88,8 +83,16 @@ contract AccessControlCheckerByNFT is IAccessControlCheckerByNFT, Ownable {
      * @param nftContract The contract address of NFT
      * @param tokenId The Identifier of NFT
      */
-    function grantAccessControlAndRegisterNFT(bytes32 documentId, address nftContract, uint256 tokenId) public payable {
-        IVWBLGateway(getGatewayAddress()).grantAccessControl{value: msg.value}(documentId, address(this),IVWBL(nftContract).getMinter(tokenId));
+    function grantAccessControlAndRegisterNFT(
+        bytes32 documentId,
+        address nftContract,
+        uint256 tokenId
+    ) public payable {
+        IVWBLGateway(getGatewayAddress()).grantAccessControl{value: msg.value}(
+            documentId,
+            address(this),
+            IVWBL(nftContract).getMinter(tokenId)
+        );
 
         documentIdToToken[documentId].contractAddress = nftContract;
         documentIdToToken[documentId].tokenId = tokenId;

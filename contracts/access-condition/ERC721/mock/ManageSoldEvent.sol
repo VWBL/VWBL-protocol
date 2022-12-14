@@ -10,7 +10,7 @@ contract ManageSoldEvent is Ownable {
     event addedWhiteListAddress(address _address);
     event removedWhiteListAddress(address _address);
 
-    modifier onlyWhitelist {
+    modifier onlyWhitelist() {
         bool isWhitelist = false;
         for (uint32 i = 0; i < whiteListAddresses.length; i++) {
             if (msg.sender == whiteListAddresses[i]) {
@@ -21,11 +21,16 @@ contract ManageSoldEvent is Ownable {
         _;
     }
 
-    constructor (address _whiteListAddress) {
+    constructor(address _whiteListAddress) {
         whiteListAddresses.push(_whiteListAddress);
     }
 
-    function emitSoldEvent(uint256 _sellPrice, uint256 _tokenId, address _from, address _to) external onlyWhitelist {
+    function emitSoldEvent(
+        uint256 _sellPrice,
+        uint256 _tokenId,
+        address _from,
+        address _to
+    ) external onlyWhitelist {
         emit sold(_sellPrice, _tokenId, _from, _to, block.timestamp);
     }
 
@@ -42,8 +47,8 @@ contract ManageSoldEvent is Ownable {
         uint256 length = whiteListAddresses.length;
         for (uint32 i = 0; i < length; i++) {
             if (_address == whiteListAddresses[i]) {
-                whiteListAddresses[i] = whiteListAddresses[length-1];
-                delete whiteListAddresses[length-1];
+                whiteListAddresses[i] = whiteListAddresses[length - 1];
+                delete whiteListAddresses[length - 1];
                 emit removedWhiteListAddress(_address);
             }
         }
