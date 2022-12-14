@@ -21,10 +21,10 @@ jobs:
         uses: borales/actions-yarn@v3.0.0
         with:
           cmd: install
-      # - name: Lint Contract
-      #   uses: borales/actions-yarn@v3.0.0
-      #   with:
-      #     cmd: lint
+      - name: Lint Contract
+        uses: borales/actions-yarn@v3.0.0
+        with:
+          cmd: lint
       - name: Test Contract
         uses: borales/actions-yarn@v3.0.0
         with:
