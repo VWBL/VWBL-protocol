@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.17;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
@@ -30,7 +30,11 @@ abstract contract VWBLProtocol is ERC721Enumerable, IERC2981 {
 
     uint256 public constant INVERSE_BASIS_POINT = 10000;
 
-    function _mint(string memory _getKeyURl, uint256 _royaltiesPercentage, bytes32 _documentId) internal returns (uint256) {
+    function _mint(
+        string memory _getKeyURl,
+        uint256 _royaltiesPercentage,
+        bytes32 _documentId
+    ) internal returns (uint256) {
         uint256 tokenId = ++counter;
         TokenInfo memory tokenInfo = TokenInfo(_documentId, msg.sender, _getKeyURl);
         tokenIdToTokenInfo[tokenId] = tokenInfo;
@@ -45,11 +49,7 @@ abstract contract VWBLProtocol is ERC721Enumerable, IERC2981 {
      * @notice Get token Info for each minter
      * @param minter The address of NFT Minter
      */
-    function getTokenByMinter(address minter)
-        public
-        view
-        returns (uint256[] memory)
-    {
+    function getTokenByMinter(address minter) public view returns (uint256[] memory) {
         uint256 resultCount = 0;
         for (uint256 i = 1; i <= counter; i++) {
             if (tokenIdToTokenInfo[i].minterAddress == minter) {
@@ -172,11 +172,19 @@ contract VWBL is VWBLProtocol, Ownable, IVWBL {
      * @param _royaltiesPercentage Royalty percentage of NFT
      * @param _documentId The Identifier of digital content and decryption key
      */
-    function mint(string memory _getKeyURl, uint256 _royaltiesPercentage, bytes32 _documentId) public payable returns (uint256) {
+    function mint(
+        string memory _getKeyURl,
+        uint256 _royaltiesPercentage,
+        bytes32 _documentId
+    ) public payable returns (uint256) {
         uint256 tokenId = super._mint(_getKeyURl, _royaltiesPercentage, _documentId);
 
         // grant access control to nft and pay vwbl fee and register nft data to access control checker contract
-        IAccessControlCheckerByNFT(accessCheckerContract).grantAccessControlAndRegisterNFT{value: msg.value}(_documentId, address(this), tokenId);
+        IAccessControlCheckerByNFT(accessCheckerContract).grantAccessControlAndRegisterNFT{value: msg.value}(
+            _documentId,
+            address(this),
+            tokenId
+        );
 
         return tokenId;
     }

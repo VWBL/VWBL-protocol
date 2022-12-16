@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.17;
 
 /**
  * @dev Interface of the VWBL Gateway as defined in the
@@ -37,10 +37,7 @@ interface IVWBLGateway {
      * @param documentId The Identifier of digital content and decryption key
      * @param user address to grant
      */
-    function  payFee(
-        bytes32 documentId,
-        address user
-    ) external payable;
+    function payFee(bytes32 documentId, address user) external payable;
 
     /**
      * @notice Withdraw vwbl fee by contract owner

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.17;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
@@ -34,10 +34,7 @@ abstract contract VWBLProtocol is ERC721Enumerable, IERC2981 {
     uint256 public constant INVERSE_BASIS_POINT = 10000;
 
     function tokenURI(uint256 tokenId) public view override returns (string memory) {
-        require(
-            bytes(_tokenURIs[tokenId]).length != 0,
-            "ERC721: invalid token ID"
-        );
+        require(bytes(_tokenURIs[tokenId]).length != 0, "ERC721: invalid token ID");
         return _tokenURIs[tokenId];
     }
 
@@ -62,11 +59,7 @@ abstract contract VWBLProtocol is ERC721Enumerable, IERC2981 {
      * @notice Get token Info for each minter
      * @param minter The address of NFT Minter
      */
-    function getTokenByMinter(address minter)
-        public
-        view
-        returns (uint256[] memory)
-    {
+    function getTokenByMinter(address minter) public view returns (uint256[] memory) {
         uint256 resultCount = 0;
         for (uint256 i = 1; i <= counter; i++) {
             if (tokenIdToTokenInfo[i].minterAddress == minter) {
@@ -132,10 +125,7 @@ contract VWBLMetadata is VWBLProtocol, Ownable, IVWBLMetadata {
 
     event accessCheckerContractChanged(address oldAccessCheckerContract, address newAccessCheckerContract);
 
-    constructor(
-        address _gatewayProxy,
-        address _accessCheckerContract
-    ) ERC721("VWBL", "VWBL") {
+    constructor(address _gatewayProxy, address _accessCheckerContract) ERC721("VWBL", "VWBL") {
         gatewayProxy = _gatewayProxy;
         accessCheckerContract = _accessCheckerContract;
     }
@@ -182,7 +172,11 @@ contract VWBLMetadata is VWBLProtocol, Ownable, IVWBLMetadata {
         uint256 tokenId = super._mint(_documentId, _metadataURl, _getKeyURl, _royaltiesPercentage);
 
         // grant access control to nft and pay vwbl fee and register nft data to access control checker contract
-        IAccessControlCheckerByNFT(accessCheckerContract).grantAccessControlAndRegisterNFT{value: msg.value}(_documentId, address(this), tokenId);
+        IAccessControlCheckerByNFT(accessCheckerContract).grantAccessControlAndRegisterNFT{value: msg.value}(
+            _documentId,
+            address(this),
+            tokenId
+        );
 
         return tokenId;
     }

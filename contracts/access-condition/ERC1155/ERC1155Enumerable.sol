@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.17;
 
-import "./dependencies/ERC1155.sol";
+import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 
 abstract contract ERC1155Enumerable is ERC1155 {
     // Mapping owner address to token count
@@ -12,6 +12,9 @@ abstract contract ERC1155Enumerable is ERC1155 {
 
     // Mapping from token ID to index of the owner tokens list
     mapping(uint256 => uint256) private _ownedTokensIndex;
+
+    // Mapping token ID to token balance
+    mapping(uint256 => uint256) public _tokenIdToTokenBalance;
 
     // Array with all token ids, used for enumeration
     uint256[] private _allTokens;

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.17;
 
 interface IAccessControlChecker {
     /**
@@ -16,7 +16,5 @@ interface IAccessControlChecker {
      * @param documentId The Identifier of digital content and decryption key
      * @return owner address
      */
-    function getOwnerAddress(
-        bytes32 documentId
-    ) external view returns (address);
+    function getOwnerAddress(bytes32 documentId) external view returns (address);
 }

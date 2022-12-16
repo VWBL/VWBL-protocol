@@ -1,15 +1,15 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.17;
 
-import "./ERC1155Enumerable.sol";
-import "./dependencies/ERC1155Burnable.sol";
-import "./dependencies/IERC2981.sol";
-import "./dependencies/IERC165.sol";
+import "@openzeppelin/contracts/interfaces/IERC2981.sol";
+import "@openzeppelin/contracts/interfaces/IERC165.sol";
+import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Burnable.sol";
+import "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 import "./IAccessControlCheckerByERC1155.sol";
 import "../../gateway/IGatewayProxy.sol";
 import "../../gateway/IVWBLGateway.sol";
-import "@openzeppelin/contracts/utils/math/SafeMath.sol";
-import "./dependencies/Ownable.sol";
+import "./ERC1155Enumerable.sol";
 
 /**
  * @dev Erc1155 which is added Viewable features that only ERC1155 Owner can view digital content
