@@ -40,20 +40,22 @@ contract AccessControlCheckerByERC1155 is IAccessControlCheckerByERC1155, Ownabl
      */
     function getERC1155Datas() public view returns (bytes32[] memory, Token[] memory) {
         bytes32[] memory allDocumentIds = IVWBLGateway(getGatewayAddress()).getDocumentIds();
-        uint256 documentIdLength;
+        bytes32[] memory tempDocumentIds = new bytes32[](allDocumentIds.length);
+        Token[] memory tempTokens = new Token[](allDocumentIds.length);
+        uint256 count;
         for (uint256 i = 0; i < allDocumentIds.length; i++) {
             if (documentIdToToken[allDocumentIds[i]].contractAddress != address(0)) {
-                documentIdLength++;
+                count++;
+                tempDocumentIds[count - 1] = allDocumentIds[i];
+                tempTokens[count - 1] = documentIdToToken[allDocumentIds[i]];
             }
         }
 
-        bytes32[] memory documentIds = new bytes32[](documentIdLength);
-        Token[] memory tokens = new Token[](documentIdLength);
-        for (uint256 i = 0; i < allDocumentIds.length; i++) {
-            if (documentIdToToken[allDocumentIds[i]].contractAddress != address(0)) {
-                documentIds[i] = allDocumentIds[i];
-                tokens[i] = documentIdToToken[allDocumentIds[i]];
-            }
+        bytes32[] memory documentIds = new bytes32[](count);
+        Token[] memory tokens = new Token[](count);
+        for (uint256 i = 0; i < count; i++) {
+            documentIds[i] = tempDocumentIds[i];
+            tokens[i] = tempTokens[i];
         }
         return (documentIds, tokens);
     }
