@@ -23,8 +23,8 @@ contract VWBLERC1155 is IERC2981, Ownable, ERC1155Enumerable, ERC1155Burnable {
     uint256 public counter = 0;
 
     struct TokenInfo {
-        address minterAddress;
         bytes32 documentId;
+        address minterAddress;
         string getKeyURl;
     }
 
@@ -116,8 +116,8 @@ contract VWBLERC1155 is IERC2981, Ownable, ERC1155Enumerable, ERC1155Burnable {
         bytes32 _documentId
     ) public payable returns (uint256) {
         uint256 tokenId = ++counter;
-        tokenIdToTokenInfo[tokenId].minterAddress = msg.sender;
         tokenIdToTokenInfo[tokenId].documentId = _documentId;
+        tokenIdToTokenInfo[tokenId].minterAddress = msg.sender;
         tokenIdToTokenInfo[tokenId].getKeyURl = _getKeyURl;
         _mint(msg.sender, tokenId, _amount, "");
         if (_royaltiesPercentage > 0) {
@@ -155,8 +155,8 @@ contract VWBLERC1155 is IERC2981, Ownable, ERC1155Enumerable, ERC1155Burnable {
         for (uint32 i = 0; i < _amounts.length; i++) {
             uint256 tokenId = ++counter;
             tokenIds[i] = tokenId;
-            tokenIdToTokenInfo[tokenId].minterAddress = msg.sender;
             tokenIdToTokenInfo[tokenId].documentId = _documentIds[i];
+            tokenIdToTokenInfo[tokenId].minterAddress = msg.sender;
             tokenIdToTokenInfo[tokenId].getKeyURl = _getKeyURl;
             if (_royaltiesPercentages[i] > 0) {
                 _setRoyalty(tokenId, msg.sender, _royaltiesPercentages[i]);

@@ -165,8 +165,8 @@ contract VWBLERC1155Metadata is IERC2981, Ownable, ERC1155Enumerable, ERC1155Bur
         for (uint32 i = 0; i < _amounts.length; i++) {
             uint256 tokenId = ++counter;
             tokenIds[i] = tokenId;
-            tokenIdToTokenInfo[tokenId].minterAddress = msg.sender;
             tokenIdToTokenInfo[tokenId].documentId = _documentIds[i];
+            tokenIdToTokenInfo[tokenId].minterAddress = msg.sender;
             tokenIdToTokenInfo[tokenId].getKeyURl = _getKeyURl;
             _tokenURIs[tokenId] = _metadataURl;
             if (_royaltiesPercentages[i] > 0) {
