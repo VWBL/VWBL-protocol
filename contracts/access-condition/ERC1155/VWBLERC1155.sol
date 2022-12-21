@@ -5,6 +5,7 @@ import "@openzeppelin/contracts/interfaces/IERC2981.sol";
 import "@openzeppelin/contracts/interfaces/IERC165.sol";
 import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Burnable.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "./IAccessControlCheckerByERC1155.sol";
 import "../../gateway/IGatewayProxy.sol";
@@ -16,6 +17,9 @@ import "./ERC1155Enumerable.sol";
  */
 contract VWBLERC1155 is IERC2981, Ownable, ERC1155Enumerable, ERC1155Burnable {
     using SafeMath for uint256;
+    using Strings for uint256;
+
+    string private _baseURI = "";
 
     address public gatewayProxy;
     address public accessCheckerContract;
@@ -33,6 +37,7 @@ contract VWBLERC1155 is IERC2981, Ownable, ERC1155Enumerable, ERC1155Burnable {
         uint256 royaltiesPercentage; // if percentage is 3.5, royaltiesPercentage=3.5*10^2 (decimal is 2)
     }
 
+    mapping(uint256 => string) private _tokenURIs;
     mapping(uint256 => TokenInfo) public tokenIdToTokenInfo;
     mapping(uint256 => RoyaltyInfo) public tokenIdToRoyaltyInfo;
 
@@ -45,6 +50,7 @@ contract VWBLERC1155 is IERC2981, Ownable, ERC1155Enumerable, ERC1155Burnable {
         address _gatewayProxy,
         address _accessCheckerContract
     ) ERC1155(_baseURI) {
+        setBaseURI(_baseURI);
         gatewayProxy = _gatewayProxy;
         accessCheckerContract = _accessCheckerContract;
     }
@@ -60,12 +66,17 @@ contract VWBLERC1155 is IERC2981, Ownable, ERC1155Enumerable, ERC1155Burnable {
         super._beforeTokenTransfer(operator, from, to, ids, amounts, data);
     }
 
+    function uri(uint256 tokenId) public view override returns (string memory) {
+        string memory tokenURI = _tokenURIs[tokenId];
+        return bytes(tokenURI).length > 0 ? string(abi.encodePacked(_baseURI, tokenId.toString())) : "";
+    }
+
     /**
      * @notice Set BaseURI.
-     * @param _baseURI new BaseURI
+     * @param newBaseURI new BaseURI
      */
-    function setBaseURI(string memory _baseURI) public onlyOwner {
-        _setURI(_baseURI);
+    function setBaseURI(string memory newBaseURI) public onlyOwner {
+        _baseURI = newBaseURI;
     }
 
     /**
@@ -120,6 +131,7 @@ contract VWBLERC1155 is IERC2981, Ownable, ERC1155Enumerable, ERC1155Burnable {
         tokenIdToTokenInfo[tokenId].minterAddress = msg.sender;
         tokenIdToTokenInfo[tokenId].getKeyURl = _getKeyURl;
         _mint(msg.sender, tokenId, _amount, "");
+        _tokenURIs[tokenId] = _baseURI;
         if (_royaltiesPercentage > 0) {
             _setRoyalty(tokenId, msg.sender, _royaltiesPercentage);
         }
@@ -145,7 +157,7 @@ contract VWBLERC1155 is IERC2981, Ownable, ERC1155Enumerable, ERC1155Burnable {
         uint256[] memory _amounts,
         uint256[] memory _royaltiesPercentages,
         bytes32[] memory _documentIds
-    ) public payable {
+    ) public payable returns (uint256[] memory) {
         require(
             _amounts.length == _royaltiesPercentages.length && _royaltiesPercentages.length == _documentIds.length,
             "Invalid array length"
@@ -158,6 +170,7 @@ contract VWBLERC1155 is IERC2981, Ownable, ERC1155Enumerable, ERC1155Burnable {
             tokenIdToTokenInfo[tokenId].documentId = _documentIds[i];
             tokenIdToTokenInfo[tokenId].minterAddress = msg.sender;
             tokenIdToTokenInfo[tokenId].getKeyURl = _getKeyURl;
+            _tokenURIs[tokenId] = _baseURI;
             if (_royaltiesPercentages[i] > 0) {
                 _setRoyalty(tokenId, msg.sender, _royaltiesPercentages[i]);
             }
@@ -174,6 +187,8 @@ contract VWBLERC1155 is IERC2981, Ownable, ERC1155Enumerable, ERC1155Burnable {
                 tokenIds[i]
             );
         }
+
+        return tokenIds;
     }
 
     function safeTransferAndPayFee(
