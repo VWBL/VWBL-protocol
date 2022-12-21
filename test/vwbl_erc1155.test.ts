@@ -9,11 +9,13 @@ describe("VWBLERC1155", async () => {
   let gatewayProxy: Contract
   let accessControlCheckerByERC1155: Contract
   let vwblERC1155: Contract
+  let vwblMetadata: Contract
 
   const TEST_DOCUMENT_ID1 = "0xac00000000000000000000000000000000000000000000000000000000000000"
   const TEST_DOCUMENT_ID2 = "0xbc00000000000000000000000000000000000000000000000000000000000000"
   const TEST_DOCUMENT_ID3 = "0xcc00000000000000000000000000000000000000000000000000000000000000"
   const TEST_DOCUMENT_ID4 = "0xdc00000000000000000000000000000000000000000000000000000000000000"
+  const TEST_DOCUMENT_ID5 = "0xec00000000000000000000000000000000000000000000000000000000000000"
   const fee = utils.parseEther("1")
 
   before(async () => {
@@ -36,6 +38,9 @@ describe("VWBLERC1155", async () => {
       gatewayProxy.address,
       accessControlCheckerByERC1155.address
     )
+
+    const VWBLMetadata = await ethers.getContractFactory("VWBLERC1155Metadata")
+    vwblMetadata = await VWBLMetadata.deploy(gatewayProxy.address, accessControlCheckerByERC1155.address)
 
     const INTERFACE_ID_ERC2981 = "0x2a55205a"
     const supported = await vwblERC1155.supportsInterface(INTERFACE_ID_ERC2981)
@@ -237,7 +242,7 @@ describe("VWBLERC1155", async () => {
   it("should set BaseURI from contract owner", async () => {
     await vwblERC1155.connect(accounts[0]).setBaseURI("http://xxx.com")
     const baseURI = await vwblERC1155.uri(1)
-    assert.equal(baseURI, "http://xxx.com")
+    assert.equal(baseURI, "http://xxx.com" + "1")
   })
 
   it("should not set Access check contract from not contract owner", async () => {
@@ -250,5 +255,33 @@ describe("VWBLERC1155", async () => {
     await vwblERC1155.connect(accounts[0]).setAccessCheckerContract(accounts[4].address)
     const newContract = await vwblERC1155.accessCheckerContract()
     assert.equal(newContract, accounts[4].address)
+  })
+
+  it("should successfully grant AccessControl under VWBLMetadata.mint()", async () => {
+    const beforeBalance = await vwblGateway.provider.getBalance(vwblGateway.address)
+    await vwblMetadata
+      .connect(accounts[2])
+      .mint(
+        "https://infura-ipfs.io/ipfs/QmeGAVddnBSnKc1DLE7DLV9uuTqo5F7QbaveTjr45JUdQn",
+        "http://xxx.yyy.com",
+        100,
+        500,
+        TEST_DOCUMENT_ID5,
+        {
+          value: utils.parseEther("1"),
+        }
+      )
+
+    const afterBalance = await vwblGateway.provider.getBalance(vwblGateway.address)
+    assert.deepEqual(afterBalance.sub(beforeBalance).eq(utils.parseEther("1.0")), true)
+
+    const createdToken = await accessControlCheckerByERC1155.documentIdToToken(TEST_DOCUMENT_ID5)
+    assert.equal(createdToken.contractAddress, vwblMetadata.address)
+
+    const isPermitted = await vwblGateway.hasAccessControl(accounts[2].address, TEST_DOCUMENT_ID5)
+    assert.equal(isPermitted, true)
+
+    const metadataURI = await vwblMetadata.uri(1)
+    assert.equal(metadataURI, "https://infura-ipfs.io/ipfs/QmeGAVddnBSnKc1DLE7DLV9uuTqo5F7QbaveTjr45JUdQn")
   })
 })
