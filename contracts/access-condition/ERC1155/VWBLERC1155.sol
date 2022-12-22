@@ -37,7 +37,6 @@ contract VWBLERC1155 is IERC2981, Ownable, ERC1155Enumerable, ERC1155Burnable {
         uint256 royaltiesPercentage; // if percentage is 3.5, royaltiesPercentage=3.5*10^2 (decimal is 2)
     }
 
-    mapping(uint256 => string) private _tokenURIs;
     mapping(uint256 => TokenInfo) public tokenIdToTokenInfo;
     mapping(uint256 => RoyaltyInfo) public tokenIdToRoyaltyInfo;
 
@@ -67,8 +66,7 @@ contract VWBLERC1155 is IERC2981, Ownable, ERC1155Enumerable, ERC1155Burnable {
     }
 
     function uri(uint256 tokenId) public view override returns (string memory) {
-        string memory tokenURI = _tokenURIs[tokenId];
-        return bytes(tokenURI).length > 0 ? string(abi.encodePacked(_baseURI, tokenId.toString())) : "";
+        return bytes(_baseURI).length > 0 ? string(abi.encodePacked(_baseURI, tokenId.toString())) : "";
     }
 
     /**
@@ -131,7 +129,6 @@ contract VWBLERC1155 is IERC2981, Ownable, ERC1155Enumerable, ERC1155Burnable {
         tokenIdToTokenInfo[tokenId].minterAddress = msg.sender;
         tokenIdToTokenInfo[tokenId].getKeyURl = _getKeyURl;
         _mint(msg.sender, tokenId, _amount, "");
-        _tokenURIs[tokenId] = _baseURI;
         if (_royaltiesPercentage > 0) {
             _setRoyalty(tokenId, msg.sender, _royaltiesPercentage);
         }
@@ -170,7 +167,6 @@ contract VWBLERC1155 is IERC2981, Ownable, ERC1155Enumerable, ERC1155Burnable {
             tokenIdToTokenInfo[tokenId].documentId = _documentIds[i];
             tokenIdToTokenInfo[tokenId].minterAddress = msg.sender;
             tokenIdToTokenInfo[tokenId].getKeyURl = _getKeyURl;
-            _tokenURIs[tokenId] = _baseURI;
             if (_royaltiesPercentages[i] > 0) {
                 _setRoyalty(tokenId, msg.sender, _royaltiesPercentages[i]);
             }
