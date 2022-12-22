@@ -5,6 +5,7 @@ import "@openzeppelin/contracts/interfaces/IERC2981.sol";
 import "@openzeppelin/contracts/interfaces/IERC165.sol";
 import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Burnable.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "./IAccessControlCheckerByERC1155.sol";
 import "../../gateway/IGatewayProxy.sol";
@@ -16,6 +17,9 @@ import "./ERC1155Enumerable.sol";
  */
 contract VWBLERC1155 is IERC2981, Ownable, ERC1155Enumerable, ERC1155Burnable {
     using SafeMath for uint256;
+    using Strings for uint256;
+
+    string private _baseURI = "";
 
     address public gatewayProxy;
     address public accessCheckerContract;
@@ -45,6 +49,7 @@ contract VWBLERC1155 is IERC2981, Ownable, ERC1155Enumerable, ERC1155Burnable {
         address _gatewayProxy,
         address _accessCheckerContract
     ) ERC1155(_baseURI) {
+        setBaseURI(_baseURI);
         gatewayProxy = _gatewayProxy;
         accessCheckerContract = _accessCheckerContract;
     }
@@ -60,12 +65,16 @@ contract VWBLERC1155 is IERC2981, Ownable, ERC1155Enumerable, ERC1155Burnable {
         super._beforeTokenTransfer(operator, from, to, ids, amounts, data);
     }
 
+    function uri(uint256 tokenId) public view override returns (string memory) {
+        return bytes(_baseURI).length > 0 ? string(abi.encodePacked(_baseURI, tokenId.toString())) : "";
+    }
+
     /**
      * @notice Set BaseURI.
-     * @param _baseURI new BaseURI
+     * @param newBaseURI new BaseURI
      */
-    function setBaseURI(string memory _baseURI) public onlyOwner {
-        _setURI(_baseURI);
+    function setBaseURI(string memory newBaseURI) public onlyOwner {
+        _baseURI = newBaseURI;
     }
 
     /**
@@ -145,7 +154,7 @@ contract VWBLERC1155 is IERC2981, Ownable, ERC1155Enumerable, ERC1155Burnable {
         uint256[] memory _amounts,
         uint256[] memory _royaltiesPercentages,
         bytes32[] memory _documentIds
-    ) public payable {
+    ) public payable returns (uint256[] memory) {
         require(
             _amounts.length == _royaltiesPercentages.length && _royaltiesPercentages.length == _documentIds.length,
             "Invalid array length"
@@ -174,6 +183,8 @@ contract VWBLERC1155 is IERC2981, Ownable, ERC1155Enumerable, ERC1155Burnable {
                 tokenIds[i]
             );
         }
+
+        return tokenIds;
     }
 
     function safeTransferAndPayFee(

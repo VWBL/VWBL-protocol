@@ -57,7 +57,7 @@ contract VWBLERC1155Metadata is IERC2981, Ownable, ERC1155Enumerable, ERC1155Bur
         super._beforeTokenTransfer(operator, from, to, ids, amounts, data);
     }
 
-    function tokenURI(uint256 tokenId) public view returns (string memory) {
+    function uri(uint256 tokenId) public view override returns (string memory) {
         require(bytes(_tokenURIs[tokenId]).length != 0, "ERC1155: invalid token ID");
         return _tokenURIs[tokenId];
     }
