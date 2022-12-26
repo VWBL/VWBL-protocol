@@ -12,33 +12,37 @@ import "solidity-coverage"
 dotenv.config()
 
 const config: HardhatUserConfig = {
-  solidity: {
-    version: "0.8.17",
-    settings: {
-      optimizer: {
-        enabled: true,
-        runs: 200,
-      },
+    solidity: {
+        version: "0.8.17",
+        settings: {
+            optimizer: {
+                enabled: true,
+                runs: 200,
+            },
+        },
     },
-  },
-  networks: {
-    hardhat: {
-      chainId: 1337,
-      allowUnlimitedContractSize: true,
+    networks: {
+        hardhat: {
+            chainId: 1337,
+            allowUnlimitedContractSize: true,
+        },
+        ethereum: {
+            url: process.env.ETHEREUM_URL || "",
+            accounts: process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+        },
+        goerli: {
+            url: process.env.GOERLI_URL || "",
+            accounts: process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+        },
+        polygon: {
+            url: process.env.POLYGON_URL || "",
+            accounts: process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+        },
+        mumbai: {
+            url: process.env.MUMBAI_URL || "",
+            accounts: process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+        },
     },
-    goerli: {
-      url: process.env.GOERLI_URL || "",
-      accounts: process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
-    },
-    polygon: {
-      url: process.env.POLYGON_URL || "",
-      accounts: process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
-    },
-    mumbai: {
-      url: process.env.MUMBAI_URL || "",
-      accounts: process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
-    },
-  },
 }
 
 export default config
