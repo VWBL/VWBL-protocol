@@ -32,7 +32,7 @@ yarn compile
 
 4. Write contract deployment script to [scripts/deploy.ts](https://github.com/VWBL/VWBL-protocol/blob/master/scripts/deploy.ts). 
 
-    ＊See [VWBL docs](https://app.gitbook.com/o/XKJRuS9VhgLSsEarEY4P/s/CNC1YmYHucLw7YmJFhGF/end-point-for-vwbl) for VWBL contract already deployed.
+    ＊See [VWBL docs](https://docs.vwbl-protocol.org/end-point-for-vwbl) for VWBL contract already deployed.
 
 5. Set deploy config to [hardhat.config.ts](https://github.com/VWBL/VWBL-protocol/blob/master/hardhat.config.ts)
 
