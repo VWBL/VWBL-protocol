@@ -28,4 +28,9 @@ interface IVWBL {
      * @param tokenId The Identifier of NFT
      */
     function getMinter(uint256 tokenId) external view returns (address);
+
+    /**
+     * @notice Get signature of this contract
+     */
+    function getSignature() external view returns (string memory);
 }
