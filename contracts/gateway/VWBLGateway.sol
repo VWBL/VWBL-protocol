@@ -11,6 +11,7 @@ import "./IVWBLGateway.sol";
 contract VWBLGateway is IVWBLGateway, Ownable {
     mapping(bytes32 => address) public documentIdToConditionContract;
     mapping(bytes32 => address) public documentIdToMinter;
+    mapping(bytes32 => address) public documentIdToOriginalContract;
     mapping(bytes32 => mapping(address => bool)) public paidUsers;
     bytes32[] public documentIds;
 
@@ -70,6 +71,7 @@ contract VWBLGateway is IVWBLGateway, Ownable {
         documentIdToConditionContract[documentId] = conditionContractAddress;
         documentIds.push(documentId);
         documentIdToMinter[documentId] = minter;
+        documentIdToConditionContract[documentId] = msg.sender;
         emit accessControlAdded(documentId, conditionContractAddress);
     }
 
