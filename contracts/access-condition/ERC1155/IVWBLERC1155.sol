@@ -44,4 +44,9 @@ interface IVWBLERC1155 {
      * @param tokenId The Identifier of ERC1155
      */
     function getMinter(uint256 tokenId) external view returns (address);
+
+    /**
+     * @notice Get signature of this contract
+     */
+    function getSignature() external view returns (string memory);
 }

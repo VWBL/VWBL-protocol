@@ -112,17 +112,20 @@ contract VWBL is VWBLProtocol, Ownable, IVWBL {
     string public baseURI;
     address public gatewayProxy;
     address public accessCheckerContract;
+    string private signature;
 
     event accessCheckerContractChanged(address oldAccessCheckerContract, address newAccessCheckerContract);
 
     constructor(
         string memory _baseURI,
         address _gatewayProxy,
-        address _accessCheckerContract
+        address _accessCheckerContract,
+        string memory _signature
     ) ERC721("VWBL", "VWBL") {
         baseURI = _baseURI;
         gatewayProxy = _gatewayProxy;
         accessCheckerContract = _accessCheckerContract;
+        signature = _signature;
     }
 
     /**
@@ -195,5 +198,19 @@ contract VWBL is VWBLProtocol, Ownable, IVWBL {
      */
     function getMinter(uint256 tokenId) public view returns (address) {
         return tokenIdToTokenInfo[tokenId].minterAddress;
+    }
+
+    /**
+     * @notice Get signature of this contract
+     */
+    function getSignature() public view returns (string memory) {
+        return signature;
+    }
+
+    /**
+     * @notice Set signature of this contract
+     */
+    function setSignature(string calldata _signature) public onlyOwner {
+        signature = _signature;
     }
 }

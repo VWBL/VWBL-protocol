@@ -21,14 +21,14 @@ describe("Getter function", function () {
         const AccessControlCheckerByNFT = await ethers.getContractFactory("AccessControlCheckerByNFT")
         const nftChecker = await AccessControlCheckerByNFT.deploy(gatewayProxy.address)
         const VWBLNFT = await ethers.getContractFactory("VWBL")
-        const vwblNFT_1 = await VWBLNFT.deploy(baseURI, gatewayProxy.address, nftChecker.address)
-        const vwblNFT_2 = await VWBLNFT.deploy(baseURI, gatewayProxy.address, nftChecker.address)
+        const vwblNFT_1 = await VWBLNFT.deploy(baseURI, gatewayProxy.address, nftChecker.address, "Hello, VWBL")
+        const vwblNFT_2 = await VWBLNFT.deploy(baseURI, gatewayProxy.address, nftChecker.address, "Hello, VWBL")
         // VWBL ERC1155
         const AccessControlCheckerByERC1155 = await ethers.getContractFactory("AccessControlCheckerByERC1155")
         const erc1155Checker = await AccessControlCheckerByERC1155.deploy(gatewayProxy.address)
         const VWBLERC1155 = await ethers.getContractFactory("VWBLERC1155")
-        const vwblERC1155_1 = await VWBLERC1155.deploy(baseURI, gatewayProxy.address, erc1155Checker.address)
-        const vwblERC1155_2 = await VWBLERC1155.deploy(baseURI, gatewayProxy.address, erc1155Checker.address)
+        const vwblERC1155_1 = await VWBLERC1155.deploy(baseURI, gatewayProxy.address, erc1155Checker.address, "Hello, VWBL")
+        const vwblERC1155_2 = await VWBLERC1155.deploy(baseURI, gatewayProxy.address, erc1155Checker.address, "Hello, VWBL")
         return {
             vwblGateway,
             vwblNFT_1,

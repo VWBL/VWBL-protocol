@@ -36,7 +36,8 @@ describe("VWBLERC1155", async () => {
         vwblERC1155 = await VWBLERC1155.deploy(
             "http://xxx.yyy.com",
             gatewayProxy.address,
-            accessControlCheckerByERC1155.address
+            accessControlCheckerByERC1155.address,
+            "Hello, VWBL"
         )
 
         const VWBLMetadata = await ethers.getContractFactory("VWBLERC1155Metadata")

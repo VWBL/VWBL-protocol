@@ -8,18 +8,13 @@ import "../../gateway/IVWBLGateway.sol";
 import "../IAccessControlChecker.sol";
 import "./IAccessControlCheckerByERC1155.sol";
 import "./IVWBLERC1155.sol";
+import "../AbstractControlChecker.sol";
 
 /**
  * @dev VWBL's access condition contract which defines that ERC1155 Owner has access right of digital content
  *      and ERC1155 Minter is digital content creator(decryption key creator).
  */
-contract AccessControlCheckerByERC1155 is IAccessControlCheckerByERC1155, Ownable {
-    struct Token {
-        address contractAddress;
-        uint256 tokenId;
-    }
-    mapping(bytes32 => Token) public documentIdToToken;
-
+contract AccessControlCheckerByERC1155 is AbstractControlChecker, Ownable {
     address public gatewayProxy;
 
     event erc1155DataRegistered(address contractAddress, uint256 tokenId);
