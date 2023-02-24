@@ -2,8 +2,8 @@
 pragma solidity ^0.8.17;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "../access-condition/IAccessControlChecker.sol";
 import "./IVWBLGateway.sol";
+import "../access-condition/AbstractControlChecker.sol";
 
 /**
  * @dev VWBL Gateway Contract which manage who has access right of digital content.
@@ -43,7 +43,7 @@ contract VWBLGateway is IVWBLGateway, Ownable {
         if (accessConditionContractAddress == address(0)) {
             return false;
         }
-        IAccessControlChecker checker = IAccessControlChecker(accessConditionContractAddress);
+        AbstractControlChecker checker = AbstractControlChecker(accessConditionContractAddress);
         bool isPaidUser = paidUsers[documentId][user] || feeWei == 0;
         bool isOwner = checker.getOwnerAddress(documentId) == user;
         bool isMinter = documentIdToMinter[documentId] == user;
