@@ -18,8 +18,15 @@
     "compile": "hardhat compile",
     "test": "hardhat test",
     "local": "hardhat node",
+    "fork-polygon": "source .env && hardhat node --fork https://polygon-mainnet.g.alchemy.com/v2/$ALCHEMY_API_KEY",
     "deploy": "hardhat run scripts/deploy.ts",
     "deploy:local": "hardhat run --network localhost scripts/deploy.ts",
+    "deploy:polygon": "env-cmd -f ./config/.env.polygon hardhat run --network polygon scripts/deploy.ts",
+    "deploy:munbai": "env-cmd -f ./config/.env.munbai hardhat run --network munbai scripts/deploy.ts",
+    "deploy:ethereum": "env-cmd -f ./config/.env.ethereum hardhat run --network ethereum scripts/deploy.ts",
+    "deploy:goerli": "env-cmd -f ./config/.env.goerli hardhat run --network goerli scripts/deploy.ts",
+    "deploy:aurora": "env-cmd -f ./config/.env.aurora hardhat run --network aurora scripts/deploy.ts",
+    "deploy:aurora_testnet": "env-cmd -f ./config/.env.aurora_testnet hardhat run --network aurora_testnet scripts/deploy.ts",
     "verify": "hardhat verify"
   },
   "devDependencies": {
@@ -52,6 +59,7 @@
     "web3": "^1.8.0"
   },
   "dependencies": {
-    "dotenv": "^16.0.3"
+    "dotenv": "^16.0.3",
+    "env-cmd": "^10.1.0"
   }
 }

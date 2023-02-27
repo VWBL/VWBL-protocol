@@ -17,11 +17,9 @@ yarn compile
 ### Depoly Smart Contract
 1. Set Env
    
-   (i)  copy `.env.exmaple` and rename it to `.env`
+   set env to `./config/env.${network_name}`
    
-   (ii) set env 
-   
-   **※If you want to upload metada to IPFS, you can skip this step**
+   **※If you want to upload metada to IPFS, you can skip setting metadata url**
    
      ```
      VWBL_METADATA_URL="http://xxx.yyy.com/metadata/"
@@ -30,15 +28,9 @@ yarn compile
    
    **DO NOT forget to add `/metadata/` to the end of the URL**
 
-4. Write contract deployment script to [scripts/deploy.ts](https://github.com/VWBL/VWBL-protocol/blob/master/scripts/deploy.ts). 
-
-    ＊See [VWBL docs](https://docs.vwbl-protocol.org/end-point-for-vwbl) for VWBL contract already deployed.
-
-5. Set deploy config to [hardhat.config.ts](https://github.com/VWBL/VWBL-protocol/blob/master/hardhat.config.ts)
-
-6. Run deployment script
+2. Run deployment script
     ```bash
-    yarn deploy --network <network name>
+    yarn deploy:${network_name}
     ```
 
 ## Run Unit Tests
