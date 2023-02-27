@@ -126,7 +126,11 @@ contract VWBLMetadata is VWBLProtocol, Ownable, IVWBLMetadata {
 
     event accessCheckerContractChanged(address oldAccessCheckerContract, address newAccessCheckerContract);
 
-    constructor(address _gatewayProxy, address _accessCheckerContract, string memory _signature) ERC721("VWBL", "VWBL") {
+    constructor(
+        address _gatewayProxy,
+        address _accessCheckerContract,
+        string memory _signature
+    ) ERC721("VWBL", "VWBL") {
         gatewayProxy = _gatewayProxy;
         accessCheckerContract = _accessCheckerContract;
         signature = _signature;
@@ -192,8 +196,8 @@ contract VWBLMetadata is VWBLProtocol, Ownable, IVWBLMetadata {
     }
 
     /**
-    * @notice Get signature of this contract
-    */
+     * @notice Get signature of this contract
+     */
     function getSignature() public view returns (string memory) {
         return signature;
     }
