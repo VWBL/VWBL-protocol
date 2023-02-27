@@ -17,7 +17,7 @@ yarn compile
 ### Depoly Smart Contract
 1. Set Env
    
-   set env to `./config/env.${network_name}`
+   set env to `./config/.env.${network_name}`
    
    **※If you want to upload metada to IPFS, you can skip setting metadata url**
    
