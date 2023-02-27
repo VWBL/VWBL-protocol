@@ -122,12 +122,14 @@ abstract contract VWBLProtocol is ERC721Enumerable, IERC2981 {
 contract VWBLMetadata is VWBLProtocol, Ownable, IVWBLMetadata {
     address public gatewayProxy;
     address public accessCheckerContract;
+    string private signature;
 
     event accessCheckerContractChanged(address oldAccessCheckerContract, address newAccessCheckerContract);
 
-    constructor(address _gatewayProxy, address _accessCheckerContract) ERC721("VWBL", "VWBL") {
+    constructor(address _gatewayProxy, address _accessCheckerContract, string memory _signature) ERC721("VWBL", "VWBL") {
         gatewayProxy = _gatewayProxy;
         accessCheckerContract = _accessCheckerContract;
+        signature = _signature;
     }
 
     /**
@@ -187,5 +189,19 @@ contract VWBLMetadata is VWBLProtocol, Ownable, IVWBLMetadata {
      */
     function getMinter(uint256 tokenId) public view returns (address) {
         return tokenIdToTokenInfo[tokenId].minterAddress;
+    }
+
+    /**
+    * @notice Get signature of this contract
+    */
+    function getSignature() public view returns (string memory) {
+        return signature;
+    }
+
+    /**
+     * @notice Set signature of this contract
+     */
+    function setSignature(string calldata _signature) public onlyOwner {
+        signature = _signature;
     }
 }
