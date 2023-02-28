@@ -50,7 +50,7 @@ describe("VWBLGateway", async () => {
         )
 
         const VWBLMetadata = await ethers.getContractFactory("VWBLMetadata")
-        vwblMetadata = await VWBLMetadata.deploy(gatewayProxy.address, accessControlCheckerByNFT.address)
+        vwblMetadata = await VWBLMetadata.deploy(gatewayProxy.address, accessControlCheckerByNFT.address, "Hello, VWBL")
 
         const TransferVWBLNFT = await ethers.getContractFactory("TransferVWBLNFT")
         transferVWBLNFTContract = await TransferVWBLNFT.deploy()

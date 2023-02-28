@@ -27,8 +27,9 @@ async function main() {
     VWBLERC721Contract = await vwblERC721.deploy(
         baseURI,
         gatewayProxyContractAddress,
-        accessControlCheckerByNFTContractAddress
-    )
+        accessControlCheckerByNFTContractAddress,
+        process.env.MESSAGE_TO_BE_SIGNED
+    );
 
     console.log("VWBLERC721 Contract deployed to:", VWBLERC721Contract.address)
 }
