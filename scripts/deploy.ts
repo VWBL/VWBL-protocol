@@ -31,7 +31,7 @@ async function main() {
         gatewayProxyContractAddress,
         accessControlCheckerByNFTContractAddress,
         messageToBeSigned
-    )
+    );
 
     console.log("VWBLERC721 Contract deployed to:", VWBLERC721Contract.address)
 
