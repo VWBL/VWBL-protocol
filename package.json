@@ -22,7 +22,7 @@
     "deploy": "hardhat run scripts/deploy.ts",
     "deploy:local": "hardhat run --network localhost scripts/deploy.ts",
     "deploy:polygon": "env-cmd -f ./config/.env.polygon hardhat run --network polygon scripts/deploy.ts",
-    "deploy:munbai": "env-cmd -f ./config/.env.munbai hardhat run --network munbai scripts/deploy.ts",
+    "deploy:mumbai": "env-cmd -f ./config/.env.mumbai hardhat run --network mumbai scripts/deploy.ts",
     "deploy:ethereum": "env-cmd -f ./config/.env.ethereum hardhat run --network ethereum scripts/deploy.ts",
     "deploy:goerli": "env-cmd -f ./config/.env.goerli hardhat run --network goerli scripts/deploy.ts",
     "deploy:aurora": "env-cmd -f ./config/.env.aurora hardhat run --network aurora scripts/deploy.ts",
