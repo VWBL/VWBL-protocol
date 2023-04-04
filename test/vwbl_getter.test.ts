@@ -22,13 +22,13 @@ describe("Getter function", function () {
         const nftChecker = await AccessControlCheckerByNFT.deploy(gatewayProxy.address)
         const VWBLNFT = await ethers.getContractFactory("VWBL")
         const vwblNFT_1 = await VWBLNFT.deploy(baseURI, gatewayProxy.address, nftChecker.address, "Hello, VWBL")
-        const vwblNFT_2 = await VWBLNFT.deploy(baseURI, gatewayProxy.address, nftChecker.address, "Hello, VWBL")
+        const vwblNFT_2 = await VWBLNFT.deploy(baseURI, gatewayProxy.address, nftChecker.address, "Hello, VWBL {{nonce}}")
         // VWBL ERC1155
         const AccessControlCheckerByERC1155 = await ethers.getContractFactory("AccessControlCheckerByERC1155")
         const erc1155Checker = await AccessControlCheckerByERC1155.deploy(gatewayProxy.address)
         const VWBLERC1155 = await ethers.getContractFactory("VWBLERC1155")
         const vwblERC1155_1 = await VWBLERC1155.deploy(baseURI, gatewayProxy.address, erc1155Checker.address, "Hello, VWBL")
-        const vwblERC1155_2 = await VWBLERC1155.deploy(baseURI, gatewayProxy.address, erc1155Checker.address, "Hello, VWBL")
+        const vwblERC1155_2 = await VWBLERC1155.deploy(baseURI, gatewayProxy.address, erc1155Checker.address, "Hello, VWBL {{nonce}}")
         return {
             vwblGateway,
             vwblNFT_1,
@@ -154,14 +154,47 @@ describe("Getter function", function () {
             // getNFTDatas
             const nftDatas = await nftChecker.getNFTDatas()
             const nftDocumentIds = nftDatas[0]
-            console.log("nftDocumentIds", nftDocumentIds)
+            // console.log("nftDocumentIds", nftDocumentIds)
             expect(nftDocumentIds.length).to.equal(6)
 
             // getERC1155Datas
             const erc1155Datas = await erc1155Checker.getERC1155Datas()
             const erc1155DocumentIds = erc1155Datas[0]
-            console.log("erc1155DocumentIds", erc1155DocumentIds)
+            // console.log("erc1155DocumentIds", erc1155DocumentIds)
             expect(erc1155DocumentIds.length).to.equal(6)
         })
+
+    describe("Sign Message", function () {
+        it("Should message to be signed of contracts successfully get", async function () {
+            const {
+                vwblNFT_1,
+                vwblNFT_2,
+                vwblERC1155_1,
+                vwblERC1155_2
+            } = await loadFixture(deployTokenFixture)
+            expect(await vwblNFT_1.getSignMessage()).to.equal("Hello, VWBL")
+            expect(await vwblNFT_2.getSignMessage()).to.equal("Hello, VWBL {{nonce}}")
+            expect(await vwblERC1155_1.getSignMessage()).to.equal("Hello, VWBL")
+            expect(await vwblERC1155_2.getSignMessage()).to.equal("Hello, VWBL {{nonce}}")
+        })
+
+        it("Should message to be signed of contracts successfully change", async function () {
+            const {
+                owner,
+                vwblNFT_1,
+                vwblERC1155_1,
+            } = await loadFixture(deployTokenFixture)
+            const sampleSignMessge1 = "vwblNFT_1 {{nonce}}"
+            const sampleSignMessge2 = "vwblERC1155_1 {{nonce}}"
+
+            // change sign message
+            await vwblNFT_1.connect(owner).setSignMessage(sampleSignMessge1)
+            await vwblERC1155_1.connect(owner).setSignMessage(sampleSignMessge2)
+
+            // check sign message
+            expect(await vwblNFT_1.getSignMessage()).to.equal(sampleSignMessge1)
+            expect(await vwblERC1155_1.getSignMessage()).to.equal(sampleSignMessge2)
+        })
+    })
     })
 })

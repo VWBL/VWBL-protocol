@@ -32,7 +32,7 @@ interface IVWBLMetadata {
     function getMinter(uint256 tokenId) external view returns (address);
 
     /**
-     * @notice Get signature of this contract
+     * @notice Get the message to be signed of this contract
      */
-    function getSignature() external view returns (string memory);
+    function getSignMessage() external view returns (string memory);
 }

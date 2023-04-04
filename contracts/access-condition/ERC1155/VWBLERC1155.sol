@@ -25,7 +25,7 @@ contract VWBLERC1155 is IERC2981, Ownable, ERC1155Enumerable, ERC1155Burnable {
     address public accessCheckerContract;
 
     uint256 public counter = 0;
-    string private signature;
+    string private signMessage;
 
     struct TokenInfo {
         bytes32 documentId;
@@ -49,12 +49,12 @@ contract VWBLERC1155 is IERC2981, Ownable, ERC1155Enumerable, ERC1155Burnable {
         string memory _baseURI,
         address _gatewayProxy,
         address _accessCheckerContract,
-        string memory _signature
+        string memory _signMessage
     ) ERC1155(_baseURI) {
         setBaseURI(_baseURI);
         gatewayProxy = _gatewayProxy;
         accessCheckerContract = _accessCheckerContract;
-        signature = _signature;
+        signMessage = _signMessage;
     }
 
     function _beforeTokenTransfer(
@@ -263,16 +263,16 @@ contract VWBLERC1155 is IERC2981, Ownable, ERC1155Enumerable, ERC1155Burnable {
     }
 
     /**
-     * @notice Get signature of this contract
+     * @notice Get the message to be signed of this contract
      */
-    function getSignature() public view returns (string memory) {
-        return signature;
+    function getSignMessage() public view returns (string memory) {
+        return signMessage;
     }
 
     /**
-     * @notice Set signature of this contract
+     * @notice Set the message to be signed of this contract
      */
-    function setSignature(string calldata _signature) public onlyOwner {
-        signature = _signature;
+    function setSignMessage(string calldata _signMessage) public onlyOwner {
+        signMessage = _signMessage;
     }
 }
