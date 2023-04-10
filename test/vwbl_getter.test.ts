@@ -198,26 +198,31 @@ describe("Getter function", function () {
     })
 
     describe("Allow Origins", function () {
-        it("Should allow origin successfully set and getted. Only owner able to call set method", async function () {
+        it("Should allow origin successfully set and getted. Only owner is able to call set method", async function () {
             const {
                 owner,
                 minter1,
                 vwblNFT_1,
-                vwblERC1155_1,
+                vwblERC1155_1
             } = await loadFixture(deployTokenFixture)
 
             //Act
             await vwblNFT_1.connect(owner).setAllowOrigin('https://example1.com');
+            await vwblERC1155_1.connect(owner).setAllowOrigin('https://example1.com');
             //Assert
             expect(await vwblNFT_1.connect(minter1).getAllowOrigins()).to.have.members(['https://example1.com']);
+            expect(await vwblERC1155_1.connect(minter1).getAllowOrigins()).to.have.members(['https://example1.com']);
             //Act
             await vwblNFT_1.connect(owner).setAllowOrigin('https://example2.com');
+            await vwblERC1155_1.connect(owner).setAllowOrigin('https://example2.com');
             //Assert
             expect(await vwblNFT_1.connect(minter1).getAllowOrigins()).to.have.members(['https://example1.com', 'https://example2.com']);
+            expect(await vwblERC1155_1.connect(minter1).getAllowOrigins()).to.have.members(['https://example1.com', 'https://example2.com']);
             expect(vwblNFT_1.connect(minter1).setAllowOrigin('https://example3.com')).to.be.revertedWith('Ownable: caller is not the owner');
+            expect(vwblERC1155_1.connect(minter1).setAllowOrigin('https://example3.com')).to.be.revertedWith('Ownable: caller is not the owner');
         })
 
-        it("Should allow origin successfully removed. Only owner able to call remove method", async function () {
+        it("Should allow origin successfully removed. Only owner is able to call remove method", async function () {
             const {
                 owner,
                 minter1,
@@ -230,10 +235,17 @@ describe("Getter function", function () {
             await vwblNFT_1.connect(owner).setAllowOrigin('https://example2.com');
             await vwblNFT_1.connect(owner).setAllowOrigin('https://example3.com');
             await vwblNFT_1.connect(owner).removeAllowOrigin(1);
+            await vwblERC1155_1.connect(owner).setAllowOrigin('https://example1.com');
+            await vwblERC1155_1.connect(owner).setAllowOrigin('https://example2.com');
+            await vwblERC1155_1.connect(owner).setAllowOrigin('https://example3.com');
+            await vwblERC1155_1.connect(owner).removeAllowOrigin(1);
             //Assert
             expect(await vwblNFT_1.connect(minter1).getAllowOrigins()).to.have.members(['https://example1.com', 'https://example3.com'])
             expect(vwblNFT_1.connect(minter1).removeAllowOrigin(1)).to.be.revertedWith('Ownable: caller is not the owner')
             expect(vwblNFT_1.connect(owner).removeAllowOrigin(2)).to.be.revertedWith('index is invalid');
+            expect(await vwblERC1155_1.connect(minter1).getAllowOrigins()).to.have.members(['https://example1.com', 'https://example3.com'])
+            expect(vwblERC1155_1.connect(minter1).removeAllowOrigin(1)).to.be.revertedWith('Ownable: caller is not the owner')
+            expect(vwblERC1155_1.connect(owner).removeAllowOrigin(2)).to.be.revertedWith('index is invalid');
         })
     })
     })
