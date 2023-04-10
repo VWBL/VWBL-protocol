@@ -6,7 +6,6 @@ pragma solidity ^0.8.17;
  * https://github.com/VWBL-protocol/contracts/ERC1155/VWBLERC1155.sol
  */
 interface IVWBLERC1155 {
-
     /**
      * @notice Mint ERC1155, grant access feature and register access condition of digital content.
      * @param _getKeyURl The Url of VWBL Network(Key management network)
