@@ -6,7 +6,6 @@ pragma solidity ^0.8.17;
  * https://github.com/VWBL-protocol/contracts/ERC721/VWBL.sol
  */
 interface IVWBL {
-
     /**
      * @notice Mint NFT, grant access feature and register access condition of digital content.
      * @param _getKeyURl The URl of VWBL Network(Key management network)
