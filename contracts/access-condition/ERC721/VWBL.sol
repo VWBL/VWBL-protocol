@@ -216,7 +216,7 @@ contract VWBL is VWBLProtocol, Ownable, IVWBLSettings, IVWBL {
         signMessage = _signMessage;
     }
 
-    function getAllowOrigin() public view returns (string[] memory) {
+    function getAllowOrigins() public view returns (string[] memory) {
         return allowOrigins;
     }
 
