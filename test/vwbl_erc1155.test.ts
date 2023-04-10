@@ -41,7 +41,7 @@ describe("VWBLERC1155", async () => {
         )
 
         const VWBLMetadata = await ethers.getContractFactory("VWBLERC1155Metadata")
-        vwblMetadata = await VWBLMetadata.deploy(gatewayProxy.address, accessControlCheckerByERC1155.address)
+        vwblMetadata = await VWBLMetadata.deploy(gatewayProxy.address, accessControlCheckerByERC1155.address, "Hello, VWBL")
 
         const INTERFACE_ID_ERC2981 = "0x2a55205a"
         const supported = await vwblERC1155.supportsInterface(INTERFACE_ID_ERC2981)

@@ -8,27 +8,22 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "./IVWBLERC1155.sol";
-import "./IVWBLERC1155Settings.sol";
 import "./IAccessControlCheckerByERC1155.sol";
-import "../../gateway/IGatewayProxy.sol";
-import "../../gateway/IVWBLGateway.sol";
 import "./ERC1155Enumerable.sol";
+import "../AbstractVWBLSettings.sol";
 
 /**
  * @dev Erc1155 which is added Viewable features that only ERC1155 Owner can view digital content
  */
-contract VWBLERC1155 is IERC2981, Ownable, ERC1155Enumerable, ERC1155Burnable, IVWBLERC1155, IVWBLERC1155Settings {
+contract VWBLERC1155 is IERC2981, Ownable, ERC1155Enumerable, ERC1155Burnable, IVWBLERC1155, AbstractVWBLSettings {
     using SafeMath for uint256;
     using Strings for uint256;
 
     string private _baseURI = "";
 
-    address public gatewayProxy;
     address public accessCheckerContract;
 
     uint256 public counter = 0;
-    string private signMessage;
-    string[] private allowOrigins;
 
     struct TokenInfo {
         bytes32 documentId;
@@ -53,11 +48,9 @@ contract VWBLERC1155 is IERC2981, Ownable, ERC1155Enumerable, ERC1155Burnable, I
         address _gatewayProxy,
         address _accessCheckerContract,
         string memory _signMessage
-    ) ERC1155(_baseURI) {
+    ) ERC1155(_baseURI) AbstractVWBLSettings(_gatewayProxy, _signMessage) {
         setBaseURI(_baseURI);
-        gatewayProxy = _gatewayProxy;
         accessCheckerContract = _accessCheckerContract;
-        signMessage = _signMessage;
     }
 
     function _beforeTokenTransfer(
@@ -93,20 +86,6 @@ contract VWBLERC1155 is IERC2981, Ownable, ERC1155Enumerable, ERC1155Burnable, I
         accessCheckerContract = newAccessCheckerContract;
 
         emit accessCheckerContractChanged(oldAccessCheckerContract, newAccessCheckerContract);
-    }
-
-    /**
-     * @notice Get VWBL gateway address
-     */
-    function getGatewayAddress() public view returns (address) {
-        return IGatewayProxy(gatewayProxy).getGatewayAddress();
-    }
-
-    /**
-     * @notice Get VWBL Fee
-     */
-    function getFee() public view returns (uint256) {
-        return IVWBLGateway(getGatewayAddress()).feeWei();
     }
 
     /**
@@ -263,33 +242,5 @@ contract VWBLERC1155 is IERC2981, Ownable, ERC1155Enumerable, ERC1155Burnable, I
         RoyaltyInfo storage royaltyInfo = tokenIdToRoyaltyInfo[_tokenId];
         royaltyInfo.recipient = _recipient;
         royaltyInfo.royaltiesPercentage = _royaltiesPercentage;
-    }
-
-    /**
-     * @notice Get the message to be signed of this contract
-     */
-    function getSignMessage() public view returns (string memory) {
-        return signMessage;
-    }
-
-    /**
-     * @notice Set the message to be signed of this contract
-     */
-    function setSignMessage(string calldata _signMessage) public onlyOwner {
-        signMessage = _signMessage;
-    }
-
-    function getAllowOrigins() public view returns (string[] memory) {
-        return allowOrigins;
-    }
-
-    function setAllowOrigin(string memory _origin) public onlyOwner {
-        allowOrigins.push(_origin);
-    }
-
-    function removeAllowOrigin(uint16 index) public onlyOwner {
-        require(index < allowOrigins.length, "index is invalid");
-        allowOrigins[index] = allowOrigins[allowOrigins.length - 1];
-        allowOrigins.pop();
     }
 }

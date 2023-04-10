@@ -9,8 +9,7 @@ import "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 
 import "./IVWBLMetadata.sol";
 import "../IAccessControlCheckerByNFT.sol";
-import "../../../gateway/IGatewayProxy.sol";
-import "../../../gateway/IVWBLGateway.sol";
+import "../../AbstractVWBLSettings.sol";
 
 abstract contract VWBLProtocol is ERC721Enumerable, IERC2981 {
     mapping(uint256 => string) private _tokenURIs;
@@ -119,8 +118,7 @@ abstract contract VWBLProtocol is ERC721Enumerable, IERC2981 {
  * @dev NFT which is added Viewable features that only NFT Owner can view digital content
  *      Unlike the VWBL.sol, the metadata url is stored when mint.
  */
-contract VWBLMetadata is VWBLProtocol, Ownable, IVWBLMetadata {
-    address public gatewayProxy;
+contract VWBLMetadata is VWBLProtocol, Ownable, IVWBLMetadata, AbstractVWBLSettings {
     address public accessCheckerContract;
     string private signMessage;
 
@@ -130,17 +128,8 @@ contract VWBLMetadata is VWBLProtocol, Ownable, IVWBLMetadata {
         address _gatewayProxy,
         address _accessCheckerContract,
         string memory _signMessage
-    ) ERC721("VWBL", "VWBL") {
-        gatewayProxy = _gatewayProxy;
+    ) ERC721("VWBL", "VWBL") AbstractVWBLSettings(_gatewayProxy, _signMessage) {
         accessCheckerContract = _accessCheckerContract;
-        signMessage = _signMessage;
-    }
-
-    /**
-     * @notice Get VWBL gateway address
-     */
-    function getGatewayAddress() public view returns (address) {
-        return IGatewayProxy(gatewayProxy).getGatewayAddress();
     }
 
     /**
@@ -153,13 +142,6 @@ contract VWBLMetadata is VWBLProtocol, Ownable, IVWBLMetadata {
         accessCheckerContract = newAccessCheckerContract;
 
         emit accessCheckerContractChanged(oldAccessCheckerContract, newAccessCheckerContract);
-    }
-
-    /**
-     * @notice Get VWBL Fee
-     */
-    function getFee() public view returns (uint256) {
-        return IVWBLGateway(getGatewayAddress()).feeWei();
     }
 
     /**
@@ -193,19 +175,5 @@ contract VWBLMetadata is VWBLProtocol, Ownable, IVWBLMetadata {
      */
     function getMinter(uint256 tokenId) public view returns (address) {
         return tokenIdToTokenInfo[tokenId].minterAddress;
-    }
-
-    /**
-     * @notice Get the message to be signed of this contract
-     */
-    function getSignMessage() public view returns (string memory) {
-        return signMessage;
-    }
-
-    /**
-     * @notice Set the message to be signed of this contract
-     */
-    function setSignMessage(string calldata _signMessage) public onlyOwner {
-        signMessage = _signMessage;
     }
 }
