@@ -7,6 +7,8 @@ import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Burnable.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "./IVWBLERC1155.sol";
+import "./IVWBLERC1155Settings.sol";
 import "./IAccessControlCheckerByERC1155.sol";
 import "../../gateway/IGatewayProxy.sol";
 import "../../gateway/IVWBLGateway.sol";
@@ -15,7 +17,7 @@ import "./ERC1155Enumerable.sol";
 /**
  * @dev Erc1155 which is added Viewable features that only ERC1155 Owner can view digital content
  */
-contract VWBLERC1155 is IERC2981, Ownable, ERC1155Enumerable, ERC1155Burnable {
+contract VWBLERC1155 is IERC2981, Ownable, ERC1155Enumerable, ERC1155Burnable, IVWBLERC1155, IVWBLERC1155Settings {
     using SafeMath for uint256;
     using Strings for uint256;
 
@@ -26,6 +28,7 @@ contract VWBLERC1155 is IERC2981, Ownable, ERC1155Enumerable, ERC1155Burnable {
 
     uint256 public counter = 0;
     string private signMessage;
+    string[] private allowOrigins;
 
     struct TokenInfo {
         bytes32 documentId;
@@ -274,5 +277,19 @@ contract VWBLERC1155 is IERC2981, Ownable, ERC1155Enumerable, ERC1155Burnable {
      */
     function setSignMessage(string calldata _signMessage) public onlyOwner {
         signMessage = _signMessage;
+    }
+
+    function getAllowOrigins() public view returns (string[] memory) {
+        return allowOrigins;
+    }
+
+    function setAllowOrigin(string memory _origin) public onlyOwner {
+        allowOrigins.push(_origin);
+    }
+
+    function removeAllowOrigin(uint16 index) public onlyOwner {
+        require(index < allowOrigins.length, "index is invalid");
+        allowOrigins[index] = allowOrigins[allowOrigins.length - 1];
+        allowOrigins.pop();
     }
 }

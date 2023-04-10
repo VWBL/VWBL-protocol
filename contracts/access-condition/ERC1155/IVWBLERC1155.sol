@@ -6,10 +6,6 @@ pragma solidity ^0.8.17;
  * https://github.com/VWBL-protocol/contracts/ERC1155/VWBLERC1155.sol
  */
 interface IVWBLERC1155 {
-    /**
-     * @notice Get VWBL Fee
-     */
-    function getFee() external view returns (uint256);
 
     /**
      * @notice Mint ERC1155, grant access feature and register access condition of digital content.
@@ -37,16 +33,11 @@ interface IVWBLERC1155 {
         uint256[] memory _amounts,
         uint256[] memory _royaltiesPercentages,
         bytes32[] memory _documentIds
-    ) external payable;
+    ) external payable returns (uint256[] memory);
 
     /**
      * @notice Get minter of ERC1155 by tokenId
      * @param tokenId The Identifier of ERC1155
      */
     function getMinter(uint256 tokenId) external view returns (address);
-
-    /**
-     * @notice Get a message to be signed of this contract
-     */
-    function getSignMessage() external view returns (string memory);
 }
