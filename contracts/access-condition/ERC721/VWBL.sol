@@ -220,11 +220,11 @@ contract VWBL is VWBLProtocol, Ownable, IVWBLSettings, IVWBL {
         return allowOrigins;
     }
 
-    function setAllowOrigin(string memory _origin) external {
+    function setAllowOrigin(string memory _origin) public onlyOwner {
         allowOrigins.push(_origin);
     }
 
-    function removeAllowOrigin(uint16 index) external {
+    function removeAllowOrigin(uint16 index) public onlyOwner {
         require(index < allowOrigins.length, "index is invalid");
         allowOrigins[index] = allowOrigins[allowOrigins.length - 1];
         allowOrigins.pop();
