@@ -25,7 +25,7 @@ interface IVWBLSettings {
     /**
      * @notice Get Access-Control-Allow-Origin for VWBL Network to return decryption key
      */
-    function getAllowOrigin() external view returns (string memory);
+    function getAllowOrigin() external view returns (string[] memory);
 
     /**
      * @notice Set Access-Control-Allow-Origin for VWBL Network to return decryption key

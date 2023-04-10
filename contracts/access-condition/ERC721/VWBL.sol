@@ -8,6 +8,7 @@ import "@openzeppelin/contracts/interfaces/IERC2981.sol";
 import "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 
 import "./IVWBL.sol";
+import "./IVWBLSettings.sol";
 import "./IAccessControlCheckerByNFT.sol";
 import "../../gateway/IGatewayProxy.sol";
 import "../../gateway/IVWBLGateway.sol";
@@ -108,11 +109,12 @@ abstract contract VWBLProtocol is ERC721Enumerable, IERC2981 {
 /**
  * @dev NFT which is added Viewable features that only NFT Owner can view digital content
  */
-contract VWBL is VWBLProtocol, Ownable, IVWBL {
+contract VWBL is VWBLProtocol, Ownable, IVWBLSettings, IVWBL {
     string public baseURI;
     address public gatewayProxy;
     address public accessCheckerContract;
     string private signMessage;
+    string[] private allowOrigins;
 
     event accessCheckerContractChanged(address oldAccessCheckerContract, address newAccessCheckerContract);
 
@@ -212,5 +214,13 @@ contract VWBL is VWBLProtocol, Ownable, IVWBL {
      */
     function setSignMessage(string calldata _signMessage) public onlyOwner {
         signMessage = _signMessage;
+    }
+
+    function getAllowOrigin() public view returns (string[] memory) {
+        return allowOrigins;
+    }
+
+    function setAllowOrigin(string memory _origin) external {
+        allowOrigins.push(_origin);
     }
 }
