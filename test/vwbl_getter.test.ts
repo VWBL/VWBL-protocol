@@ -207,19 +207,19 @@ describe("Getter function", function () {
             } = await loadFixture(deployTokenFixture)
 
             //Act
-            await vwblNFT_1.connect(owner).setAllowOrigin('https://example1.com');
-            await vwblERC1155_1.connect(owner).setAllowOrigin('https://example1.com');
+            await vwblNFT_1.connect(owner).setAllowOrigins('https://example1.com');
+            await vwblERC1155_1.connect(owner).setAllowOrigins('https://example1.com');
             //Assert
-            expect(await vwblNFT_1.connect(minter1).getAllowOrigin()).to.equal('https://example1.com');
-            expect(await vwblERC1155_1.connect(minter1).getAllowOrigin()).to.equal('https://example1.com');
+            expect(await vwblNFT_1.connect(minter1).getAllowOrigins()).to.equal('https://example1.com');
+            expect(await vwblERC1155_1.connect(minter1).getAllowOrigins()).to.equal('https://example1.com');
             //Act
-            await vwblNFT_1.connect(owner).setAllowOrigin('https://example2.com, https://example3.com');
-            await vwblERC1155_1.connect(owner).setAllowOrigin('https://example2.com, https://example3.com');
+            await vwblNFT_1.connect(owner).setAllowOrigins('https://example2.com, https://example3.com');
+            await vwblERC1155_1.connect(owner).setAllowOrigins('https://example2.com, https://example3.com');
             //Assert
-            expect(await vwblNFT_1.connect(minter1).getAllowOrigin()).to.equal('https://example2.com, https://example3.com');
-            expect(await vwblERC1155_1.connect(minter1).getAllowOrigin()).to.equal('https://example2.com, https://example3.com');
-            expect(vwblNFT_1.connect(minter1).setAllowOrigin('https://example3.com')).to.be.revertedWith('Ownable: caller is not the owner');
-            expect(vwblERC1155_1.connect(minter1).setAllowOrigin('https://example3.com')).to.be.revertedWith('Ownable: caller is not the owner');
+            expect(await vwblNFT_1.connect(minter1).getAllowOrigins()).to.equal('https://example2.com, https://example3.com');
+            expect(await vwblERC1155_1.connect(minter1).getAllowOrigins()).to.equal('https://example2.com, https://example3.com');
+            expect(vwblNFT_1.connect(minter1).setAllowOrigins('https://example3.com')).to.be.revertedWith('Ownable: caller is not the owner');
+            expect(vwblERC1155_1.connect(minter1).setAllowOrigins('https://example3.com')).to.be.revertedWith('Ownable: caller is not the owner');
         })
     })
     })

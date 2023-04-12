@@ -9,7 +9,7 @@ import "../gateway/IVWBLGateway.sol";
 abstract contract AbstractVWBLSettings is IVWBLSettings, Ownable {
     address public gatewayProxy;
     string private signMessage;
-    string private allowOrigin;
+    string private allowOrigins;
 
     constructor(address _gatewayProxy, string memory _signMessage) {
         gatewayProxy = _gatewayProxy;
@@ -41,11 +41,11 @@ abstract contract AbstractVWBLSettings is IVWBLSettings, Ownable {
         signMessage = _signMessage;
     }
 
-    function getAllowOrigin() public view returns (string memory) {
-        return allowOrigin;
+    function getAllowOrigins() public view returns (string memory) {
+        return allowOrigins;
     }
 
-    function setAllowOrigin(string memory _origin) public onlyOwner {
-        allowOrigin = _origin;
+    function setAllowOrigins(string memory _origins) public onlyOwner {
+        allowOrigins = _origins;
     }
 }
