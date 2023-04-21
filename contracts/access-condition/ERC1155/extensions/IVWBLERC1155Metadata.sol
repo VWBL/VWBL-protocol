@@ -7,11 +7,6 @@ pragma solidity ^0.8.17;
  */
 interface IVWBLERC1155Metadata {
     /**
-     * @notice Get VWBL Fee
-     */
-    function getFee() external view returns (uint256);
-
-    /**
      * @notice Mint NFT, grant access feature and register access condition of digital content.
      * @param _metadataURl The URl of nft metadata
      * @param _getKeyURl The URl of VWBL Network(Key management network)

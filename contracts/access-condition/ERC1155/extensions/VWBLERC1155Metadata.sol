@@ -10,14 +10,14 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "../IAccessControlCheckerByERC1155.sol";
 import "../../../gateway/IGatewayProxy.sol";
 import "../../../gateway/IVWBLGateway.sol";
+import "../../AbstractVWBLSettings.sol";
 
 /**
  * @dev Erc1155 which is added Viewable features that only ERC1155 Owner can view digital content
  */
-contract VWBLERC1155Metadata is IERC2981, Ownable, ERC1155Enumerable, ERC1155Burnable {
+contract VWBLERC1155Metadata is IERC2981, Ownable, ERC1155Enumerable, ERC1155Burnable, AbstractVWBLSettings {
     using SafeMath for uint256;
 
-    address public gatewayProxy;
     address public accessCheckerContract;
 
     uint256 public counter = 0;
@@ -41,7 +41,11 @@ contract VWBLERC1155Metadata is IERC2981, Ownable, ERC1155Enumerable, ERC1155Bur
 
     event accessCheckerContractChanged(address oldAccessCheckerContract, address newAccessCheckerContract);
 
-    constructor(address _gatewayProxy, address _accessCheckerContract) ERC1155("") {
+    constructor(
+        address _gatewayProxy,
+        address _accessCheckerContract,
+        string memory _signMessage
+    ) ERC1155("") AbstractVWBLSettings(_gatewayProxy, _signMessage) {
         gatewayProxy = _gatewayProxy;
         accessCheckerContract = _accessCheckerContract;
     }
@@ -91,20 +95,6 @@ contract VWBLERC1155Metadata is IERC2981, Ownable, ERC1155Enumerable, ERC1155Bur
         accessCheckerContract = newAccessCheckerContract;
 
         emit accessCheckerContractChanged(oldAccessCheckerContract, newAccessCheckerContract);
-    }
-
-    /**
-     * @notice Get VWBL gateway address
-     */
-    function getGatewayAddress() public view returns (address) {
-        return IGatewayProxy(gatewayProxy).getGatewayAddress();
-    }
-
-    /**
-     * @notice Get VWBL Fee
-     */
-    function getFee() public view returns (uint256) {
-        return IVWBLGateway(getGatewayAddress()).feeWei();
     }
 
     /**

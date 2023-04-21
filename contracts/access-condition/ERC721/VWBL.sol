@@ -9,8 +9,7 @@ import "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 
 import "./IVWBL.sol";
 import "./IAccessControlCheckerByNFT.sol";
-import "../../gateway/IGatewayProxy.sol";
-import "../../gateway/IVWBLGateway.sol";
+import "../AbstractVWBLSettings.sol";
 
 abstract contract VWBLProtocol is ERC721Enumerable, IERC2981 {
     uint256 public counter = 0;
@@ -108,11 +107,9 @@ abstract contract VWBLProtocol is ERC721Enumerable, IERC2981 {
 /**
  * @dev NFT which is added Viewable features that only NFT Owner can view digital content
  */
-contract VWBL is VWBLProtocol, Ownable, IVWBL {
+contract VWBL is VWBLProtocol, Ownable, AbstractVWBLSettings, IVWBL {
     string public baseURI;
-    address public gatewayProxy;
     address public accessCheckerContract;
-    string private signMessage;
 
     event accessCheckerContractChanged(address oldAccessCheckerContract, address newAccessCheckerContract);
 
@@ -121,11 +118,9 @@ contract VWBL is VWBLProtocol, Ownable, IVWBL {
         address _gatewayProxy,
         address _accessCheckerContract,
         string memory _signMessage
-    ) ERC721("VWBL", "VWBL") {
+    ) ERC721("VWBL", "VWBL") AbstractVWBLSettings(_gatewayProxy, _signMessage) {
         baseURI = _baseURI;
-        gatewayProxy = _gatewayProxy;
         accessCheckerContract = _accessCheckerContract;
-        signMessage = _signMessage;
     }
 
     /**
@@ -153,20 +148,6 @@ contract VWBL is VWBLProtocol, Ownable, IVWBL {
         accessCheckerContract = newAccessCheckerContract;
 
         emit accessCheckerContractChanged(oldAccessCheckerContract, newAccessCheckerContract);
-    }
-
-    /**
-     * @notice Get VWBL gateway address
-     */
-    function getGatewayAddress() public view returns (address) {
-        return IGatewayProxy(gatewayProxy).getGatewayAddress();
-    }
-
-    /**
-     * @notice Get VWBL Fee
-     */
-    function getFee() public view returns (uint256) {
-        return IVWBLGateway(getGatewayAddress()).feeWei();
     }
 
     /**
@@ -198,19 +179,5 @@ contract VWBL is VWBLProtocol, Ownable, IVWBL {
      */
     function getMinter(uint256 tokenId) public view returns (address) {
         return tokenIdToTokenInfo[tokenId].minterAddress;
-    }
-
-    /**
-     * @notice Get the message to be signed of this contract
-     */
-    function getSignMessage() public view returns (string memory) {
-        return signMessage;
-    }
-
-    /**
-     * @notice Set the message to be signed of this contract
-     */
-    function setSignMessage(string calldata _signMessage) public onlyOwner {
-        signMessage = _signMessage;
     }
 }

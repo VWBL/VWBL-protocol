@@ -196,5 +196,31 @@ describe("Getter function", function () {
             expect(await vwblERC1155_1.getSignMessage()).to.equal(sampleSignMessge2)
         })
     })
+
+    describe("Allow Origins", function () {
+        it("Should allow origin successfully set and getted. Only owner is able to call set method", async function () {
+            const {
+                owner,
+                minter1,
+                vwblNFT_1,
+                vwblERC1155_1
+            } = await loadFixture(deployTokenFixture)
+
+            //Act
+            await vwblNFT_1.connect(owner).setAllowOrigins('https://example1.com');
+            await vwblERC1155_1.connect(owner).setAllowOrigins('https://example1.com');
+            //Assert
+            expect(await vwblNFT_1.connect(minter1).getAllowOrigins()).to.equal('https://example1.com');
+            expect(await vwblERC1155_1.connect(minter1).getAllowOrigins()).to.equal('https://example1.com');
+            //Act
+            await vwblNFT_1.connect(owner).setAllowOrigins('https://example2.com, https://example3.com');
+            await vwblERC1155_1.connect(owner).setAllowOrigins('https://example2.com, https://example3.com');
+            //Assert
+            expect(await vwblNFT_1.connect(minter1).getAllowOrigins()).to.equal('https://example2.com, https://example3.com');
+            expect(await vwblERC1155_1.connect(minter1).getAllowOrigins()).to.equal('https://example2.com, https://example3.com');
+            expect(vwblNFT_1.connect(minter1).setAllowOrigins('https://example3.com')).to.be.revertedWith('Ownable: caller is not the owner');
+            expect(vwblERC1155_1.connect(minter1).setAllowOrigins('https://example3.com')).to.be.revertedWith('Ownable: caller is not the owner');
+        })
+    })
     })
 })
