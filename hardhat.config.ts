@@ -34,6 +34,10 @@ const config: HardhatUserConfig = {
             url: process.env.GOERLI_URL || "",
             accounts: process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
         },
+        sepolia: {
+            url: process.env.SEPOLIA_URL || "",
+            accounts: process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+        },
         polygon: {
             url: process.env.POLYGON_URL || "",
             accounts: process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
