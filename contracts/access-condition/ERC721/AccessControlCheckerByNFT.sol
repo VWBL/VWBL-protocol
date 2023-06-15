@@ -3,7 +3,7 @@ pragma solidity ^0.8.17;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
-import "./IVWBL.sol";
+import "./IVWBLERC721.sol";
 import "../../gateway/IGatewayProxy.sol";
 import "../../gateway/IVWBLGateway.sol";
 import "../IAccessControlChecker.sol";
@@ -88,7 +88,7 @@ contract AccessControlCheckerByNFT is AbstractControlChecker, Ownable {
         IVWBLGateway(getGatewayAddress()).grantAccessControl{value: msg.value}(
             documentId,
             address(this),
-            IVWBL(nftContract).getMinter(tokenId)
+            IVWBLERC721(nftContract).getMinter(tokenId)
         );
 
         documentIdToToken[documentId].contractAddress = nftContract;

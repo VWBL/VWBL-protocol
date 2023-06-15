@@ -7,12 +7,15 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/interfaces/IERC2981.sol";
 import "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 
-import "./IVWBL.sol";
-import "./IAccessControlCheckerByNFT.sol";
-import "../AbstractVWBLSettings.sol";
+import "./IVWBLERC721Metadata.sol";
+import "../IAccessControlCheckerByNFT.sol";
+import "../../AbstractVWBLSettings.sol";
 
-abstract contract VWBLProtocol is ERC721Enumerable, IERC2981 {
+abstract contract VWBLERC721ProtocolForMetadata is ERC721Enumerable, IERC2981 {
+    mapping(uint256 => string) private _tokenURIs;
+
     uint256 public counter = 0;
+
     struct TokenInfo {
         bytes32 documentId;
         address minterAddress;
@@ -29,15 +32,22 @@ abstract contract VWBLProtocol is ERC721Enumerable, IERC2981 {
 
     uint256 public constant INVERSE_BASIS_POINT = 10000;
 
+    function tokenURI(uint256 tokenId) public view override returns (string memory) {
+        require(bytes(_tokenURIs[tokenId]).length != 0, "ERC721: invalid token ID");
+        return _tokenURIs[tokenId];
+    }
+
     function _mint(
+        bytes32 _documentId,
+        string memory _metadataURl,
         string memory _getKeyURl,
-        uint256 _royaltiesPercentage,
-        bytes32 _documentId
+        uint256 _royaltiesPercentage
     ) internal returns (uint256) {
         uint256 tokenId = ++counter;
         TokenInfo memory tokenInfo = TokenInfo(_documentId, msg.sender, _getKeyURl);
         tokenIdToTokenInfo[tokenId] = tokenInfo;
         _mint(msg.sender, tokenId);
+        _tokenURIs[tokenId] = _metadataURl;
         if (_royaltiesPercentage > 0) {
             _setRoyalty(tokenId, msg.sender, _royaltiesPercentage);
         }
@@ -106,36 +116,20 @@ abstract contract VWBLProtocol is ERC721Enumerable, IERC2981 {
 
 /**
  * @dev NFT which is added Viewable features that only NFT Owner can view digital content
+ *      Unlike the VWBL.sol, the metadata url is stored when mint.
  */
-contract VWBL is VWBLProtocol, Ownable, AbstractVWBLSettings, IVWBL {
-    string public baseURI;
+contract VWBLMetadata is VWBLERC721ProtocolForMetadata, Ownable, IVWBLERC721Metadata, AbstractVWBLSettings {
     address public accessCheckerContract;
+    string private signMessage;
 
     event accessCheckerContractChanged(address oldAccessCheckerContract, address newAccessCheckerContract);
 
     constructor(
-        string memory _baseURI,
         address _gatewayProxy,
         address _accessCheckerContract,
         string memory _signMessage
     ) ERC721("VWBL", "VWBL") AbstractVWBLSettings(_gatewayProxy, _signMessage) {
-        baseURI = _baseURI;
         accessCheckerContract = _accessCheckerContract;
-    }
-
-    /**
-     * @notice BaseURI for computing {tokenURI}.
-     */
-    function _baseURI() internal view override returns (string memory) {
-        return baseURI;
-    }
-
-    /**
-     * @notice Set BaseURI.
-     * @param _baseURI new BaseURI
-     */
-    function setBaseURI(string memory _baseURI) public onlyOwner {
-        baseURI = _baseURI;
     }
 
     /**
@@ -152,16 +146,18 @@ contract VWBL is VWBLProtocol, Ownable, AbstractVWBLSettings, IVWBL {
 
     /**
      * @notice Mint NFT, grant access feature and register access condition of digital content.
+     * @param _metadataURl The URl of nft metadata
      * @param _getKeyURl The URl of VWBL Network(Key management network)
      * @param _royaltiesPercentage Royalty percentage of NFT
      * @param _documentId The Identifier of digital content and decryption key
      */
     function mint(
+        string memory _metadataURl,
         string memory _getKeyURl,
         uint256 _royaltiesPercentage,
         bytes32 _documentId
     ) public payable returns (uint256) {
-        uint256 tokenId = super._mint(_getKeyURl, _royaltiesPercentage, _documentId);
+        uint256 tokenId = super._mint(_documentId, _metadataURl, _getKeyURl, _royaltiesPercentage);
 
         // grant access control to nft and pay vwbl fee and register nft data to access control checker contract
         IAccessControlCheckerByNFT(accessCheckerContract).grantAccessControlAndRegisterNFT{value: msg.value}(

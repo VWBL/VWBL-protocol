@@ -31,4 +31,10 @@ interface IVWBLSettings {
      * @notice Set Access-Control-Allow-Origin for VWBL Network to return decryption key
      */
     function setAllowOrigins(string memory) external;
+
+    /**
+     * @notice Get minter of NFT by tokenId
+     * @param tokenId The Identifier of NFT
+     */
+    function getMinter(uint256 tokenId) external view returns (address);
 }

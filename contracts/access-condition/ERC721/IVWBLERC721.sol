@@ -1,11 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.17;
+import "../IVWBLSettings.sol";
 
 /**
  * @dev Interface of the VWBL NFT as defined in the
  * https://github.com/VWBL-protocol/contracts/ERC721/VWBL.sol
  */
-interface IVWBL {
+interface IVWBLERC721 is IVWBLSettings{
     /**
      * @notice Mint NFT, grant access feature and register access condition of digital content.
      * @param _getKeyURl The URl of VWBL Network(Key management network)
@@ -17,10 +18,4 @@ interface IVWBL {
         uint256 _royaltiesPercentage,
         bytes32 _documentId
     ) external payable returns (uint256);
-
-    /**
-     * @notice Get minter of NFT by tokenId
-     * @param tokenId The Identifier of NFT
-     */
-    function getMinter(uint256 tokenId) external view returns (address);
 }
