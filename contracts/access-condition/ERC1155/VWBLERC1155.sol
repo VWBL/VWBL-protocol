@@ -15,7 +15,7 @@ import "../AbstractVWBLSettings.sol";
 /**
  * @dev Erc1155 which is added Viewable features that only ERC1155 Owner can view digital content
  */
-contract VWBLERC1155 is IERC2981, Ownable, ERC1155Enumerable, ERC1155Burnable, IVWBLERC1155, AbstractVWBLSettings {
+contract VWBLERC1155 is Ownable, ERC1155Enumerable, ERC1155Burnable, IVWBLERC1155, AbstractVWBLSettings {
     using SafeMath for uint256;
     using Strings for uint256;
 
