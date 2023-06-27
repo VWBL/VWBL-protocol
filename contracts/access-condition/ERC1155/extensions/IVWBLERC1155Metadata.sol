@@ -7,7 +7,7 @@ import "../../IVWBLSettings.sol";
  * @dev Interface of the VWBL Gateway as defined in the
  * https://github.com/VWBL-protocol/contracts/ERC1155/extensions/VWBLERC1155Metadata.sol
  */
-interface IVWBLERC1155Metadata is IVWBLSettings{
+interface IVWBLERC1155Metadata is IVWBLSettings {
     /**
      * @notice Mint NFT, grant access feature and register access condition of digital content.
      * @param _metadataURl The URl of nft metadata
