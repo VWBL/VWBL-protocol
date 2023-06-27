@@ -152,13 +152,7 @@ contract VWBLERC6150 is Ownable, IVWBLERC6150, ERC6150ParentTransferable, Abstra
         return tokens;
     }
 
-    function supportsInterface(bytes4 interfaceId)
-    public
-    view
-    virtual
-    override(IERC165, ERC6150)
-    returns (bool)
-    {
+    function supportsInterface(bytes4 interfaceId) public view virtual override(IERC165, ERC6150) returns (bool) {
         return interfaceId == type(IERC2981).interfaceId || super.supportsInterface(interfaceId);
     }
 }

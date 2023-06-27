@@ -16,12 +16,7 @@ interface IERC6150 is IERC721 {
      * @param parentId The id of parent token, if it's zero, it means minted `tokenId` is a root token.
      * @param tokenId The id of minted token, required to be greater than zero
      */
-    event Minted(
-        address indexed minter,
-        address indexed to,
-        uint256 parentId,
-        uint256 tokenId
-    );
+    event Minted(address indexed minter, address indexed to, uint256 parentId, uint256 tokenId);
 
     /**
      * @notice Get the parent token of `tokenId` token.
@@ -35,9 +30,7 @@ interface IERC6150 is IERC721 {
      * @param tokenId The parent token
      * @return childrenIds The array of children tokens
      */
-    function childrenOf(
-        uint256 tokenId
-    ) external view returns (uint256[] memory childrenIds);
+    function childrenOf(uint256 tokenId) external view returns (uint256[] memory childrenIds);
 
     /**
      * @notice Check the `tokenId` token if it is a root token.

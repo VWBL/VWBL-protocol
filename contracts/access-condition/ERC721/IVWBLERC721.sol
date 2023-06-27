@@ -8,7 +8,7 @@ import "@openzeppelin/contracts/interfaces/IERC2981.sol";
  * @dev Interface of the VWBL NFT as defined in the
  * https://github.com/VWBL-protocol/contracts/ERC721/VWBL.sol
  */
-interface IVWBLERC721 is IVWBLSettings, IERC2981{
+interface IVWBLERC721 is IVWBLSettings, IERC2981 {
     /**
      * @notice Mint NFT, grant access feature and register access condition of digital content.
      * @param _getKeyURl The URl of VWBL Network(Key management network)

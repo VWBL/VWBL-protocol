@@ -15,11 +15,7 @@ interface IERC6150ParentTransferable is IERC6150 {
      * @param oldParentId Previous parent token
      * @param newParentId New parent token
      */
-    event ParentTransferred(
-        uint256 tokenId,
-        uint256 oldParentId,
-        uint256 newParentId
-    );
+    event ParentTransferred(uint256 tokenId, uint256 oldParentId, uint256 newParentId);
 
     /**
      * @notice Transfer parentship of `tokenId` token to a new parent token
@@ -33,8 +29,5 @@ interface IERC6150ParentTransferable is IERC6150 {
      * @param newParentId New parent token id
      * @param tokenIds Array of token ids to be changed
      */
-    function batchTransferParent(
-        uint256 newParentId,
-        uint256[] memory tokenIds
-    ) external;
+    function batchTransferParent(uint256 newParentId, uint256[] memory tokenIds) external;
 }

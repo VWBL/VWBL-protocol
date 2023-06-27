@@ -9,55 +9,38 @@ abstract contract ERC6150 is ERC721, IERC6150 {
     mapping(uint256 => uint256[]) private _childrenOf;
     mapping(uint256 => uint256) private _indexInChildrenArray;
 
-    constructor(
-        string memory name_,
-        string memory symbol_
-    ) ERC721(name_, symbol_) {}
+    constructor(string memory name_, string memory symbol_) ERC721(name_, symbol_) {}
 
     /**
      * @dev See {IERC165-supportsInterface}.
      */
-    function supportsInterface(
-        bytes4 interfaceId
-    ) public view virtual override(IERC165, ERC721) returns (bool) {
-        return
-            interfaceId == type(IERC6150).interfaceId ||
-            super.supportsInterface(interfaceId);
+    function supportsInterface(bytes4 interfaceId) public view virtual override(IERC165, ERC721) returns (bool) {
+        return interfaceId == type(IERC6150).interfaceId || super.supportsInterface(interfaceId);
     }
 
-    function parentOf(
-        uint256 tokenId
-    ) public view virtual override returns (uint256 parentId) {
+    function parentOf(uint256 tokenId) public view virtual override returns (uint256 parentId) {
         _requireMinted(tokenId);
         parentId = _parentOf[tokenId];
     }
 
-    function childrenOf(
-        uint256 tokenId
-    ) public view virtual override returns (uint256[] memory childrenIds) {
+    function childrenOf(uint256 tokenId) public view virtual override returns (uint256[] memory childrenIds) {
         if (tokenId > 0) {
             _requireMinted(tokenId);
         }
         childrenIds = _childrenOf[tokenId];
     }
 
-    function isRoot(
-        uint256 tokenId
-    ) public view virtual override returns (bool) {
+    function isRoot(uint256 tokenId) public view virtual override returns (bool) {
         _requireMinted(tokenId);
         return _parentOf[tokenId] == 0;
     }
 
-    function isLeaf(
-        uint256 tokenId
-    ) public view virtual override returns (bool) {
+    function isLeaf(uint256 tokenId) public view virtual override returns (bool) {
         _requireMinted(tokenId);
         return _childrenOf[tokenId].length == 0;
     }
 
-    function _getIndexInChildrenArray(
-        uint256 tokenId
-    ) internal view virtual returns (uint256) {
+    function _getIndexInChildrenArray(uint256 tokenId) internal view virtual returns (uint256) {
         return _indexInChildrenArray[tokenId];
     }
 
@@ -66,12 +49,7 @@ abstract contract ERC6150 is ERC721, IERC6150 {
         uint256 parentId,
         uint256[] memory tokenIds
     ) internal virtual {
-        _safeBatchMintWithParent(
-            to,
-            parentId,
-            tokenIds,
-            new bytes[](tokenIds.length)
-        );
+        _safeBatchMintWithParent(to, parentId, tokenIds, new bytes[](tokenIds.length));
     }
 
     function _safeBatchMintWithParent(
@@ -80,10 +58,7 @@ abstract contract ERC6150 is ERC721, IERC6150 {
         uint256[] memory tokenIds,
         bytes[] memory datas
     ) internal virtual {
-        require(
-            tokenIds.length == datas.length,
-            "ERC6150: tokenIds.length != datas.length"
-        );
+        require(tokenIds.length == datas.length, "ERC6150: tokenIds.length != datas.length");
         for (uint256 i = 0; i < tokenIds.length; i++) {
             _safeMintWithParent(to, parentId, tokenIds[i], datas[i]);
         }
@@ -104,8 +79,7 @@ abstract contract ERC6150 is ERC721, IERC6150 {
         bytes memory data
     ) internal virtual {
         require(tokenId > 0, "ERC6150: tokenId is zero");
-        if (parentId != 0)
-            require(_exists(parentId), "ERC6150: parentId doesn't exist");
+        if (parentId != 0) require(_exists(parentId), "ERC6150: parentId doesn't exist");
 
         _beforeMintWithParent(to, parentId, tokenId);
 
