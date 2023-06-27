@@ -136,4 +136,29 @@ contract VWBLERC6150 is Ownable, IVWBLERC6150, ERC6150ParentTransferable, Abstra
         royaltyInfo.recipient = _recipient;
         royaltyInfo.royaltiesPercentage = _royaltiesPercentage;
     }
+
+    /**
+     * @notice Get token Info for each minter
+     * @param minter The address of ERC1155 Minter
+     */
+    function getTokenByMinter(address minter) public view returns (TokenInfo[] memory) {
+        uint256 currentCounter = 0;
+        TokenInfo[] memory tokens = new TokenInfo[](counter);
+        for (uint256 i = 1; i <= counter; i++) {
+            if (tokenIdToTokenInfo[i].minterAddress == minter) {
+                tokens[currentCounter++] = tokenIdToTokenInfo[i];
+            }
+        }
+        return tokens;
+    }
+
+    function supportsInterface(bytes4 interfaceId)
+    public
+    view
+    virtual
+    override(IERC165, ERC6150)
+    returns (bool)
+    {
+        return interfaceId == type(IERC2981).interfaceId || super.supportsInterface(interfaceId);
+    }
 }
