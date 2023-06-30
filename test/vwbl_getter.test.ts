@@ -20,7 +20,7 @@ describe("Getter function", function () {
         // VWBL NFT
         const AccessControlCheckerByNFT = await ethers.getContractFactory("AccessControlCheckerByNFT")
         const nftChecker = await AccessControlCheckerByNFT.deploy(gatewayProxy.address)
-        const VWBLNFT = await ethers.getContractFactory("VWBL")
+        const VWBLNFT = await ethers.getContractFactory("VWBLERC721")
         const vwblNFT_1 = await VWBLNFT.deploy(baseURI, gatewayProxy.address, nftChecker.address, "Hello, VWBL")
         const vwblNFT_2 = await VWBLNFT.deploy(baseURI, gatewayProxy.address, nftChecker.address, "Hello, VWBL {{nonce}}")
         // VWBL ERC1155
