@@ -14,7 +14,7 @@
   "homepage": "https://github.com/VWBL/VWBL-protocol#readme",
   "scripts": {
     "lint": "solhint 'contracts/**/*.sol'",
-    "format": "solhint 'contracts/**/*.sol' --fix",
+    "format": "npx prettier --write 'contracts/**/*.sol'",
     "compile": "hardhat compile",
     "test": "hardhat test",
     "local": "hardhat node",
