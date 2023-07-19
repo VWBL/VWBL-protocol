@@ -69,7 +69,7 @@ contract VWBLERC721ERC2981 is Ownable, AbstractVWBLSettings, ERC721Enumerable, E
     /**
      * @notice Mint NFT, grant access feature and register access condition of digital content.
      * @param _getKeyURl The URl of VWBL Network(Key management network)
-     * @param _feeNumerator Royalty percentage of NFT
+     * @param _feeNumerator Royalty of NFT
      * @param _documentId The Identifier of digital content and decryption key
      */
     function mint(
