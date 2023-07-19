@@ -156,7 +156,6 @@ contract VWBLMetadata is VWBLERC721ProtocolForMetadata, Ownable, IVWBLERC721Meta
         return tokenIdToTokenInfo[tokenId].minterAddress;
     }
 
-
     /**
      * @notice Get token Info for each minter
      * @param minter The address of NFT Minter

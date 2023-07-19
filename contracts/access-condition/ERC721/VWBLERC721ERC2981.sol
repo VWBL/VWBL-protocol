@@ -6,88 +6,28 @@ import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/interfaces/IERC2981.sol";
 import "@openzeppelin/contracts/utils/introspection/IERC165.sol";
+import "@openzeppelin/contracts/token/common/ERC2981.sol";
 
 import "./IAccessControlCheckerByNFT.sol";
 import "../AbstractVWBLSettings.sol";
 
-abstract contract VWBLProtocolERC721 is ERC721Enumerable, IERC2981 {
+/**
+ * @dev NFT which is added Viewable features that only NFT Owner can view digital content
+ */
+contract VWBLERC721ERC2981 is Ownable, AbstractVWBLSettings, ERC721Enumerable, ERC2981 {
+    string public baseURI;
+    address public accessCheckerContract;
     uint256 public counter = 0;
+
     struct TokenInfo {
         bytes32 documentId;
         address minterAddress;
         string getKeyURl;
     }
 
-    struct RoyaltyInfo {
-        address recipient;
-        uint256 royaltiesPercentage; // if percentage is 3.5, royaltiesPercentage=3.5*10^2 (decimal is 2)
-    }
-
     mapping(uint256 => TokenInfo) public tokenIdToTokenInfo;
-    mapping(uint256 => RoyaltyInfo) public tokenIdToRoyaltyInfo;
 
     uint256 public constant INVERSE_BASIS_POINT = 10000;
-
-    function _mint(
-        string memory _getKeyURl,
-        uint256 _royaltiesPercentage,
-        bytes32 _documentId
-    ) internal returns (uint256) {
-        uint256 tokenId = ++counter;
-        TokenInfo memory tokenInfo = TokenInfo(_documentId, msg.sender, _getKeyURl);
-        tokenIdToTokenInfo[tokenId] = tokenInfo;
-        _mint(msg.sender, tokenId);
-        if (_royaltiesPercentage > 0) {
-            _setRoyalty(tokenId, msg.sender, _royaltiesPercentage);
-        }
-        return tokenId;
-    }
-
-    function supportsInterface(bytes4 interfaceId)
-        public
-        view
-        virtual
-        override(IERC165, ERC721Enumerable)
-        returns (bool)
-    {
-        return interfaceId == type(IERC2981).interfaceId || super.supportsInterface(interfaceId);
-    }
-
-    /**
-     * @notice Called with the sale price to determine how much royalty is owned and to whom,
-     * @param _tokenId The NFT asset queried for royalty information
-     * @param _salePrice The sale price of the NFT asset specified by _tokenId
-     * @return receiver Address of who should be sent the royalty payment
-     * @return royaltyAmount The royalty payment amount for _salePrice
-     */
-    function royaltyInfo(uint256 _tokenId, uint256 _salePrice)
-        external
-        view
-        override
-        returns (address receiver, uint256 royaltyAmount)
-    {
-        RoyaltyInfo memory royaltyInfo = tokenIdToRoyaltyInfo[_tokenId];
-        uint256 _royalties = (_salePrice * royaltyInfo.royaltiesPercentage) / INVERSE_BASIS_POINT;
-        return (royaltyInfo.recipient, _royalties);
-    }
-
-    function _setRoyalty(
-        uint256 _tokenId,
-        address _recipient,
-        uint256 _royaltiesPercentage
-    ) internal {
-        RoyaltyInfo storage royaltyInfo = tokenIdToRoyaltyInfo[_tokenId];
-        royaltyInfo.recipient = _recipient;
-        royaltyInfo.royaltiesPercentage = _royaltiesPercentage;
-    }
-}
-
-/**
- * @dev NFT which is added Viewable features that only NFT Owner can view digital content
- */
-contract VWBLERC721 is VWBLProtocolERC721, Ownable, AbstractVWBLSettings {
-    string public baseURI;
-    address public accessCheckerContract;
 
     event accessCheckerContractChanged(address oldAccessCheckerContract, address newAccessCheckerContract);
 
@@ -136,10 +76,16 @@ contract VWBLERC721 is VWBLProtocolERC721, Ownable, AbstractVWBLSettings {
      */
     function mint(
         string memory _getKeyURl,
-        uint256 _royaltiesPercentage,
+        uint96 _royaltiesPercentage,
         bytes32 _documentId
     ) public payable returns (uint256) {
-        uint256 tokenId = super._mint(_getKeyURl, _royaltiesPercentage, _documentId);
+        uint256 tokenId = ++counter;
+        TokenInfo memory tokenInfo = TokenInfo(_documentId, msg.sender, _getKeyURl);
+        tokenIdToTokenInfo[tokenId] = tokenInfo;
+        _mint(msg.sender, tokenId);
+        if (_royaltiesPercentage > 0) {
+            _setTokenRoyalty(tokenId, msg.sender, _royaltiesPercentage);
+        }
 
         // grant access control to nft and pay vwbl fee and register nft data to access control checker contract
         IAccessControlCheckerByNFT(accessCheckerContract).grantAccessControlAndRegisterNFT{value: msg.value}(
@@ -158,7 +104,6 @@ contract VWBLERC721 is VWBLProtocolERC721, Ownable, AbstractVWBLSettings {
     function getMinter(uint256 tokenId) public view returns (address) {
         return tokenIdToTokenInfo[tokenId].minterAddress;
     }
-
 
     /**
      * @notice Get token Info for each minter
@@ -179,5 +124,18 @@ contract VWBLERC721 is VWBLProtocolERC721, Ownable, AbstractVWBLSettings {
             }
         }
         return tokens;
+    }
+
+    /**
+     * @dev See {IERC165-supportsInterface}.
+     */
+    function supportsInterface(bytes4 interfaceId)
+        public
+        view
+        virtual
+        override(ERC721Enumerable, ERC2981)
+        returns (bool)
+    {
+        return super.supportsInterface(interfaceId);
     }
 }
