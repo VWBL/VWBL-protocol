@@ -54,27 +54,6 @@ abstract contract VWBLERC721ProtocolForMetadata is ERC721Enumerable, IERC2981 {
         return tokenId;
     }
 
-    /**
-     * @notice Get token Info for each minter
-     * @param minter The address of NFT Minter
-     */
-    function getTokenByMinter(address minter) public view returns (uint256[] memory) {
-        uint256 resultCount = 0;
-        for (uint256 i = 1; i <= counter; i++) {
-            if (tokenIdToTokenInfo[i].minterAddress == minter) {
-                resultCount++;
-            }
-        }
-        uint256[] memory tokens = new uint256[](resultCount);
-        uint256 currentCounter = 0;
-        for (uint256 i = 1; i <= counter; i++) {
-            if (tokenIdToTokenInfo[i].minterAddress == minter) {
-                tokens[currentCounter++] = i;
-            }
-        }
-        return tokens;
-    }
-
     function supportsInterface(bytes4 interfaceId)
         public
         view
@@ -175,5 +154,27 @@ contract VWBLMetadata is VWBLERC721ProtocolForMetadata, Ownable, IVWBLERC721Meta
      */
     function getMinter(uint256 tokenId) public view returns (address) {
         return tokenIdToTokenInfo[tokenId].minterAddress;
+    }
+
+
+    /**
+     * @notice Get token Info for each minter
+     * @param minter The address of NFT Minter
+     */
+    function getTokenByMinter(address minter) public view returns (uint256[] memory) {
+        uint256 resultCount = 0;
+        for (uint256 i = 1; i <= counter; i++) {
+            if (tokenIdToTokenInfo[i].minterAddress == minter) {
+                resultCount++;
+            }
+        }
+        uint256[] memory tokens = new uint256[](resultCount);
+        uint256 currentCounter = 0;
+        for (uint256 i = 1; i <= counter; i++) {
+            if (tokenIdToTokenInfo[i].minterAddress == minter) {
+                tokens[currentCounter++] = i;
+            }
+        }
+        return tokens;
     }
 }

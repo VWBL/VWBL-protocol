@@ -199,21 +199,23 @@ contract VWBLERC1155 is Ownable, ERC1155Enumerable, ERC1155Burnable, IVWBLERC115
 
     /**
      * @notice Get token Info for each minter
-     * @param minter The address of ERC1155 Minter
+     * @param minter The address of NFT Minter
      */
-    function getTokenByMinter(address minter) public view returns (TokenInfo[] memory) {
-        uint256 currentCounter = 0;
-        TokenInfo[] memory tokens = new TokenInfo[](counter);
+    function getTokenByMinter(address minter) public view returns (uint256[] memory) {
+        uint256 resultCount = 0;
         for (uint256 i = 1; i <= counter; i++) {
             if (tokenIdToTokenInfo[i].minterAddress == minter) {
-                tokens[currentCounter++] = tokenIdToTokenInfo[i];
+                resultCount++;
+            }
+        }
+        uint256[] memory tokens = new uint256[](resultCount);
+        uint256 currentCounter = 0;
+        for (uint256 i = 1; i <= counter; i++) {
+            if (tokenIdToTokenInfo[i].minterAddress == minter) {
+                tokens[currentCounter++] = i;
             }
         }
         return tokens;
-    }
-
-    function supportsInterface(bytes4 interfaceId) public view virtual override(IERC165, ERC1155) returns (bool) {
-        return interfaceId == type(IERC2981).interfaceId || super.supportsInterface(interfaceId);
     }
 
     /**

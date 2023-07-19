@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.17;
 
-import "../../IVWBLSettings.sol";
+import "../../IVWBL.sol";
 
 /**
  * @dev Interface of the VWBL Gateway as defined in the
  * https://github.com/VWBL-protocol/contracts/ERC721/extensions/VWBLMetadata.sol
  */
-interface IVWBLERC721Metadata is IVWBLSettings {
+interface IVWBLERC721Metadata is IVWBL {
     /**
      * @notice Mint NFT, grant access feature and register access condition of digital content.
      * @param _metadataURl The URl of nft metadata

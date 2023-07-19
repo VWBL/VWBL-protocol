@@ -7,7 +7,6 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/interfaces/IERC2981.sol";
 import "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 
-import "./IVWBLERC721.sol";
 import "./IAccessControlCheckerByNFT.sol";
 import "../AbstractVWBLSettings.sol";
 
@@ -42,27 +41,6 @@ abstract contract VWBLProtocolERC721 is ERC721Enumerable, IERC2981 {
             _setRoyalty(tokenId, msg.sender, _royaltiesPercentage);
         }
         return tokenId;
-    }
-
-    /**
-     * @notice Get token Info for each minter
-     * @param minter The address of NFT Minter
-     */
-    function getTokenByMinter(address minter) public view returns (uint256[] memory) {
-        uint256 resultCount = 0;
-        for (uint256 i = 1; i <= counter; i++) {
-            if (tokenIdToTokenInfo[i].minterAddress == minter) {
-                resultCount++;
-            }
-        }
-        uint256[] memory tokens = new uint256[](resultCount);
-        uint256 currentCounter = 0;
-        for (uint256 i = 1; i <= counter; i++) {
-            if (tokenIdToTokenInfo[i].minterAddress == minter) {
-                tokens[currentCounter++] = i;
-            }
-        }
-        return tokens;
     }
 
     function supportsInterface(bytes4 interfaceId)
@@ -107,7 +85,7 @@ abstract contract VWBLProtocolERC721 is ERC721Enumerable, IERC2981 {
 /**
  * @dev NFT which is added Viewable features that only NFT Owner can view digital content
  */
-contract VWBLERC721 is VWBLProtocolERC721, Ownable, AbstractVWBLSettings, IVWBLERC721 {
+contract VWBLERC721 is VWBLProtocolERC721, Ownable, AbstractVWBLSettings {
     string public baseURI;
     address public accessCheckerContract;
 
@@ -179,5 +157,27 @@ contract VWBLERC721 is VWBLProtocolERC721, Ownable, AbstractVWBLSettings, IVWBLE
      */
     function getMinter(uint256 tokenId) public view returns (address) {
         return tokenIdToTokenInfo[tokenId].minterAddress;
+    }
+
+
+    /**
+     * @notice Get token Info for each minter
+     * @param minter The address of NFT Minter
+     */
+    function getTokenByMinter(address minter) public view returns (uint256[] memory) {
+        uint256 resultCount = 0;
+        for (uint256 i = 1; i <= counter; i++) {
+            if (tokenIdToTokenInfo[i].minterAddress == minter) {
+                resultCount++;
+            }
+        }
+        uint256[] memory tokens = new uint256[](resultCount);
+        uint256 currentCounter = 0;
+        for (uint256 i = 1; i <= counter; i++) {
+            if (tokenIdToTokenInfo[i].minterAddress == minter) {
+                tokens[currentCounter++] = i;
+            }
+        }
+        return tokens;
     }
 }

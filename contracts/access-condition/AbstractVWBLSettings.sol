@@ -2,11 +2,11 @@
 pragma solidity ^0.8.17;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "./IVWBLSettings.sol";
+import "./IVWBL.sol";
 import "../gateway/IGatewayProxy.sol";
 import "../gateway/IVWBLGateway.sol";
 
-abstract contract AbstractVWBLSettings is IVWBLSettings, Ownable {
+abstract contract AbstractVWBLSettings is IVWBL, Ownable {
     address public gatewayProxy;
     string private signMessage;
     string private allowOrigins;
