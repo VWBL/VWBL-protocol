@@ -25,8 +25,6 @@ contract VWBLERC721 is Ownable, AbstractVWBLSettings, ERC721Enumerable {
 
     mapping(uint256 => TokenInfo) public tokenIdToTokenInfo;
 
-    uint256 public constant INVERSE_BASIS_POINT = 10000;
-
     event accessCheckerContractChanged(address oldAccessCheckerContract, address newAccessCheckerContract);
 
     constructor(
