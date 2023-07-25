@@ -7,8 +7,8 @@ import "../../gateway/IGatewayProxy.sol";
 import "../../gateway/IVWBLGateway.sol";
 import "../IAccessControlChecker.sol";
 import "./IAccessControlCheckerByERC1155.sol";
-import "./IVWBLERC1155.sol";
 import "../AbstractControlChecker.sol";
+import "../IVWBL.sol";
 
 /**
  * @dev VWBL's access condition contract which defines that ERC1155 Owner has access right of digital content
@@ -93,7 +93,7 @@ contract AccessControlCheckerByERC1155 is AbstractControlChecker, Ownable {
         IVWBLGateway(getGatewayAddress()).grantAccessControl{value: msg.value}(
             documentId,
             address(this),
-            IVWBLERC1155(erc1155Contract).getMinter(tokenId)
+            IVWBL(erc1155Contract).getMinter(tokenId)
         );
 
         documentIdToToken[documentId].contractAddress = erc1155Contract;

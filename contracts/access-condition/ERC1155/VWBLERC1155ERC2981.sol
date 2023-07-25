@@ -1,13 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.17;
 
-import "@openzeppelin/contracts/interfaces/IERC2981.sol";
-import "@openzeppelin/contracts/interfaces/IERC165.sol";
+import "@openzeppelin/contracts/token/common/ERC2981.sol";
 import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Burnable.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "./IVWBLERC1155.sol";
 import "./IAccessControlCheckerByERC1155.sol";
 import "./ERC1155Enumerable.sol";
 import "../AbstractVWBLSettings.sol";
@@ -15,7 +13,7 @@ import "../AbstractVWBLSettings.sol";
 /**
  * @dev Erc1155 which is added Viewable features that only ERC1155 Owner can view digital content
  */
-contract VWBLERC1155 is Ownable, ERC1155Enumerable, ERC1155Burnable, IVWBLERC1155, AbstractVWBLSettings {
+contract VWBLERC1155ERC2981 is Ownable, ERC1155Enumerable, ERC1155Burnable, AbstractVWBLSettings, ERC2981 {
     using SafeMath for uint256;
     using Strings for uint256;
 
@@ -31,15 +29,7 @@ contract VWBLERC1155 is Ownable, ERC1155Enumerable, ERC1155Burnable, IVWBLERC115
         string getKeyURl;
     }
 
-    struct RoyaltyInfo {
-        address recipient;
-        uint256 royaltiesPercentage; // if percentage is 3.5, royaltiesPercentage=3.5*10^2 (decimal is 2)
-    }
-
     mapping(uint256 => TokenInfo) public tokenIdToTokenInfo;
-    mapping(uint256 => RoyaltyInfo) public tokenIdToRoyaltyInfo;
-
-    uint256 public constant INVERSE_BASIS_POINT = 10000;
 
     event accessCheckerContractChanged(address oldAccessCheckerContract, address newAccessCheckerContract);
 
@@ -100,13 +90,13 @@ contract VWBLERC1155 is Ownable, ERC1155Enumerable, ERC1155Burnable, IVWBLERC115
      * @notice Mint ERC1155, grant access feature and register access condition of digital content.
      * @param _getKeyURl The URl of VWBL Network(Key management network)
      * @param _amount The token quantity
-     * @param _royaltiesPercentage Royalty percentage of ERC1155
+     * @param _feeNumerator Royalty of ERC1155
      * @param _documentId The Identifier of digital content and decryption key
      */
     function mint(
         string memory _getKeyURl,
         uint256 _amount,
-        uint256 _royaltiesPercentage,
+        uint96 _feeNumerator,
         bytes32 _documentId
     ) public payable returns (uint256) {
         uint256 tokenId = ++counter;
@@ -114,8 +104,8 @@ contract VWBLERC1155 is Ownable, ERC1155Enumerable, ERC1155Burnable, IVWBLERC115
         tokenIdToTokenInfo[tokenId].minterAddress = msg.sender;
         tokenIdToTokenInfo[tokenId].getKeyURl = _getKeyURl;
         _mint(msg.sender, tokenId, _amount, "");
-        if (_royaltiesPercentage > 0) {
-            _setRoyalty(tokenId, msg.sender, _royaltiesPercentage);
+        if (_feeNumerator > 0) {
+            _setTokenRoyalty(tokenId, msg.sender, _feeNumerator);
         }
 
         IAccessControlCheckerByERC1155(accessCheckerContract).grantAccessControlAndRegisterERC1155{value: msg.value}(
@@ -131,17 +121,17 @@ contract VWBLERC1155 is Ownable, ERC1155Enumerable, ERC1155Burnable, IVWBLERC115
      * @notice Batch mint ERC1155, grant access feature and register access condition of digital content.
      * @param _getKeyURl The Url of VWBL Network(Key management network)
      * @param _amounts The array of token quantity
-     * @param _royaltiesPercentages Array of Royalty percentage of ERC1155
+     * @param _feeNumerators Array of Royalty percentage of ERC1155
      * @param _documentIds The array of Identifier of digital content and decryption key
      */
     function mintBatch(
         string memory _getKeyURl,
         uint256[] memory _amounts,
-        uint256[] memory _royaltiesPercentages,
+        uint96[] memory _feeNumerators,
         bytes32[] memory _documentIds
     ) public payable returns (uint256[] memory) {
         require(
-            _amounts.length == _royaltiesPercentages.length && _royaltiesPercentages.length == _documentIds.length,
+            _amounts.length == _feeNumerators.length && _feeNumerators.length == _documentIds.length,
             "Invalid array length"
         );
 
@@ -152,8 +142,8 @@ contract VWBLERC1155 is Ownable, ERC1155Enumerable, ERC1155Burnable, IVWBLERC115
             tokenIdToTokenInfo[tokenId].documentId = _documentIds[i];
             tokenIdToTokenInfo[tokenId].minterAddress = msg.sender;
             tokenIdToTokenInfo[tokenId].getKeyURl = _getKeyURl;
-            if (_royaltiesPercentages[i] > 0) {
-                _setRoyalty(tokenId, msg.sender, _royaltiesPercentages[i]);
+            if (_feeNumerators[i] > 0) {
+                _setTokenRoyalty(tokenId, msg.sender, _feeNumerators[i]);
             }
         }
 
@@ -219,30 +209,9 @@ contract VWBLERC1155 is Ownable, ERC1155Enumerable, ERC1155Burnable, IVWBLERC115
     }
 
     /**
-     * @notice Called with the sale price to determine how much royalty is owned and to whom,
-     * @param _tokenId The NFT asset queried for royalty information
-     * @param _salePrice The sale price of the NFT asset specified by _tokenId
-     * @return receiver Address of who should be sent the royalty payment
-     * @return royaltyAmount The royalty payment amount for _salePrice
+     * @dev See {IERC165-supportsInterface}.
      */
-    function royaltyInfo(uint256 _tokenId, uint256 _salePrice)
-        external
-        view
-        override
-        returns (address receiver, uint256 royaltyAmount)
-    {
-        RoyaltyInfo memory royaltyInfo = tokenIdToRoyaltyInfo[_tokenId];
-        uint256 _royalties = (_salePrice * royaltyInfo.royaltiesPercentage) / INVERSE_BASIS_POINT;
-        return (royaltyInfo.recipient, _royalties);
-    }
-
-    function _setRoyalty(
-        uint256 _tokenId,
-        address _recipient,
-        uint256 _royaltiesPercentage
-    ) private {
-        RoyaltyInfo storage royaltyInfo = tokenIdToRoyaltyInfo[_tokenId];
-        royaltyInfo.recipient = _recipient;
-        royaltyInfo.royaltiesPercentage = _royaltiesPercentage;
+    function supportsInterface(bytes4 interfaceId) public view virtual override(ERC1155, ERC2981) returns (bool) {
+        return super.supportsInterface(interfaceId);
     }
 }
