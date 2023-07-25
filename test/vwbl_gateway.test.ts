@@ -41,8 +41,8 @@ describe("VWBLGateway", async () => {
         const ExternalNFT = await ethers.getContractFactory("ExternalNFT")
         externalNFT = await ExternalNFT.deploy()
 
-        const VWBLERC721 = await ethers.getContractFactory("VWBLERC721")
-        vwblERC721 = await VWBLERC721.deploy(
+        const VWBLERC721ERC2981 = await ethers.getContractFactory("VWBLERC721ERC2981")
+        vwblERC721 = await VWBLERC721ERC2981.deploy(
             "http://xxx.yyy.com",
             gatewayProxy.address,
             accessControlCheckerByNFT.address,

@@ -3,7 +3,7 @@ import { assert, expect } from "chai"
 import { ethers } from "hardhat"
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers"
 
-describe("VWBLERC1155", async () => {
+describe("VWBLERC1155ERC2981", async () => {
     let accounts: SignerWithAddress[]
     let vwblGateway: Contract
     let gatewayProxy: Contract
@@ -32,7 +32,7 @@ describe("VWBLERC1155", async () => {
         const AccessControlCheckerByERC1155 = await ethers.getContractFactory("AccessControlCheckerByERC1155")
         accessControlCheckerByERC1155 = await AccessControlCheckerByERC1155.deploy(gatewayProxy.address)
 
-        const VWBLERC1155 = await ethers.getContractFactory("VWBLERC1155")
+        const VWBLERC1155 = await ethers.getContractFactory("VWBLERC1155ERC2981")
         vwblERC1155 = await VWBLERC1155.deploy(
             "http://xxx.yyy.com",
             gatewayProxy.address,
@@ -63,16 +63,17 @@ describe("VWBLERC1155", async () => {
                 value: utils.parseEther("1"),
             }
         )
-        const tokens = await vwblERC1155.getTokenByMinter(accounts[1].address)
+        const tokenIds = await vwblERC1155.getTokenByMinter(accounts[1].address);
+        const tokens = await Promise.all(tokenIds.map(async(id : number) => await vwblERC1155.tokenIdToTokenInfo(id)));
         assert.equal(tokens[0].minterAddress, accounts[1].address, "Minter is not correct")
         assert.equal(tokens[0].getKeyURl, "http://xxx.yyy.com", "keyURL is not correct")
 
         const tokenAmount = await vwblERC1155.balanceOf(accounts[1].address, 1)
         assert.equal(tokenAmount, 100)
 
-        const royaltyInfo = await vwblERC1155.tokenIdToRoyaltyInfo(1)
-        assert.equal(royaltyInfo.recipient, accounts[1].address)
-        assert.equal(royaltyInfo.royaltiesPercentage, 500)
+        const [receiver, amount] = await vwblERC1155.royaltyInfo(1,10000);
+        assert.equal(receiver, accounts[1].address)
+        assert.equal(amount, 500);
 
         console.log("     accounts[1].address mint tokenId = 1, amount =", tokenAmount.toString(), " nft")
 
@@ -100,16 +101,17 @@ describe("VWBLERC1155", async () => {
                 value: utils.parseEther("1"),
             }
         )
-        const tokens = await vwblERC1155.getTokenByMinter(accounts[1].address)
+        const tokenIds = await vwblERC1155.getTokenByMinter(accounts[1].address);
+        const tokens = await Promise.all(tokenIds.map(async(id : number) => await vwblERC1155.tokenIdToTokenInfo(id)));
         assert.equal(tokens[1].minterAddress, accounts[1].address, "Minter is not correct")
         assert.equal(tokens[1].getKeyURl, "http://xxx.yyy.zzz.com", "keyURL is not correct")
 
         const tokenAmount = await vwblERC1155.balanceOf(accounts[1].address, 2)
         assert.equal(tokenAmount, 200)
 
-        const royaltyInfo = await vwblERC1155.tokenIdToRoyaltyInfo(2)
-        assert.equal(royaltyInfo.recipient, accounts[1].address)
-        assert.equal(royaltyInfo.royaltiesPercentage, 500)
+        const [receiver, amount] = await vwblERC1155.royaltyInfo(2,10000)
+        assert.equal(receiver, accounts[1].address)
+        assert.equal(amount, 500)
 
         console.log("     accounts[1].address mint tokenId = 2, amount =", tokenAmount.toString(), " nft")
 
