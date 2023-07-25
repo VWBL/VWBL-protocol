@@ -12,7 +12,7 @@ import "../ERC721/IAccessControlCheckerByNFT.sol";
 /**
  * @dev ERC6150 which is added Viewable features that only ERC6150 Owner can view digital content
  */
-contract VWBLERC6150 is Ownable, ERC6150ParentTransferable, AbstractVWBLSettings, ERC2981 {
+contract VWBLERC6150ERC2981 is Ownable, ERC6150ParentTransferable, AbstractVWBLSettings, ERC2981 {
     using SafeMath for uint256;
     using Strings for uint256;
 
