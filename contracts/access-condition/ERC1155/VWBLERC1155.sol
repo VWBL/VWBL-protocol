@@ -122,10 +122,7 @@ contract VWBLERC1155 is Ownable, ERC1155Enumerable, ERC1155Burnable, AbstractVWB
         uint256[] memory _amounts,
         bytes32[] memory _documentIds
     ) public payable returns (uint256[] memory) {
-        require(
-            _amounts.length == _documentIds.length,
-            "Invalid array length"
-        );
+        require(_amounts.length == _documentIds.length, "Invalid array length");
 
         uint256[] memory tokenIds = new uint256[](_amounts.length);
         for (uint32 i = 0; i < _amounts.length; i++) {
@@ -195,12 +192,5 @@ contract VWBLERC1155 is Ownable, ERC1155Enumerable, ERC1155Burnable, AbstractVWB
             }
         }
         return tokens;
-    }
-
-    /**
-     * @dev See {IERC165-supportsInterface}.
-     */
-    function supportsInterface(bytes4 interfaceId) public view virtual override(ERC1155, ERC2981) returns (bool) {
-        return super.supportsInterface(interfaceId);
     }
 }
