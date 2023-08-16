@@ -28,7 +28,6 @@ contract VWBLERC721 is Ownable, AbstractVWBLToken, ERC721Enumerable {
         return baseURI;
     }
 
-
     /**
      * @notice Mint NFT, grant access feature and register access condition of digital content.
      * @param _getKeyURl The URl of VWBL Network(Key management network)

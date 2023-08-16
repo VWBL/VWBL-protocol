@@ -21,8 +21,7 @@ contract VWBLERC1155 is Ownable, ERC1155Enumerable, ERC1155Burnable, AbstractVWB
         address _gatewayProxy,
         address _accessCheckerContract,
         string memory _signMessage
-    ) ERC1155(_baseURI) AbstractVWBLToken(_baseURI, _gatewayProxy, _accessCheckerContract, _signMessage) {
-    }
+    ) ERC1155(_baseURI) AbstractVWBLToken(_baseURI, _gatewayProxy, _accessCheckerContract, _signMessage) {}
 
     function _beforeTokenTransfer(
         address operator,

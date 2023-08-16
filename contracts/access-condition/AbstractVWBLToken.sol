@@ -15,7 +15,12 @@ abstract contract AbstractVWBLToken is AbstractVWBLSettings {
 
     mapping(uint256 => TokenInfo) public tokenIdToTokenInfo;
 
-    constructor(string memory _baseURI, address _gatewayProxy, address _accessCheckerContract, string memory _signMessage) AbstractVWBLSettings(_gatewayProxy, _accessCheckerContract, _signMessage) {
+    constructor(
+        string memory _baseURI,
+        address _gatewayProxy,
+        address _accessCheckerContract,
+        string memory _signMessage
+    ) AbstractVWBLSettings(_gatewayProxy, _accessCheckerContract, _signMessage) {
         baseURI = _baseURI;
     }
 

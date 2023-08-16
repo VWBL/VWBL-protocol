@@ -22,8 +22,7 @@ contract VWBLERC1155ERC2981 is Ownable, ERC1155Enumerable, ERC1155Burnable, Abst
         address _gatewayProxy,
         address _accessCheckerContract,
         string memory _signMessage
-    ) ERC1155(_baseURI) AbstractVWBLToken(_baseURI, _gatewayProxy, _accessCheckerContract, _signMessage) {
-    }
+    ) ERC1155(_baseURI) AbstractVWBLToken(_baseURI, _gatewayProxy, _accessCheckerContract, _signMessage) {}
 
     function _beforeTokenTransfer(
         address operator,
@@ -39,7 +38,6 @@ contract VWBLERC1155ERC2981 is Ownable, ERC1155Enumerable, ERC1155Burnable, Abst
     function uri(uint256 tokenId) public view override returns (string memory) {
         return bytes(baseURI).length > 0 ? string(abi.encodePacked(baseURI, tokenId.toString())) : "";
     }
-
 
     /**
      * @notice Mint ERC1155, grant access feature and register access condition of digital content.
