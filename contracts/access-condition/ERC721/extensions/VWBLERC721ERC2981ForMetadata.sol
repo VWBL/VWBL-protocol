@@ -7,28 +7,19 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/common/ERC2981.sol";
 
 import "../IAccessControlCheckerByNFT.sol";
-import "../../AbstractVWBLSettings.sol";
+import "../../AbstractVWBLToken.sol";
 
 /**
  * @dev NFT which is added Viewable features that only NFT Owner can view digital content
  */
-contract VWBLERC721ERC2981ForMetadata is Ownable, AbstractVWBLSettings, ERC721Enumerable, ERC2981 {
-    uint256 public counter = 0;
-
-    struct TokenInfo {
-        bytes32 documentId;
-        address minterAddress;
-        string getKeyURl;
-    }
-
-    mapping(uint256 => TokenInfo) public tokenIdToTokenInfo;
+contract VWBLERC721ERC2981ForMetadata is Ownable, AbstractVWBLToken, ERC721Enumerable, ERC2981 {
     mapping(uint256 => string) private _tokenURIs;
 
     constructor(
         address _gatewayProxy,
         address _accessCheckerContract,
         string memory _signMessage
-    ) ERC721("VWBL", "VWBL") AbstractVWBLSettings(_gatewayProxy, _accessCheckerContract, _signMessage) {}
+    ) ERC721("VWBL", "VWBL") AbstractVWBLToken("", _gatewayProxy, _accessCheckerContract, _signMessage) {}
 
     function tokenURI(uint256 tokenId) public view override returns (string memory) {
         require(bytes(_tokenURIs[tokenId]).length != 0, "ERC721: invalid token ID");
@@ -66,35 +57,6 @@ contract VWBLERC721ERC2981ForMetadata is Ownable, AbstractVWBLSettings, ERC721En
         );
 
         return tokenId;
-    }
-
-    /**
-     * @notice Get minter of NFT by tokenId
-     * @param tokenId The Identifier of NFT
-     */
-    function getMinter(uint256 tokenId) public view returns (address) {
-        return tokenIdToTokenInfo[tokenId].minterAddress;
-    }
-
-    /**
-     * @notice Get token Info for each minter
-     * @param minter The address of NFT Minter
-     */
-    function getTokenByMinter(address minter) public view returns (uint256[] memory) {
-        uint256 resultCount = 0;
-        for (uint256 i = 1; i <= counter; i++) {
-            if (tokenIdToTokenInfo[i].minterAddress == minter) {
-                resultCount++;
-            }
-        }
-        uint256[] memory tokens = new uint256[](resultCount);
-        uint256 currentCounter = 0;
-        for (uint256 i = 1; i <= counter; i++) {
-            if (tokenIdToTokenInfo[i].minterAddress == minter) {
-                tokens[currentCounter++] = i;
-            }
-        }
-        return tokens;
     }
 
     /**

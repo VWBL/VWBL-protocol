@@ -7,34 +7,21 @@ import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "./IAccessControlCheckerByERC1155.sol";
 import "./ERC1155Enumerable.sol";
-import "../AbstractVWBLSettings.sol";
+import "../AbstractVWBLToken.sol";
 
 /**
  * @dev Erc1155 which is added Viewable features that only ERC1155 Owner can view digital content
  */
-contract VWBLERC1155 is Ownable, ERC1155Enumerable, ERC1155Burnable, AbstractVWBLSettings {
+contract VWBLERC1155 is Ownable, ERC1155Enumerable, ERC1155Burnable, AbstractVWBLToken {
     using SafeMath for uint256;
     using Strings for uint256;
-
-    string private baseURI = "";
-
-    uint256 public counter = 0;
-
-    struct TokenInfo {
-        bytes32 documentId;
-        address minterAddress;
-        string getKeyURl;
-    }
-
-    mapping(uint256 => TokenInfo) public tokenIdToTokenInfo;
 
     constructor(
         string memory _baseURI,
         address _gatewayProxy,
         address _accessCheckerContract,
         string memory _signMessage
-    ) ERC1155(_baseURI) AbstractVWBLSettings(_gatewayProxy, _accessCheckerContract, _signMessage) {
-        setBaseURI(_baseURI);
+    ) ERC1155(_baseURI) AbstractVWBLToken(_baseURI, _gatewayProxy, _accessCheckerContract, _signMessage) {
     }
 
     function _beforeTokenTransfer(
@@ -52,28 +39,6 @@ contract VWBLERC1155 is Ownable, ERC1155Enumerable, ERC1155Burnable, AbstractVWB
         return bytes(baseURI).length > 0 ? string(abi.encodePacked(baseURI, tokenId.toString())) : "";
     }
 
-    /**
-     * @notice Set BaseURI.
-     * @param newBaseURI new BaseURI
-     */
-    function setBaseURI(string memory newBaseURI) public onlyOwner {
-        baseURI = newBaseURI;
-    }
-
-    /**
-     * @notice Get minter of ERC1155 by tokenId
-     * @param tokenId The Identifier of ERC1155
-     */
-    function getMinter(uint256 tokenId) public view returns (address) {
-        return tokenIdToTokenInfo[tokenId].minterAddress;
-    }
-
-    /**
-     * @notice Mint ERC1155, grant access feature and register access condition of digital content.
-     * @param _getKeyURl The URl of VWBL Network(Key management network)
-     * @param _amount The token quantity
-     * @param _documentId The Identifier of digital content and decryption key
-     */
     function mint(
         string memory _getKeyURl,
         uint256 _amount,
@@ -154,26 +119,5 @@ contract VWBLERC1155 is Ownable, ERC1155Enumerable, ERC1155Burnable, AbstractVWB
         for (uint32 i = 0; i < ids.length; i++) {
             IVWBLGateway(getGatewayAddress()).payFee{value: fee}(tokenIdToTokenInfo[ids[i]].documentId, to);
         }
-    }
-
-    /**
-     * @notice Get token Info for each minter
-     * @param minter The address of NFT Minter
-     */
-    function getTokenByMinter(address minter) public view returns (uint256[] memory) {
-        uint256 resultCount = 0;
-        for (uint256 i = 1; i <= counter; i++) {
-            if (tokenIdToTokenInfo[i].minterAddress == minter) {
-                resultCount++;
-            }
-        }
-        uint256[] memory tokens = new uint256[](resultCount);
-        uint256 currentCounter = 0;
-        for (uint256 i = 1; i <= counter; i++) {
-            if (tokenIdToTokenInfo[i].minterAddress == minter) {
-                tokens[currentCounter++] = i;
-            }
-        }
-        return tokens;
     }
 }

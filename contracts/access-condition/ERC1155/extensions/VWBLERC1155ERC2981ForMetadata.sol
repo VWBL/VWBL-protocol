@@ -7,32 +7,23 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "../IAccessControlCheckerByERC1155.sol";
-import "../../AbstractVWBLSettings.sol";
 import "../ERC1155Enumerable.sol";
+import "../../AbstractVWBLToken.sol";
 
 /**
  * @dev Erc1155 which is added Viewable features that only ERC1155 Owner can view digital content
  */
-contract VWBLERC1155ERC2981ForMetadata is Ownable, ERC1155Enumerable, ERC1155Burnable, AbstractVWBLSettings, ERC2981 {
+contract VWBLERC1155ERC2981ForMetadata is Ownable, ERC1155Enumerable, ERC1155Burnable, AbstractVWBLToken, ERC2981 {
     using SafeMath for uint256;
     using Strings for uint256;
 
-    uint256 public counter = 0;
-
-    struct TokenInfo {
-        bytes32 documentId;
-        address minterAddress;
-        string getKeyURl;
-    }
-
-    mapping(uint256 => TokenInfo) public tokenIdToTokenInfo;
     mapping(uint256 => string) private _tokenURIs;
 
     constructor(
         address _gatewayProxy,
         address _accessCheckerContract,
         string memory _signMessage
-    ) ERC1155("") AbstractVWBLSettings(_gatewayProxy, _accessCheckerContract, _signMessage) {}
+    ) ERC1155("") AbstractVWBLToken("", _gatewayProxy, _accessCheckerContract, _signMessage) {}
 
     function _beforeTokenTransfer(
         address operator,
@@ -48,14 +39,6 @@ contract VWBLERC1155ERC2981ForMetadata is Ownable, ERC1155Enumerable, ERC1155Bur
     function uri(uint256 tokenId) public view override returns (string memory) {
         require(bytes(_tokenURIs[tokenId]).length != 0, "ERC1155: invalid token ID");
         return _tokenURIs[tokenId];
-    }
-
-    /**
-     * @notice Get minter of ERC1155 by tokenId
-     * @param tokenId The Identifier of ERC1155
-     */
-    function getMinter(uint256 tokenId) public view returns (address) {
-        return tokenIdToTokenInfo[tokenId].minterAddress;
     }
 
     /**
@@ -163,27 +146,6 @@ contract VWBLERC1155ERC2981ForMetadata is Ownable, ERC1155Enumerable, ERC1155Bur
         for (uint32 i = 0; i < ids.length; i++) {
             IVWBLGateway(getGatewayAddress()).payFee{value: fee}(tokenIdToTokenInfo[ids[i]].documentId, to);
         }
-    }
-
-    /**
-     * @notice Get token Info for each minter
-     * @param minter The address of NFT Minter
-     */
-    function getTokenByMinter(address minter) public view returns (uint256[] memory) {
-        uint256 resultCount = 0;
-        for (uint256 i = 1; i <= counter; i++) {
-            if (tokenIdToTokenInfo[i].minterAddress == minter) {
-                resultCount++;
-            }
-        }
-        uint256[] memory tokens = new uint256[](resultCount);
-        uint256 currentCounter = 0;
-        for (uint256 i = 1; i <= counter; i++) {
-            if (tokenIdToTokenInfo[i].minterAddress == minter) {
-                tokens[currentCounter++] = i;
-            }
-        }
-        return tokens;
     }
 
     /**
