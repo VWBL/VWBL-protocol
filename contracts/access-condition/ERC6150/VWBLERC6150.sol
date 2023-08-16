@@ -15,7 +15,6 @@ contract VWBLERC6150 is Ownable, ERC6150ParentTransferable, AbstractVWBLSettings
     using SafeMath for uint256;
     using Strings for uint256;
 
-    address public accessCheckerContract;
     string baseURI;
 
     uint256 public counter = 0;
@@ -28,16 +27,13 @@ contract VWBLERC6150 is Ownable, ERC6150ParentTransferable, AbstractVWBLSettings
 
     mapping(uint256 => TokenInfo) public tokenIdToTokenInfo;
 
-    event accessCheckerContractChanged(address oldAccessCheckerContract, address newAccessCheckerContract);
-
     constructor(
         string memory _baseURI,
         address _gatewayProxy,
         address _accessCheckerContract,
         string memory _signMessage
-    ) ERC6150("VWBL", "VWBL") AbstractVWBLSettings(_gatewayProxy, _signMessage) {
+    ) ERC6150("VWBL", "VWBL") AbstractVWBLSettings(_gatewayProxy, _accessCheckerContract, _signMessage) {
         setBaseURI(baseURI);
-        accessCheckerContract = _accessCheckerContract;
     }
 
     /**
@@ -46,18 +42,6 @@ contract VWBLERC6150 is Ownable, ERC6150ParentTransferable, AbstractVWBLSettings
      */
     function setBaseURI(string memory newBaseURI) public onlyOwner {
         baseURI = newBaseURI;
-    }
-
-    /**
-     * @notice Set new access condition contract address
-     * @param newAccessCheckerContract The contract address of new access condition contract
-     */
-    function setAccessCheckerContract(address newAccessCheckerContract) public onlyOwner {
-        require(newAccessCheckerContract != accessCheckerContract);
-        address oldAccessCheckerContract = accessCheckerContract;
-        accessCheckerContract = newAccessCheckerContract;
-
-        emit accessCheckerContractChanged(oldAccessCheckerContract, newAccessCheckerContract);
     }
 
     /**

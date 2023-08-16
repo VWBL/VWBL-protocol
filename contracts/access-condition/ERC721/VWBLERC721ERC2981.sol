@@ -14,7 +14,6 @@ import "../AbstractVWBLSettings.sol";
  */
 contract VWBLERC721ERC2981 is Ownable, AbstractVWBLSettings, ERC721Enumerable, ERC2981 {
     string public baseURI;
-    address public accessCheckerContract;
     uint256 public counter = 0;
 
     struct TokenInfo {
@@ -25,16 +24,13 @@ contract VWBLERC721ERC2981 is Ownable, AbstractVWBLSettings, ERC721Enumerable, E
 
     mapping(uint256 => TokenInfo) public tokenIdToTokenInfo;
 
-    event accessCheckerContractChanged(address oldAccessCheckerContract, address newAccessCheckerContract);
-
     constructor(
         string memory _baseURI,
         address _gatewayProxy,
         address _accessCheckerContract,
         string memory _signMessage
-    ) ERC721("VWBL", "VWBL") AbstractVWBLSettings(_gatewayProxy, _signMessage) {
+    ) ERC721("VWBL", "VWBL") AbstractVWBLSettings(_gatewayProxy, _accessCheckerContract, _signMessage) {
         baseURI = _baseURI;
-        accessCheckerContract = _accessCheckerContract;
     }
 
     /**
@@ -50,18 +46,6 @@ contract VWBLERC721ERC2981 is Ownable, AbstractVWBLSettings, ERC721Enumerable, E
      */
     function setBaseURI(string memory _baseURI) public onlyOwner {
         baseURI = _baseURI;
-    }
-
-    /**
-     * @notice Set new access condition contract address
-     * @param newAccessCheckerContract The contract address of new access condition contract
-     */
-    function setAccessCheckerContract(address newAccessCheckerContract) public onlyOwner {
-        require(newAccessCheckerContract != accessCheckerContract);
-        address oldAccessCheckerContract = accessCheckerContract;
-        accessCheckerContract = newAccessCheckerContract;
-
-        emit accessCheckerContractChanged(oldAccessCheckerContract, newAccessCheckerContract);
     }
 
     /**

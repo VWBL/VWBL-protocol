@@ -17,8 +17,6 @@ contract VWBLERC1155ERC2981ForMetadata is Ownable, ERC1155Enumerable, ERC1155Bur
     using SafeMath for uint256;
     using Strings for uint256;
 
-    address public accessCheckerContract;
-
     uint256 public counter = 0;
 
     struct TokenInfo {
@@ -30,15 +28,11 @@ contract VWBLERC1155ERC2981ForMetadata is Ownable, ERC1155Enumerable, ERC1155Bur
     mapping(uint256 => TokenInfo) public tokenIdToTokenInfo;
     mapping(uint256 => string) private _tokenURIs;
 
-    event accessCheckerContractChanged(address oldAccessCheckerContract, address newAccessCheckerContract);
-
     constructor(
         address _gatewayProxy,
         address _accessCheckerContract,
         string memory _signMessage
-    ) ERC1155("") AbstractVWBLSettings(_gatewayProxy, _signMessage) {
-        accessCheckerContract = _accessCheckerContract;
-    }
+    ) ERC1155("") AbstractVWBLSettings(_gatewayProxy, _accessCheckerContract, _signMessage) {}
 
     function _beforeTokenTransfer(
         address operator,
@@ -54,18 +48,6 @@ contract VWBLERC1155ERC2981ForMetadata is Ownable, ERC1155Enumerable, ERC1155Bur
     function uri(uint256 tokenId) public view override returns (string memory) {
         require(bytes(_tokenURIs[tokenId]).length != 0, "ERC1155: invalid token ID");
         return _tokenURIs[tokenId];
-    }
-
-    /**
-     * @notice Set new access condition contract address
-     * @param newAccessCheckerContract The contract address of new access condition contract
-     */
-    function setAccessCheckerContract(address newAccessCheckerContract) public onlyOwner {
-        require(newAccessCheckerContract != accessCheckerContract);
-        address oldAccessCheckerContract = accessCheckerContract;
-        accessCheckerContract = newAccessCheckerContract;
-
-        emit accessCheckerContractChanged(oldAccessCheckerContract, newAccessCheckerContract);
     }
 
     /**

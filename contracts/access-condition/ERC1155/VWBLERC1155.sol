@@ -16,9 +16,7 @@ contract VWBLERC1155 is Ownable, ERC1155Enumerable, ERC1155Burnable, AbstractVWB
     using SafeMath for uint256;
     using Strings for uint256;
 
-    string private _baseURI = "";
-
-    address public accessCheckerContract;
+    string private baseURI = "";
 
     uint256 public counter = 0;
 
@@ -30,16 +28,13 @@ contract VWBLERC1155 is Ownable, ERC1155Enumerable, ERC1155Burnable, AbstractVWB
 
     mapping(uint256 => TokenInfo) public tokenIdToTokenInfo;
 
-    event accessCheckerContractChanged(address oldAccessCheckerContract, address newAccessCheckerContract);
-
     constructor(
         string memory _baseURI,
         address _gatewayProxy,
         address _accessCheckerContract,
         string memory _signMessage
-    ) ERC1155(_baseURI) AbstractVWBLSettings(_gatewayProxy, _signMessage) {
+    ) ERC1155(_baseURI) AbstractVWBLSettings(_gatewayProxy, _accessCheckerContract, _signMessage) {
         setBaseURI(_baseURI);
-        accessCheckerContract = _accessCheckerContract;
     }
 
     function _beforeTokenTransfer(
@@ -54,7 +49,7 @@ contract VWBLERC1155 is Ownable, ERC1155Enumerable, ERC1155Burnable, AbstractVWB
     }
 
     function uri(uint256 tokenId) public view override returns (string memory) {
-        return bytes(_baseURI).length > 0 ? string(abi.encodePacked(_baseURI, tokenId.toString())) : "";
+        return bytes(baseURI).length > 0 ? string(abi.encodePacked(baseURI, tokenId.toString())) : "";
     }
 
     /**
@@ -62,19 +57,7 @@ contract VWBLERC1155 is Ownable, ERC1155Enumerable, ERC1155Burnable, AbstractVWB
      * @param newBaseURI new BaseURI
      */
     function setBaseURI(string memory newBaseURI) public onlyOwner {
-        _baseURI = newBaseURI;
-    }
-
-    /**
-     * @notice Set new access condition contract address
-     * @param newAccessCheckerContract The contract address of new access condition contract
-     */
-    function setAccessCheckerContract(address newAccessCheckerContract) public onlyOwner {
-        require(newAccessCheckerContract != accessCheckerContract);
-        address oldAccessCheckerContract = accessCheckerContract;
-        accessCheckerContract = newAccessCheckerContract;
-
-        emit accessCheckerContractChanged(oldAccessCheckerContract, newAccessCheckerContract);
+        baseURI = newBaseURI;
     }
 
     /**

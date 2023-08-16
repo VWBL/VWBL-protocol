@@ -13,7 +13,6 @@ import "../../AbstractVWBLSettings.sol";
  * @dev NFT which is added Viewable features that only NFT Owner can view digital content
  */
 contract VWBLERC721ERC2981ForMetadata is Ownable, AbstractVWBLSettings, ERC721Enumerable, ERC2981 {
-    address public accessCheckerContract;
     uint256 public counter = 0;
 
     struct TokenInfo {
@@ -25,27 +24,11 @@ contract VWBLERC721ERC2981ForMetadata is Ownable, AbstractVWBLSettings, ERC721En
     mapping(uint256 => TokenInfo) public tokenIdToTokenInfo;
     mapping(uint256 => string) private _tokenURIs;
 
-    event accessCheckerContractChanged(address oldAccessCheckerContract, address newAccessCheckerContract);
-
     constructor(
         address _gatewayProxy,
         address _accessCheckerContract,
         string memory _signMessage
-    ) ERC721("VWBL", "VWBL") AbstractVWBLSettings(_gatewayProxy, _signMessage) {
-        accessCheckerContract = _accessCheckerContract;
-    }
-
-    /**
-     * @notice Set new access condition contract address
-     * @param newAccessCheckerContract The contract address of new access condition contract
-     */
-    function setAccessCheckerContract(address newAccessCheckerContract) public onlyOwner {
-        require(newAccessCheckerContract != accessCheckerContract);
-        address oldAccessCheckerContract = accessCheckerContract;
-        accessCheckerContract = newAccessCheckerContract;
-
-        emit accessCheckerContractChanged(oldAccessCheckerContract, newAccessCheckerContract);
-    }
+    ) ERC721("VWBL", "VWBL") AbstractVWBLSettings(_gatewayProxy, _accessCheckerContract, _signMessage) {}
 
     function tokenURI(uint256 tokenId) public view override returns (string memory) {
         require(bytes(_tokenURIs[tokenId]).length != 0, "ERC721: invalid token ID");
