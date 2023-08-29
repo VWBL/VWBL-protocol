@@ -25,7 +25,7 @@ async function main() {
 
     let VWBLERC721Contract: Contract;
 
-    const vwblERC721 = await ethers.getContractFactory("VWBL")
+    const vwblERC721 = await ethers.getContractFactory("VWBLERC721ERC2981")
     VWBLERC721Contract = await vwblERC721.deploy(
         baseURI,
         gatewayProxyContractAddress,
@@ -41,7 +41,7 @@ async function main() {
     
     let VWBLERC721MetadataContract: Contract;
 
-    const vwblERC721Metadata = await ethers.getContractFactory("VWBLMetadata")
+    const vwblERC721Metadata = await ethers.getContractFactory("VWBLERC721ERC2981ForMetadata")
     VWBLERC721MetadataContract = await vwblERC721Metadata.deploy(
         gatewayProxyContractAddress,
         accessControlCheckerByNFTContractAddress,
