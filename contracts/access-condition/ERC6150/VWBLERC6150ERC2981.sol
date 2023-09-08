@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.17;
 
+import "@openzeppelin/contracts/token/common/ERC2981.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
@@ -11,7 +12,7 @@ import "../AbstractVWBLToken.sol";
 /**
  * @dev ERC6150 which is added Viewable features that only ERC6150 Owner can view digital content
  */
-contract VWBLERC6150 is Ownable, ERC6150ParentTransferable, AbstractVWBLToken {
+contract VWBLERC6150ERC2981 is Ownable, ERC6150ParentTransferable, AbstractVWBLToken, ERC2981 {
     using SafeMath for uint256;
     using Strings for uint256;
 
@@ -33,11 +34,13 @@ contract VWBLERC6150 is Ownable, ERC6150ParentTransferable, AbstractVWBLToken {
      * @notice Mint ERC6150, grant access feature and register access condition of digital content.
      * @param _getKeyURl The URl of VWBL Network(Key management network)
      * @param _parentId parent token Id
+     * @param _feeNumerator Royalty of ERC6150
      * @param _documentId The Identifier of digital content and decryption key
      */
     function mint(
         string memory _getKeyURl,
         uint256 _parentId,
+        uint96 _feeNumerator,
         bytes32 _documentId
     ) public payable returns (uint256) {
         uint256 tokenId = ++counter;
@@ -45,6 +48,10 @@ contract VWBLERC6150 is Ownable, ERC6150ParentTransferable, AbstractVWBLToken {
         tokenIdToTokenInfo[tokenId].minterAddress = msg.sender;
         tokenIdToTokenInfo[tokenId].getKeyURl = _getKeyURl;
         _safeMintWithParent(msg.sender, _parentId, tokenId);
+        if (_feeNumerator > 0) {
+            _setTokenRoyalty(tokenId, msg.sender, _feeNumerator);
+        }
+
         IAccessControlCheckerByNFT(accessCheckerContract).grantAccessControlAndRegisterNFT{value: msg.value}(
             _documentId,
             address(this),
@@ -54,7 +61,13 @@ contract VWBLERC6150 is Ownable, ERC6150ParentTransferable, AbstractVWBLToken {
         return tokenId;
     }
 
-    function supportsInterface(bytes4 interfaceId) public view virtual override(IERC165, ERC6150) returns (bool) {
+    function supportsInterface(bytes4 interfaceId)
+        public
+        view
+        virtual
+        override(IERC165, ERC2981, ERC6150)
+        returns (bool)
+    {
         return super.supportsInterface(interfaceId);
     }
 }

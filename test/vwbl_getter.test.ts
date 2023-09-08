@@ -51,7 +51,7 @@ describe("Getter function", function () {
                 deployTokenFixture
             )
             const documentId_1 = ethers.utils.randomBytes(32)
-            await vwblNFT_1.connect(minter1).mint(vwblNetworkUrl, 0, documentId_1, { value: feeWei })
+            await vwblNFT_1.connect(minter1).mint(vwblNetworkUrl, documentId_1, { value: feeWei })
             expect((await nftChecker.getOwnerAddress(documentId_1)) === minter1.address).to.equal(true)
             expect((await nftChecker.getOwnerAddress(documentId_1)) === minter3.address).to.equal(false)
 
@@ -62,7 +62,7 @@ describe("Getter function", function () {
 
             // Another Contract
             const documentId_2 = ethers.utils.randomBytes(32)
-            await vwblNFT_2.connect(minter2).mint(vwblNetworkUrl, 0, documentId_2, { value: feeWei })
+            await vwblNFT_2.connect(minter2).mint(vwblNetworkUrl, documentId_2, { value: feeWei })
             expect((await nftChecker.getOwnerAddress(documentId_2)) === minter2.address).to.equal(true)
             expect((await nftChecker.getOwnerAddress(documentId_2)) === minter3.address).to.equal(false)
 
@@ -79,7 +79,7 @@ describe("Getter function", function () {
             // One Contract
             const documentId_1 = ethers.utils.randomBytes(32)
             const amount_1 = 100
-            await vwblERC1155_1.connect(minter1).mint(vwblNetworkUrl, amount_1, 0, documentId_1, { value: feeWei })
+            await vwblERC1155_1.connect(minter1).mint(vwblNetworkUrl, amount_1, documentId_1, { value: feeWei })
             expect(await erc1155Checker.checkAccessControl(minter1.address, documentId_1)).to.equal(true)
             expect(await erc1155Checker.checkAccessControl(minter3.address, documentId_1)).to.equal(false)
 
@@ -94,7 +94,7 @@ describe("Getter function", function () {
             // Another Contract
             const documentId_2 = ethers.utils.randomBytes(32)
             const amount_2 = 55
-            await vwblERC1155_2.connect(minter2).mint(vwblNetworkUrl, amount_2, 0, documentId_2, { value: feeWei })
+            await vwblERC1155_2.connect(minter2).mint(vwblNetworkUrl, amount_2, documentId_2, { value: feeWei })
             expect(await erc1155Checker.checkAccessControl(minter2.address, documentId_2)).to.equal(true)
             expect(await erc1155Checker.checkAccessControl(minter3.address, documentId_2)).to.equal(false)
 
@@ -123,33 +123,33 @@ describe("Getter function", function () {
             } = await loadFixture(deployTokenFixture)
 
             // Mint
-            await vwblNFT_1.connect(minter1).mint(vwblNetworkUrl, 0, ethers.utils.randomBytes(32), { value: feeWei })
-            await vwblNFT_1.connect(minter2).mint(vwblNetworkUrl, 0, ethers.utils.randomBytes(32), { value: feeWei })
-            await vwblNFT_1.connect(minter3).mint(vwblNetworkUrl, 0, ethers.utils.randomBytes(32), { value: feeWei })
+            await vwblNFT_1.connect(minter1).mint(vwblNetworkUrl, ethers.utils.randomBytes(32), { value: feeWei })
+            await vwblNFT_1.connect(minter2).mint(vwblNetworkUrl, ethers.utils.randomBytes(32), { value: feeWei })
+            await vwblNFT_1.connect(minter3).mint(vwblNetworkUrl, ethers.utils.randomBytes(32), { value: feeWei })
 
-            await vwblNFT_2.connect(minter1).mint(vwblNetworkUrl, 0, ethers.utils.randomBytes(32), { value: feeWei })
-            await vwblNFT_2.connect(minter2).mint(vwblNetworkUrl, 0, ethers.utils.randomBytes(32), { value: feeWei })
-            await vwblNFT_2.connect(minter3).mint(vwblNetworkUrl, 0, ethers.utils.randomBytes(32), { value: feeWei })
+            await vwblNFT_2.connect(minter1).mint(vwblNetworkUrl, ethers.utils.randomBytes(32), { value: feeWei })
+            await vwblNFT_2.connect(minter2).mint(vwblNetworkUrl, ethers.utils.randomBytes(32), { value: feeWei })
+            await vwblNFT_2.connect(minter3).mint(vwblNetworkUrl, ethers.utils.randomBytes(32), { value: feeWei })
 
             await vwblERC1155_1
                 .connect(minter1)
-                .mint(vwblNetworkUrl, 100, 0, ethers.utils.randomBytes(32), { value: feeWei })
+                .mint(vwblNetworkUrl, 100, ethers.utils.randomBytes(32), { value: feeWei })
             await vwblERC1155_1
                 .connect(minter2)
-                .mint(vwblNetworkUrl, 100, 0, ethers.utils.randomBytes(32), { value: feeWei })
+                .mint(vwblNetworkUrl, 100, ethers.utils.randomBytes(32), { value: feeWei })
             await vwblERC1155_1
                 .connect(minter3)
-                .mint(vwblNetworkUrl, 100, 0, ethers.utils.randomBytes(32), { value: feeWei })
+                .mint(vwblNetworkUrl, 100, ethers.utils.randomBytes(32), { value: feeWei })
 
             await vwblERC1155_2
                 .connect(minter1)
-                .mint(vwblNetworkUrl, 100, 0, ethers.utils.randomBytes(32), { value: feeWei })
+                .mint(vwblNetworkUrl, 100, ethers.utils.randomBytes(32), { value: feeWei })
             await vwblERC1155_2
                 .connect(minter2)
-                .mint(vwblNetworkUrl, 100, 0, ethers.utils.randomBytes(32), { value: feeWei })
+                .mint(vwblNetworkUrl, 100, ethers.utils.randomBytes(32), { value: feeWei })
             await vwblERC1155_2
                 .connect(minter3)
-                .mint(vwblNetworkUrl, 100, 0, ethers.utils.randomBytes(32), { value: feeWei })
+                .mint(vwblNetworkUrl, 100, ethers.utils.randomBytes(32), { value: feeWei })
 
             // getNFTDatas
             const nftDatas = await nftChecker.getNFTDatas()

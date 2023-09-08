@@ -2,18 +2,26 @@
 pragma solidity ^0.8.17;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "./IVWBLSettings.sol";
+import "./IVWBL.sol";
 import "../gateway/IGatewayProxy.sol";
 import "../gateway/IVWBLGateway.sol";
 
-abstract contract AbstractVWBLSettings is IVWBLSettings, Ownable {
+abstract contract AbstractVWBLSettings is IVWBL, Ownable {
     address public gatewayProxy;
     string private signMessage;
     string private allowOrigins;
+    address public accessCheckerContract;
 
-    constructor(address _gatewayProxy, string memory _signMessage) {
+    event accessCheckerContractChanged(address oldAccessCheckerContract, address newAccessCheckerContract);
+
+    constructor(
+        address _gatewayProxy,
+        address _accessCheckerContract,
+        string memory _signMessage
+    ) {
         gatewayProxy = _gatewayProxy;
         signMessage = _signMessage;
+        accessCheckerContract = _accessCheckerContract;
     }
 
     function getGatewayAddress() public view returns (address) {
@@ -47,5 +55,17 @@ abstract contract AbstractVWBLSettings is IVWBLSettings, Ownable {
 
     function setAllowOrigins(string memory _origins) public onlyOwner {
         allowOrigins = _origins;
+    }
+
+    /**
+     * @notice Set new access condition contract address
+     * @param newAccessCheckerContract The contract address of new access condition contract
+     */
+    function setAccessCheckerContract(address newAccessCheckerContract) public onlyOwner {
+        require(newAccessCheckerContract != accessCheckerContract);
+        address oldAccessCheckerContract = accessCheckerContract;
+        accessCheckerContract = newAccessCheckerContract;
+
+        emit accessCheckerContractChanged(oldAccessCheckerContract, newAccessCheckerContract);
     }
 }

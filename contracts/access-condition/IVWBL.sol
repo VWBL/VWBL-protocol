@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.17;
 
-interface IVWBLSettings {
+interface IVWBL {
     /**
      * @notice Get VWBL Fee
      */
@@ -37,4 +37,10 @@ interface IVWBLSettings {
      * @param tokenId The Identifier of NFT
      */
     function getMinter(uint256 tokenId) external view returns (address);
+
+    /**
+     * @notice Get minter of NFT by tokenId
+     * @param minter The minter of NFT
+     */
+    function getTokenByMinter(address minter) external view returns (uint256[] memory);
 }
