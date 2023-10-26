@@ -9,14 +9,13 @@ on:
 jobs:
   test-contract:
     runs-on: ubuntu-latest
-
-    strategy:
-      matrix:
-        node-version: [14.x]
-
     steps:
       - name: Checkout 🛎
         uses: actions/checkout@v2
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16
       - name: Install packages
         uses: borales/actions-yarn@v3.0.0
         with:
