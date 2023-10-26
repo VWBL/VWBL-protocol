@@ -19,12 +19,12 @@ contract VWBLFetcher {
     }
 
     function getSignMsgAddress(bytes32 documentId) public view returns (address) {
-       address gatewayAddress = getGatewayAddress();
-       VWBLGateway gatewayContract = VWBLGateway(gatewayAddress);
-       address checkerAddress = gatewayContract.documentIdToConditionContract(documentId);
-       AbstractControlChecker checkerContract = AbstractControlChecker(checkerAddress);
-       (address contractAddress, uint256 _tokenId) = checkerContract.documentIdToToken(documentId);
-       return contractAddress;
+        address gatewayAddress = getGatewayAddress();
+        VWBLGateway gatewayContract = VWBLGateway(gatewayAddress);
+        address checkerAddress = gatewayContract.documentIdToConditionContract(documentId);
+        AbstractControlChecker checkerContract = AbstractControlChecker(checkerAddress);
+        (address contractAddress, uint256 _tokenId) = checkerContract.documentIdToToken(documentId);
+        return contractAddress;
     }
 
     function getSignMsgAndAllowOrigins(address vwblAddress) public view returns (string memory, string memory) {
