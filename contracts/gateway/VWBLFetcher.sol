@@ -33,4 +33,16 @@ contract VWBLFetcher {
         string memory allowOrigins = vwblContract.getAllowOrigins();
         return (signMsg, allowOrigins);
     }
+
+    function getSignMsgAndAllowOrigins(bytes32 documentId) public view returns (string memory, string memory) {
+        address gatewayAddress = getGatewayAddress();
+        VWBLGateway gatewayContract = VWBLGateway(gatewayAddress);
+        address checkerAddress = gatewayContract.documentIdToConditionContract(documentId);
+        AbstractControlChecker checkerContract = AbstractControlChecker(checkerAddress);
+        (address vwblAddress, uint256 _tokenId) = checkerContract.documentIdToToken(documentId);
+        AbstractVWBLSettings vwblContract = AbstractVWBLSettings(vwblAddress);
+        string memory signMsg = vwblContract.getSignMessage();
+        string memory allowOrigins = vwblContract.getAllowOrigins();
+        return (signMsg, allowOrigins);
+    }
 }
