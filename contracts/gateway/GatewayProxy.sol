@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.17;
+pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "./IGatewayProxy.sol";
@@ -11,7 +11,7 @@ contract GatewayProxy is Ownable, IGatewayProxy {
     address gatewayAddress;
     event gatewayContractChanged(address oldGatewayContract, address newGatewayContract);
 
-    constructor(address _gatewayAddress) {
+    constructor(address _initialOwner, address _gatewayAddress) Ownable(_initialOwner) {
         gatewayAddress = _gatewayAddress;
     }
 

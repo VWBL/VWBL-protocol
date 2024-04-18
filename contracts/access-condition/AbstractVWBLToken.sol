@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.17;
+pragma solidity ^0.8.20;
 
 import "./AbstractVWBLSettings.sol";
 
@@ -16,11 +16,12 @@ abstract contract AbstractVWBLToken is AbstractVWBLSettings {
     mapping(uint256 => TokenInfo) public tokenIdToTokenInfo;
 
     constructor(
+        address _initialOwner,
         string memory _baseURI,
         address _gatewayProxy,
         address _accessCheckerContract,
         string memory _signMessage
-    ) AbstractVWBLSettings(_gatewayProxy, _accessCheckerContract, _signMessage) {
+    ) AbstractVWBLSettings(_initialOwner, _gatewayProxy, _accessCheckerContract, _signMessage) {
         baseURI = _baseURI;
     }
 

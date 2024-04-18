@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CC0-1.0
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.20;
 
 import "./interfaces/IERC6150.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
@@ -19,24 +19,24 @@ abstract contract ERC6150 is ERC721, IERC6150 {
     }
 
     function parentOf(uint256 tokenId) public view virtual override returns (uint256 parentId) {
-        _requireMinted(tokenId);
+        require(_ownerOf(tokenId) != address(0), "ERC6150: invalid token ID");
         parentId = _parentOf[tokenId];
     }
 
     function childrenOf(uint256 tokenId) public view virtual override returns (uint256[] memory childrenIds) {
         if (tokenId > 0) {
-            _requireMinted(tokenId);
+            require(_ownerOf(tokenId) != address(0), "ERC6150: invalid token ID");
         }
         childrenIds = _childrenOf[tokenId];
     }
 
     function isRoot(uint256 tokenId) public view virtual override returns (bool) {
-        _requireMinted(tokenId);
+        require(_ownerOf(tokenId) != address(0), "ERC6150: invalid token ID");
         return _parentOf[tokenId] == 0;
     }
 
     function isLeaf(uint256 tokenId) public view virtual override returns (bool) {
-        _requireMinted(tokenId);
+        require(_ownerOf(tokenId) != address(0), "ERC6150: invalid token ID");
         return _childrenOf[tokenId].length == 0;
     }
 
@@ -79,7 +79,7 @@ abstract contract ERC6150 is ERC721, IERC6150 {
         bytes memory data
     ) internal virtual {
         require(tokenId > 0, "ERC6150: tokenId is zero");
-        if (parentId != 0) require(_exists(parentId), "ERC6150: parentId doesn't exist");
+        if (parentId != 0) require(_ownerOf(tokenId) != address(0), "ERC6150: parentId doesn't exist");
 
         _beforeMintWithParent(to, parentId, tokenId);
 
@@ -94,7 +94,7 @@ abstract contract ERC6150 is ERC721, IERC6150 {
     }
 
     function _safeBurn(uint256 tokenId) internal virtual {
-        require(_exists(tokenId), "ERC6150: tokenId doesn't exist");
+        require(_ownerOf(tokenId) != address(0), "ERC6150: tokenId doesn't exist");
         require(isLeaf(tokenId), "ERC6150: tokenId is not a leaf");
 
         uint256 parent = _parentOf[tokenId];

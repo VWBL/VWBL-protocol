@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.17;
+pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "../../gateway/IGatewayProxy.sol";
-import "../../gateway/IVWBLGateway.sol";
+import "../../gateway/IVWBLGatewayV2.sol";
 import "../IAccessControlChecker.sol";
 import "./IAccessControlCheckerByNFT.sol";
 import "../AbstractControlChecker.sol";
@@ -19,7 +19,11 @@ contract AccessControlCheckerByNFT is AbstractControlChecker, Ownable {
 
     event nftDataRegistered(address contractAddress, uint256 tokenId);
 
-    constructor(address _gatewayProxy) {
+    constructor(
+        address _initialOwner,
+        bool _setMinterHasOnlySetKeyRights, 
+        address _gatewayProxy
+    ) AbstractControlChecker(_setMinterHasOnlySetKeyRights) Ownable(_initialOwner) {
         gatewayProxy = _gatewayProxy;
     }
 
@@ -34,7 +38,7 @@ contract AccessControlCheckerByNFT is AbstractControlChecker, Ownable {
      * @notice Get array of documentIds, NFT contract address, tokenId.
      */
     function getNFTDatas() public view returns (bytes32[] memory, Token[] memory) {
-        bytes32[] memory allDocumentIds = IVWBLGateway(getGatewayAddress()).getDocumentIds();
+        bytes32[] memory allDocumentIds = IVWBLGatewayV2(getGatewayAddress()).getDocumentIds();
         bytes32[] memory tempDocumentIds = new bytes32[](allDocumentIds.length);
         Token[] memory tempTokens = new Token[](allDocumentIds.length);
         uint256 count;
@@ -85,7 +89,7 @@ contract AccessControlCheckerByNFT is AbstractControlChecker, Ownable {
         address nftContract,
         uint256 tokenId
     ) public payable {
-        IVWBLGateway(getGatewayAddress()).grantAccessControl{value: msg.value}(
+        IVWBLGatewayV2(getGatewayAddress()).grantAccessControl{value: msg.value}(
             documentId,
             address(this),
             IVWBL(nftContract).getMinter(tokenId)

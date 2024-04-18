@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.17;
+pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "./IVWBLGateway.sol";
-import "../access-condition/AbstractControlChecker.sol";
+import "../../access-condition/AbstractControlChecker.sol";
 
 /**
  * @dev VWBL Gateway Contract which manage who has access right of digital content.
@@ -21,7 +21,7 @@ contract VWBLGateway is IVWBLGateway, Ownable {
     event feeWeiChanged(uint256 oldPercentage, uint256 newPercentage);
     event feePaid(bytes32 documentId, address sender, address to);
 
-    constructor(uint256 _feeWei) {
+    constructor(uint256 _feeWei) Ownable(msg.sender) {
         feeWei = _feeWei;
     }
 

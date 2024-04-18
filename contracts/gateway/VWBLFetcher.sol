@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.17;
+pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "./IGatewayProxy.sol";
-import "./VWBLGateway.sol";
+import "./IVWBLGatewayV2.sol";
 import "../access-condition/AbstractControlChecker.sol";
 import "../access-condition/AbstractVWBLSettings.sol";
 
@@ -20,8 +20,7 @@ contract VWBLFetcher {
 
     function getSignMsgAddress(bytes32 documentId) public view returns (address) {
         address gatewayAddress = getGatewayAddress();
-        VWBLGateway gatewayContract = VWBLGateway(gatewayAddress);
-        address checkerAddress = gatewayContract.documentIdToConditionContract(documentId);
+        address checkerAddress = IVWBLGatewayV2(gatewayAddress).documentIdToConditionContract(documentId);
         AbstractControlChecker checkerContract = AbstractControlChecker(checkerAddress);
         (address contractAddress, uint256 _tokenId) = checkerContract.documentIdToToken(documentId);
         return contractAddress;
@@ -36,8 +35,7 @@ contract VWBLFetcher {
 
     function getSignMsgAndAllowOrigins(bytes32 documentId) public view returns (string memory, string memory) {
         address gatewayAddress = getGatewayAddress();
-        VWBLGateway gatewayContract = VWBLGateway(gatewayAddress);
-        address checkerAddress = gatewayContract.documentIdToConditionContract(documentId);
+        address checkerAddress = IVWBLGatewayV2(gatewayAddress).documentIdToConditionContract(documentId);
         AbstractControlChecker checkerContract = AbstractControlChecker(checkerAddress);
         (address vwblAddress, uint256 _tokenId) = checkerContract.documentIdToToken(documentId);
         AbstractVWBLSettings vwblContract = AbstractVWBLSettings(vwblAddress);
