@@ -47,4 +47,11 @@ interface IVWBLGatewayV2 is IVWBLGateway {
      * @param minter The address of the digital content creator, applied to all provided document IDs
      */
     function batchGrantAccessControl(bytes32[] memory documentIds, address conditionContractAddress, address minter) external payable;
+
+    /**
+     * @notice Withdraws ERC20 token fees accumulated in the contract to the contract owner's address
+     * @dev This function can only be called by the contract owner.
+     * @return withdrawalAmounts An array of amounts withdrawn for each registered fee token.
+     */
+    function withdrawERC20Fee() external returns (uint256[] memory);
 }

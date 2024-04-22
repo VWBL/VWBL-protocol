@@ -1,8 +1,9 @@
 pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "./IERC20FeeRegistry.sol";
 
-contract ERC20FeeRegistry is Ownable {
+contract ERC20FeeRegistry is IERC20FeeRegistry, Ownable {
     // VWBL mint fee of erc20 token
     mapping (address => uint256) public erc20ToFeeDecimals;
     address[] public registeredFeeTokens;

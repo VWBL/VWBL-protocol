@@ -326,4 +326,21 @@ contract VWBLGatewayV2 is IVWBLGatewayV2, ERC20FeeRegistry {
         feeWei = newFeeWei;
         emit feeWeiChanged(oldFeeWei, newFeeWei);
     }
+
+    /**
+     * @notice Withdraws ERC20 token fees accumulated in the contract to the contract owner's address
+     * @dev This function can only be called by the contract owner.
+     * @return withdrawalAmounts An array of amounts withdrawn for each registered fee token.
+     */
+    function withdrawERC20Fee() public onlyOwner returns (uint256[] memory) {
+        uint256[] memory withdrawalAmounts = new uint256[](registeredFeeTokens.length);
+        for (uint i = 0; i < registeredFeeTokens.length; i++) {
+            uint256 balance = IERC20(registeredFeeTokens[i]).balanceOf(address(this));
+            if (balance > 0) {
+                IERC20(registeredFeeTokens[i]).transfer(msg.sender, balance);
+            }
+            withdrawalAmounts[i] = balance;
+        }
+        return withdrawalAmounts;
+    }
 }
