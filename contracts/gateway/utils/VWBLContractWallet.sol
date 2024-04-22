@@ -29,11 +29,19 @@ contract VWBLContractWallet is ValidatorRegistry {
         gatewayV2Address = _gatewayV2Address;
     }
 
+    /**
+     * @notice Allocates VWBL fees to validators.
+     * @dev This function is responsible for allocating both native token fees and ERC20 token fees to validators.
+     *      This function can only be called by the wallet contract itself.
+     */
     function allocateVWBLFeeToValidator() public onlyWallet {
         allocateNativeTokenToValidator();
         allocateERC20ToValidator();
     }
 
+    /**
+     * @dev Allocates native token fees to validators based on their allocation numerators.
+     */
     function allocateNativeTokenToValidator() private {
         uint256 nativeWithdrawalAmount = withdrawNativeTokenFromGateway();
         for (uint i = 0; i < activeValidators.length; i++) {
@@ -44,6 +52,10 @@ contract VWBLContractWallet is ValidatorRegistry {
         totalPendingFeeWei += nativeWithdrawalAmount;
     }
 
+    /**
+     * @dev Withdraws native token fees from both Gateway V1 and Gateway V2 contracts.
+     * @return The total withdrawn amount of native token fees from both Gateway V1 and Gateway V2.
+     */
     function withdrawNativeTokenFromGateway() private returns (uint256) {
         uint256 pendingFeeWeiOnGatewayV1 = getPendingFeeWeiOnGatway(gatewayV1Address);
         if (pendingFeeWeiOnGatewayV1 > 0) {
@@ -56,11 +68,20 @@ contract VWBLContractWallet is ValidatorRegistry {
         return pendingFeeWeiOnGatewayV1 + pendingFeeWeiOnGatewayV2;
     }
 
+    /**
+     * @notice Returns the pending fee amount in Wei on the specified Gateway contract.
+     * @param gatewayAddress The address of the Gateway contract to check.
+     * @return The pending fee amount in Wei on the specified Gateway contract.
+     */
     function getPendingFeeWeiOnGatway(address gatewayAddress) public view returns (uint256) {
         VWBLGateway gatewayCotract = VWBLGateway(gatewayAddress);
         return gatewayCotract.pendingFee();
     }
 
+
+    /**
+     * @dev Allocates ERC20 token fees to validators based on their allocation numerators.
+    */
     function allocateERC20ToValidator() private {
         address[] memory registeredFeeTokens = IERC20FeeRegistry(gatewayV2Address).getRegisteredFeeTokens();
         uint256[] memory erc20WithdrawalAmounts = IVWBLGatewayV2(gatewayV2Address).withdrawERC20Fee();
