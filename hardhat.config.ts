@@ -46,6 +46,10 @@ const config: HardhatUserConfig = {
             url: process.env.MUMBAI_URL || "",
             accounts: process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
         },
+        amoy: {
+            url: process.env.AMOY_URL || "",
+            accounts: process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+        },
         aurora: {
             url: process.env.AURORA_URL || "",
             accounts: process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : []
