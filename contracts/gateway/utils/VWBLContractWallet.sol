@@ -78,7 +78,6 @@ contract VWBLContractWallet is ValidatorRegistry {
         return gatewayCotract.pendingFee();
     }
 
-
     /**
      * @dev Allocates ERC20 token fees to validators based on their allocation numerators.
     */

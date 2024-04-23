@@ -1,37 +1,72 @@
 pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "./IERC20FeeRegistry.sol";
 
 contract ERC20FeeRegistry is IERC20FeeRegistry, Ownable {
-    // VWBL mint fee of erc20 token
-    mapping (address => uint256) public erc20ToFeeDecimals;
-    address[] public registeredFeeTokens;
+    struct StableCoinInfo {
+        string fiatName;
+        // The list of erc20 address of stable coin.
+        address[] erc20Addresses;
+        // VWBL Fee which is denominated by fiat. 
+        // If VWBL Fee is 15 yen, feeNumerator = 15 * 10 ** 10000(_feeDenominator())
+        uint feeNumerator;
+    }
+    // fiatIndex start from 1.
+    uint public nextFiatIndex = 1;
+    mapping (uint => StableCoinInfo) fiatIndexToSCInfo;
+    mapping (address => uint) public erc20ToFiatIndex;
 
-    event feeDecimalsChanged(address erc20Address, uint256 oldPercentage, uint256 newPercentage);
-    
-    constructor(address _initialOwner) Ownable(_initialOwner) {} 
+    event feeDecimalsChanged(address erc20Address, uint256 oldFeeDecimals, uint256 newFeeDecimals);
+    event StableCoinFeeChanged(string fiatName, uint256 oldFee, uint256 newFee);    
+    constructor(address _initialOwner) Ownable(_initialOwner) {}
+
+    function _feeDenominator() internal pure virtual returns (uint96) {
+        return 10000;
+    }
+
+    function registerStableCoinInfo(string memory _fiatName, address[] memory _erc20Addresses, uint _feeNumerator) public onlyOwner {
+        uint fiatIndex = nextFiatIndex++;
+        StableCoinInfo storage scInfo = fiatIndexToSCInfo[fiatIndex];
+        scInfo.fiatName = _fiatName;
+        scInfo.erc20Addresses = _erc20Addresses;
+        scInfo.feeNumerator = _feeNumerator;
+        for (uint i = 0; i < _erc20Addresses.length; i++) {
+            erc20ToFiatIndex[_erc20Addresses[i]] = fiatIndex;
+        }
+    }
+
+    function renameFiat(uint fiatIndex, string memory newFiatName) public onlyOwner {
+        fiatIndexToSCInfo[fiatIndex].fiatName = newFiatName;
+    }
+
+    function registerERC20Addresses(uint fiatIndex, address[] memory newERC20Addresses) public onlyOwner {
+        StableCoinInfo storage scInfo = fiatIndexToSCInfo[fiatIndex];
+        for (uint i = 0; i < newERC20Addresses.length; i++) {
+            require(!registered(newERC20Addresses[i]), "This ERC20 is already registered");
+        }
+        for (uint i = 0; i < newERC20Addresses.length; i++) {
+            scInfo.erc20Addresses.push(newERC20Addresses[i]);
+        }
+    }
+
+    function registerFeeNumerator(uint fiatIndex, uint newFeeNumerator) public onlyOwner {
+        StableCoinInfo storage scInfo = fiatIndexToSCInfo[fiatIndex];
+        uint oldFeeNumerator = scInfo.feeNumerator;
+        require(oldFeeNumerator != newFeeNumerator);
+        scInfo.feeNumerator = newFeeNumerator;
+        emit StableCoinFeeChanged(scInfo.fiatName, oldFeeNumerator/_feeDenominator(), newFeeNumerator/_feeDenominator());
+    }
 
     /**
-     * @notice Registers a new ERC20 token with a specified fee decimal.
-     * @dev This function allows the contract owner to register a new ERC20 token and set its fee decimal.
-     *      It checks if the token is already registered and if the new fee decimal is different from the old one.
-     *      If the token is not already registered, it adds the token to the list of registered fee tokens.
-     *      It then updates the fee decimal for the token and emits a `feeDecimalsChanged` event.
-     * @param erc20Address The address of the ERC20 token to register.
-     * @param newFeeDecimals The fee decimal to set for the ERC20 token.
-     * @return The contract address of the ERC20 token.
+     * @notice Checks if an ERC20 token is registered in the fee registry.
+     * @param erc20Address The address of the ERC20 token.
+     * @return bool Returns true if the ERC20 token is registered, false otherwise.
      */
-    function registerFeeDecimals(address erc20Address, uint newFeeDecimals) public onlyOwner returns (uint256) {
-        uint256 oldFeeDecimals = erc20ToFeeDecimals[erc20Address];
-        require(oldFeeDecimals != newFeeDecimals, "new fee decimals is equal to old fee decimals");
-        erc20ToFeeDecimals[erc20Address] = newFeeDecimals;
-        if (!registered(erc20Address)) {
-            registeredFeeTokens.push(erc20Address);
-        }
-
-        emit feeDecimalsChanged(erc20Address, oldFeeDecimals, newFeeDecimals);
-        return newFeeDecimals;
+    function registered(address erc20Address) public view returns (bool) {
+        if (erc20ToFiatIndex[erc20Address] != 0) {return true;}
+        return false;
     }
 
     /**
@@ -47,17 +82,6 @@ contract ERC20FeeRegistry is IERC20FeeRegistry, Ownable {
             return (0, false);
         }
         return (erc20ToFeeDecimals[erc20Address], true);
-    }
-
-    /**
-     * @notice Checks if an ERC20 token is registered in the fee registry.
-     * @dev This function checks if the given ERC20 token address is registered by looking up the fee decimals mapping and the registered fee tokens array.
-     * @param erc20Address The address of the ERC20 token.
-     * @return bool Returns true if the ERC20 token is registered, false otherwise.
-     */
-    function registered(address erc20Address) public view returns (bool) {
-        if (erc20ToFeeDecimals[erc20Address] != 0) {return true;}
-        return false;
     }
 
     /**
