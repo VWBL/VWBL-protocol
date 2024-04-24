@@ -336,19 +336,20 @@ contract VWBLGatewayV2 is IVWBLGatewayV2, Ownable {
     /**
      * @notice Withdraws ERC20 token fees accumulated in the contract to the contract owner's address
      * @dev This function can only be called by the contract owner.
+     * @return prevAndCurRegisteredTokens An array of previously and currently registered ERC20 Fee tokens in the fee registry.
      * @return withdrawalAmounts An array of amounts withdrawn for each registered fee token.
      */
-    function withdrawERC20Fee() public onlyOwner returns (uint256[] memory) {
-        address[] memory registeredFeeTokens = IStableCoinFeeRegistry(scFeeRegistryAddress).getRegisteredFeeTokens();
-        uint256[] memory withdrawalAmounts = new uint256[](registeredFeeTokens.length);
-        for (uint i = 0; i < registeredFeeTokens.length; i++) {
-            uint256 balance = IERC20(registeredFeeTokens[i]).balanceOf(address(this));
+    function withdrawERC20Fee() public onlyOwner returns (address[] memory, uint256[] memory) {
+        address[] memory prevAndCurRegisteredTokens = IStableCoinFeeRegistry(scFeeRegistryAddress).getPrevAndCurRegisteredTokens();
+        uint256[] memory withdrawalAmounts = new uint256[](prevAndCurRegisteredTokens.length);
+        for (uint i = 0; i < prevAndCurRegisteredTokens.length; i++) {
+            uint256 balance = IERC20(prevAndCurRegisteredTokens[i]).balanceOf(address(this));
             if (balance > 0) {
-                IERC20(registeredFeeTokens[i]).transfer(msg.sender, balance);
+                IERC20(prevAndCurRegisteredTokens[i]).transfer(msg.sender, balance);
             }
             withdrawalAmounts[i] = balance;
         }
-        return withdrawalAmounts;
+        return (prevAndCurRegisteredTokens, withdrawalAmounts);
     }
 
     /**

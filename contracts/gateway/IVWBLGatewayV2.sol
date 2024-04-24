@@ -51,7 +51,8 @@ interface IVWBLGatewayV2 is IVWBLGateway {
     /**
      * @notice Withdraws ERC20 token fees accumulated in the contract to the contract owner's address
      * @dev This function can only be called by the contract owner.
+     * @return prevAndCurRegisteredTokens An array of previously and currently registered ERC20 Fee tokens in the fee registry.
      * @return withdrawalAmounts An array of amounts withdrawn for each registered fee token.
      */
-    function withdrawERC20Fee() external returns (uint256[] memory);
+    function withdrawERC20Fee() external returns (address[] memory, uint256[] memory);
 }

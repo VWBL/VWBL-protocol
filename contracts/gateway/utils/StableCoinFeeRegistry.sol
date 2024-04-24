@@ -17,7 +17,8 @@ contract StableCoinFeeRegistry is IStableCoinFeeRegistry, Ownable {
     uint public nextFiatIndex = 1;
     mapping (uint => StableCoinInfo) fiatIndexToSCInfo;
     mapping (address => uint) public erc20ToFiatIndex;
-    uint public registeredFeeTokensCount;
+    uint public registeredTokensCount;
+    address[] public prevRegisteredTokens;
 
     event FeeTokenRegistered(address erc20);
     event FeeTokenUnregistered(address erc20);
@@ -60,7 +61,7 @@ contract StableCoinFeeRegistry is IStableCoinFeeRegistry, Ownable {
         for (uint i = 0; i < _erc20Addresses.length; i++) {
             erc20ToFiatIndex[_erc20Addresses[i]] = fiatIndex;
         }
-        registeredFeeTokensCount += _erc20Addresses.length;
+        registeredTokensCount += _erc20Addresses.length;
     }
 
     /**
@@ -85,13 +86,13 @@ contract StableCoinFeeRegistry is IStableCoinFeeRegistry, Ownable {
             require(!registered(newERC20Addresses[i]), "This ERC20 is already registered");
         }
 
-        registeredFeeTokensCount += newERC20Addresses.length;
+        registeredTokensCount += newERC20Addresses.length;
         for (uint i = 0; i < newERC20Addresses.length; i++) {
             scInfo.erc20Addresses.push(newERC20Addresses[i]);
             erc20ToFiatIndex[newERC20Addresses[i]] = fiatIndex;
             emit FeeTokenRegistered(newERC20Addresses[i]);
         }
-        registeredFeeTokensCount += newERC20Addresses.length;
+        registeredTokensCount += newERC20Addresses.length;
     }
 
     /**
@@ -103,7 +104,7 @@ contract StableCoinFeeRegistry is IStableCoinFeeRegistry, Ownable {
         require(fiatIndex < nextFiatIndex, "fiatIndex is invalid");
         require(registered(erc20Address), "This ERC20 is not registered");
 
-        registeredFeeTokensCount -= 1;
+        registeredTokensCount -= 1;
         StableCoinInfo storage scInfo = fiatIndexToSCInfo[fiatIndex];
         address[] memory newERC20Addresses = new address[](scInfo.erc20Addresses.length-1);
         uint j = 0;
@@ -115,6 +116,17 @@ contract StableCoinFeeRegistry is IStableCoinFeeRegistry, Ownable {
         }
         scInfo.erc20Addresses = newERC20Addresses;
         delete erc20ToFiatIndex[erc20Address];
+
+        bool prevRegistered = false;
+        for (uint i = 0; i < prevRegisteredTokens.length; i++) {
+            if (prevRegisteredTokens[i] == erc20Address) {
+                prevRegistered = true;
+            }
+        }
+        if (!prevRegistered) {
+            prevRegisteredTokens.push(erc20Address);
+        }
+
         emit FeeTokenUnregistered(erc20Address);
     }
 
@@ -163,23 +175,55 @@ contract StableCoinFeeRegistry is IStableCoinFeeRegistry, Ownable {
      * @notice Returns the list of registered ERC20 Fee tokens in the fee registry.
      * @return An array of addresses the registered ERC20 Fee tokens.
      */
-    function getRegisteredFeeTokens() public view returns (address[] memory) {
-        address[] memory registeredFeeTokens = new address[](registeredFeeTokensCount);
+    function getRegisteredTokens() public view returns (address[] memory) {
+        address[] memory registeredTokens = new address[](registeredTokensCount);
         uint k = 0;
         for (uint i = 1; i < nextFiatIndex; i++) {
             for (uint j = 0; j < fiatIndexToSCInfo[i].erc20Addresses.length; j++) {
-                registeredFeeTokens[k] = fiatIndexToSCInfo[i].erc20Addresses[j];
+                registeredTokens[k] = fiatIndexToSCInfo[i].erc20Addresses[j];
                 k += 1;
             }
         }
-        return registeredFeeTokens;
+        return registeredTokens;
     }
 
     /**
      * @notice Returns the total number of registered ERC20 Fee tokens.
      * @return The total count of registered ERC20 Fee tokens.
      */
-    function getRegisteredFeeTokensCount() public view returns (uint) {
-        return registeredFeeTokensCount;
+    function getRegisteredTokensCount() public view returns (uint) {
+        return registeredTokensCount;
+    }
+
+    /**
+     * @notice Returns the list of previously registered ERC20 Fee tokens in the fee registry.
+     * @return An array of addresses the previous registered ERC20 Fee tokens.
+     */
+    function getPrevRegisteredTokens() public view returns (address[] memory) {
+        return prevRegisteredTokens;
+    }
+
+    /**
+     * @notice Returns the total number of previously registered ERC20 Fee tokens.
+     * @return The total count of previous registered ERC20 Fee tokens.
+     */
+    function getPrevRegisteredTokensCount() public view returns (uint) {
+        return prevRegisteredTokens.length;
+    }
+
+    /**
+     * @notice Returns the list of previously and currently registered ERC20 Fee tokens in the fee registry.
+     * @return An array of addresses the previous registered ERC20 Fee tokens.
+     */
+    function getPrevAndCurRegisteredTokens() public view returns (address[] memory) {
+        uint resultTokensCount = getRegisteredTokensCount() + getPrevRegisteredTokensCount();
+        address[] memory resultTokens = new address[](resultTokensCount);
+        resultTokens = getRegisteredTokens();
+        uint j = 0;
+        for (uint i = getRegisteredTokensCount(); i < resultTokensCount; i++) {
+            resultTokens[i] = prevRegisteredTokens[j];
+            j += 1;
+        }
+        return resultTokens;
     }
 }
