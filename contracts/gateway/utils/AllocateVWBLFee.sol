@@ -47,13 +47,13 @@ contract AllocateVWBLFee is ValidatorRegistry, ReentrancyGuard {
             payable(recipient).transfer(pendingNativeAmount);
         }
 
-        address[] memory registeredTokens = IStableCoinFeeRegistry(scFeeRegistryAddress).getRegisteredTokens();
-        for (uint i = 0; i < registeredTokens.length; i++) {
-            uint pendingERC20Amount = validatorToPendingFeeDecimals[msg.sender][registeredTokens[i]];
+        address[] memory prevAndCurRegisteredTokens = IStableCoinFeeRegistry(scFeeRegistryAddress).getPrevAndCurRegisteredTokens();
+        for (uint i = 0; i < prevAndCurRegisteredTokens.length; i++) {
+            uint pendingERC20Amount = validatorToPendingFeeDecimals[msg.sender][prevAndCurRegisteredTokens[i]];
             if (pendingERC20Amount > 0) {
-                validatorToPendingFeeDecimals[msg.sender][registeredTokens[i]] = 0;
-                erc20ToTotalPendingFeeDecimals[registeredTokens[i]] -= pendingERC20Amount;
-                IERC20(registeredTokens[i]).transfer(recipient, pendingERC20Amount);
+                validatorToPendingFeeDecimals[msg.sender][prevAndCurRegisteredTokens[i]] = 0;
+                erc20ToTotalPendingFeeDecimals[prevAndCurRegisteredTokens[i]] -= pendingERC20Amount;
+                IERC20(prevAndCurRegisteredTokens[i]).transfer(recipient, pendingERC20Amount);
             }
         }
     }

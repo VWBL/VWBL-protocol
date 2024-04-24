@@ -10,9 +10,7 @@ contract ValidatorRegistry is MultiSigWallet {
     constructor(
         address[] memory _owners,
         uint _required
-    ) MultiSigWallet(_owners, _required) {
-
-    }
+    ) MultiSigWallet(_owners, _required) {}
 
     function _allocationDenominator() internal pure virtual returns (uint96) {
         return 10000;
