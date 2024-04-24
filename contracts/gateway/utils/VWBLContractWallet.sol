@@ -3,7 +3,7 @@ pragma solidity ^0.8.20;
 import "./ValidatorRegistry.sol";
 import "../IVWBLGatewayV2.sol";
 import "../legacy/VWBLGateway.sol";
-import "./IERC20FeeRegistry.sol";
+import "./IStableCoinFeeRegistry.sol";
 
 contract VWBLContractWallet is ValidatorRegistry {
     address public gatewayV1Address;
@@ -82,7 +82,7 @@ contract VWBLContractWallet is ValidatorRegistry {
      * @dev Allocates ERC20 token fees to validators based on their allocation numerators.
     */
     function allocateERC20ToValidator() private {
-        address[] memory registeredFeeTokens = IERC20FeeRegistry(gatewayV2Address).getRegisteredFeeTokens();
+        address[] memory registeredFeeTokens = IStableCoinFeeRegistry(gatewayV2Address).getRegisteredFeeTokens();
         uint256[] memory erc20WithdrawalAmounts = IVWBLGatewayV2(gatewayV2Address).withdrawERC20Fee();
         
         for (uint i = 0; i < registeredFeeTokens.length; i++) {

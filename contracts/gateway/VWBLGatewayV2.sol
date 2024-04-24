@@ -1,14 +1,17 @@
 pragma solidity ^0.8.20;
 
+import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "./utils/ERC20FeeRegistry.sol";
 import "./IVWBLGatewayV2.sol";
 import "./legacy/VWBLGateway.sol";
 import "../access-condition/AbstractControlChecker.sol";
+import "./utils/IStableCoinFeeRegistry.sol";
 
 
-contract VWBLGatewayV2 is IVWBLGatewayV2, ERC20FeeRegistry {
+contract VWBLGatewayV2 is IVWBLGatewayV2, Ownable {
     VWBLGateway immutable vwblGatewayV1Contract;
+    address public scFeeRegistryAddress;
+
     mapping(bytes32 => address) public documentIdToConditionContractV2;
     mapping(bytes32 => address) public documentIdToMinterV2;
     bytes32[] public documentIdsV2;
@@ -20,12 +23,15 @@ contract VWBLGatewayV2 is IVWBLGatewayV2, ERC20FeeRegistry {
 
     event accessControlAdded(bytes32 documentId, address conditionContract);
     event feeWeiChanged(uint256 oldPercentage, uint256 newPercentage);
+    event stableCoinFeeRegistryChanged(address oldSCFeeRegistry, address newSCFeeRegistry);
 
     constructor(
         address _initialOwner,
-        address _vwblGatewayV1
-    ) ERC20FeeRegistry(_initialOwner) {
+        address _vwblGatewayV1,
+        address _scFeeRegistryAddress
+    ) Ownable(_initialOwner) {
         vwblGatewayV1Contract = VWBLGateway(_vwblGatewayV1);
+        scFeeRegistryAddress = _scFeeRegistryAddress;
     }
 
     /**
@@ -248,7 +254,7 @@ contract VWBLGatewayV2 is IVWBLGatewayV2, ERC20FeeRegistry {
         address erc20Address,
         address feePayer
     ) public {
-        (uint feeDecimals, bool registered) = getFeeDecimals(erc20Address);
+        (uint feeDecimals, bool registered) = IStableCoinFeeRegistry(scFeeRegistryAddress).getFeeDecimals(erc20Address);
         require(registered, "This erc20 is not registered for VWBL Fee Token");
         require(IERC20(erc20Address).allowance(feePayer, address(this)) >= feeDecimals, "VWBL Gateway Contract's allowance is insufficient");
         require(documentIdToConditionContract(documentId) == address(0), "documentId is already used");
@@ -274,7 +280,7 @@ contract VWBLGatewayV2 is IVWBLGatewayV2, ERC20FeeRegistry {
         address erc20Address,
         address feePayer
     ) public {
-        (uint feeDecimals, bool registered) = getFeeDecimals(erc20Address);
+        (uint feeDecimals, bool registered) = IStableCoinFeeRegistry(scFeeRegistryAddress).getFeeDecimals(erc20Address);
         require(registered, "This erc20 is not registered for VWBL Fee Token");
         require(IERC20(erc20Address).allowance(feePayer, address(this)) >= feeDecimals * documentIds.length, "VWBL Gateway Contract's allowance is insufficient");
         for (uint256 i = 0; i < documentIds.length; i++) {
@@ -333,6 +339,7 @@ contract VWBLGatewayV2 is IVWBLGatewayV2, ERC20FeeRegistry {
      * @return withdrawalAmounts An array of amounts withdrawn for each registered fee token.
      */
     function withdrawERC20Fee() public onlyOwner returns (uint256[] memory) {
+        address[] memory registeredFeeTokens = IStableCoinFeeRegistry(scFeeRegistryAddress).getRegisteredFeeTokens();
         uint256[] memory withdrawalAmounts = new uint256[](registeredFeeTokens.length);
         for (uint i = 0; i < registeredFeeTokens.length; i++) {
             uint256 balance = IERC20(registeredFeeTokens[i]).balanceOf(address(this));
@@ -342,5 +349,17 @@ contract VWBLGatewayV2 is IVWBLGatewayV2, ERC20FeeRegistry {
             withdrawalAmounts[i] = balance;
         }
         return withdrawalAmounts;
+    }
+
+    /**
+     * @notice Set new address of Stable Coin Fee Registry contract
+     * @param newScFeeRegistryAddress The new address of the Stable Coin Fee Registry contract
+     */
+    function setStableCoinFeeRegistry(address newScFeeRegistryAddress) public onlyOwner {
+        require(newScFeeRegistryAddress != scFeeRegistryAddress);
+        address oldSCFeeRegistryAddress = scFeeRegistryAddress;
+        scFeeRegistryAddress = newScFeeRegistryAddress;
+
+        emit stableCoinFeeRegistryChanged(oldSCFeeRegistryAddress, newScFeeRegistryAddress);
     }
 }
