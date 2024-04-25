@@ -26,6 +26,14 @@ contract VWBLContractWallet is AllocateVWBLFee, AccessControl {
     }
 
     /**
+     * @notice Returns the array of contract addresses owned by the VWBL Contract Wallet.
+     * @return An array of contract addresses owned by the VWBL Contract Wallet.
+     */
+    function getOwnedContracts() public view returns (address[] memory) {
+        return ownedContracts;
+    }
+
+    /**
      * @notice Registers a new contract address owned by the VWBL Contract Wallet.
      * @param ownedContractAddress The address of the contract to be registered as owned by the VWBL Contract Wallet.
      */
