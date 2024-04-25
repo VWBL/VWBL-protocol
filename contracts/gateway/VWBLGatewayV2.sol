@@ -6,11 +6,13 @@ import "./IVWBLGatewayV2.sol";
 import "./legacy/VWBLGateway.sol";
 import "../access-condition/AbstractControlChecker.sol";
 import "./utils/IStableCoinFeeRegistry.sol";
+import "./utils/IWithdrawExtraFee.sol";
 
 
 contract VWBLGatewayV2 is IVWBLGatewayV2, Ownable {
     VWBLGateway immutable vwblGatewayV1Contract;
     address public scFeeRegistryAddress;
+    address public withdrawExtraFeeAddress;
 
     mapping(bytes32 => address) public documentIdToConditionContractV2;
     mapping(bytes32 => address) public documentIdToMinterV2;
@@ -27,11 +29,13 @@ contract VWBLGatewayV2 is IVWBLGatewayV2, Ownable {
 
     constructor(
         address _initialOwner,
-        address _vwblGatewayV1,
-        address _scFeeRegistryAddress
+        address _vwblGatewayV1Address,
+        address _scFeeRegistryAddress,
+        address _withdrawExtraFeeAddress
     ) Ownable(_initialOwner) {
-        vwblGatewayV1Contract = VWBLGateway(_vwblGatewayV1);
+        vwblGatewayV1Contract = VWBLGateway(_vwblGatewayV1Address);
         scFeeRegistryAddress = _scFeeRegistryAddress;
+        withdrawExtraFeeAddress = _withdrawExtraFeeAddress;
     }
 
     /**
@@ -306,8 +310,8 @@ contract VWBLGatewayV2 is IVWBLGatewayV2, Ownable {
         emit accessControlAdded(documentId, conditionContractAddress);
     }
 
-    function payFee(bytes32 documentId, address user) public payable {
-
+    function payFee(bytes32 _documentId, address _user) public payable {
+        IWithdrawExtraFee(withdrawExtraFeeAddress).depositExtraFee{value: msg.value}(msg.sender);
     }
 
     /**

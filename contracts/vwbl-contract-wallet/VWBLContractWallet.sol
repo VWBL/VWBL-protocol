@@ -3,11 +3,13 @@ pragma solidity ^0.8.20;
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "./AllocateVWBLFee.sol";
+import "../gateway/utils/IWithdrawExtraFee.sol";
 
 contract VWBLContractWallet is AllocateVWBLFee, AccessControl {
     bytes32 public immutable SET_FEE_ROLE = keccak256("SET_FEE_ROLE");
     bytes32 public immutable OPERATOR_ROLE = keccak256("OPERATOR_ROLE");
     address[] public ownedContracts;
+    address public withdrawExtraFeeAddress;
 
     constructor(
         address[] memory _owners,
@@ -15,14 +17,20 @@ contract VWBLContractWallet is AllocateVWBLFee, AccessControl {
         address _gatewayV1Address,
         address _gatewayV2Address,
         address _scFeeRegistryAddress,
-        address _vwblFeeSetterAddress
+        address _vwblFeeSetterAddress,
+        address _withdrawExtraFeeAddress
     ) AllocateVWBLFee(_owners, _required, _gatewayV1Address, _gatewayV2Address, _scFeeRegistryAddress) {
+        // set `admin role`
         _grantRole(DEFAULT_ADMIN_ROLE, address(this));
         _setRoleAdmin(DEFAULT_ADMIN_ROLE, DEFAULT_ADMIN_ROLE);
+        // set `set fee role`
         _grantRole(SET_FEE_ROLE, _vwblFeeSetterAddress);
         _setRoleAdmin(SET_FEE_ROLE, DEFAULT_ADMIN_ROLE);
+        // set `operator role`
         _grantRole(OPERATOR_ROLE, msg.sender);
         _setRoleAdmin(OPERATOR_ROLE, DEFAULT_ADMIN_ROLE);
+
+        withdrawExtraFeeAddress = _withdrawExtraFeeAddress;
     }
 
     /**
@@ -119,5 +127,10 @@ contract VWBLContractWallet is AllocateVWBLFee, AccessControl {
     function unregisterERC20Address(uint fiatIndex, address erc20Address) public {
         require(hasRole(OPERATOR_ROLE, msg.sender), "msg sender doesn't have OPERATOR_ROLE");
         IStableCoinFeeRegistry(scFeeRegistryAddress).unregisterERC20Address(fiatIndex, erc20Address);
+    }
+
+    function setRecipient(address srcAddress, address recipeint) public {
+        require(hasRole(OPERATOR_ROLE, msg.sender), "msg sender doesn't have OPERATOR_ROLE");
+        IWithdrawExtraFee(withdrawExtraFeeAddress).setRecipient(srcAddress, recipeint);
     }
 }
