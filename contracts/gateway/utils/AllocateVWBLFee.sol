@@ -88,7 +88,7 @@ contract AllocateVWBLFee is ValidatorRegistry, ReentrancyGuard {
      * @dev This function is responsible for allocating both native token fees and ERC20 token fees to validators.
      *      This function can only be called by the multisig wallet contract itself.
      */
-    function allocateVWBLFeeToValidator() public onlyWallet {
+    function allocateVWBLFeeToValidator() public onlyMultiSigWallet {
         allocateNativeTokenToValidator();
         allocateERC20ToValidator();
     }
@@ -153,7 +153,7 @@ contract AllocateVWBLFee is ValidatorRegistry, ReentrancyGuard {
      * @notice Set new address of Stable Coin Fee Registry contract
      * @param newScFeeRegistryAddress The new address of the Stable Coin Fee Registry contract
      */
-    function setStableCoinFeeRegistry(address newScFeeRegistryAddress) public onlyWallet {
+    function setStableCoinFeeRegistry(address newScFeeRegistryAddress) public onlyMultiSigWallet {
         require(newScFeeRegistryAddress != scFeeRegistryAddress);
         address oldSCFeeRegistryAddress = scFeeRegistryAddress;
         scFeeRegistryAddress = newScFeeRegistryAddress;

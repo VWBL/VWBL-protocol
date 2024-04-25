@@ -38,7 +38,7 @@ contract ValidatorRegistry is MultiSigWallet {
      *      The allocation numerator is a part of the fraction that represents the validator's allocation percentage.
      *      The denominator is provided by the _allocationDenominator function.
      */
-    function registerValidatorAllocations(address[] memory validators, uint96[] memory allocationNumerators) public onlyWallet {
+    function registerValidatorAllocations(address[] memory validators, uint96[] memory allocationNumerators) public onlyMultiSigWallet {
         require(validators.length == allocationNumerators.length, "param lengths is invalid");
         uint96 totalAllocationNumerator;
         for (uint i = 0; i < allocationNumerators.length; i++) {

@@ -44,7 +44,7 @@ contract MultiSigWallet {
     /*
      *  Modifiers
      */
-    modifier onlyWallet() {
+    modifier onlyMultiSigWallet() {
         require(msg.sender == address(this));
         _;
     }
@@ -119,7 +119,7 @@ contract MultiSigWallet {
     /// @param owner Address of new owner.
     function addOwner(address owner)
         public
-        onlyWallet
+        onlyMultiSigWallet
         ownerDoesNotExist(owner)
         notNull(owner)
         validRequirement(owners.length + 1, required)
@@ -133,7 +133,7 @@ contract MultiSigWallet {
     /// @param owner Address of owner.
     function removeOwner(address owner)
         public
-        onlyWallet
+        onlyMultiSigWallet
         ownerExists(owner)
     {
         isOwner[owner] = false;
@@ -157,7 +157,7 @@ contract MultiSigWallet {
     /// @param newOwner Address of new owner.
     function replaceOwner(address owner, address newOwner)
         public
-        onlyWallet
+        onlyMultiSigWallet
         ownerExists(owner)
         ownerDoesNotExist(newOwner)
     {
@@ -176,7 +176,7 @@ contract MultiSigWallet {
     /// @param _required Number of required confirmations.
     function changeRequirement(uint _required)
         public
-        onlyWallet
+        onlyMultiSigWallet
         validRequirement(owners.length, _required)
     {
         required = _required;
