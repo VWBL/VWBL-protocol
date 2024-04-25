@@ -213,7 +213,7 @@ contract StableCoinFeeRegistry is IStableCoinFeeRegistry, Ownable {
 
     /**
      * @notice Returns the list of previously and currently registered ERC20 Fee tokens in the fee registry.
-     * @return An array of addresses the previous registered ERC20 Fee tokens.
+     * @return An array of addresses the previously and currently registered ERC20 Fee tokens.
      */
     function getPrevAndCurRegisteredTokens() public view returns (address[] memory) {
         uint resultTokensCount = getRegisteredTokensCount() + getPrevRegisteredTokensCount();
@@ -225,5 +225,13 @@ contract StableCoinFeeRegistry is IStableCoinFeeRegistry, Ownable {
             j += 1;
         }
         return resultTokens;
+    }
+
+    /**
+     * @notice Returns the total number of previously and currently registered ERC20 Fee tokens in the fee registry.
+     * @return The total count of previously and currently registered ERC20 Fee tokens.
+     */
+    function getPrevAndCurRegisteredTokensCount() public view returns (uint) {
+        return registeredTokensCount + prevRegisteredTokens.length;
     }
 }

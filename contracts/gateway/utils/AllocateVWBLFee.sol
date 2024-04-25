@@ -137,7 +137,6 @@ contract AllocateVWBLFee is ValidatorRegistry, ReentrancyGuard {
     */
     function allocateERC20ToValidator() private {
         (address[] memory prevAndCurRegisteredTokens, uint256[] memory erc20WithdrawalAmounts) = IVWBLGatewayV2(gatewayV2Address).withdrawERC20Fee();
-        
         for (uint i = 0; i < prevAndCurRegisteredTokens.length; i++) {
             if (erc20WithdrawalAmounts[i] > 0) {
                 for (uint j = 0; j < activeValidators.length; j++) {
