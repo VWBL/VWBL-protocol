@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.20;
 
 /// This Smart Contract is based on Gnosis Multisig Wallet. Author is Stefan George 
