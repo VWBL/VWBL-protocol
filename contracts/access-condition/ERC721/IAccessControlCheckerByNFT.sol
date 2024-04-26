@@ -15,4 +15,18 @@ interface IAccessControlCheckerByNFT is IAccessControlChecker {
         address nftContract,
         uint256 tokenId
     ) external payable;
+
+    /**
+     * @notice Batch grant access control, register access condition and NFT info
+     * @param documentIds An array of Identifiers for the digital content and decryption keys
+     * @param minter The address of the digital content creator for all provided document IDs
+     * @param nftContract The contract address of the NFT
+     * @param tokenIds An array of Identifiers for the NFTs corresponding to each document ID
+     */
+    function batchGrantAccessControlAndRegisterNFT(
+        bytes32[] memory documentIds,
+        address minter,
+        address nftContract,
+        uint256[] memory tokenIds
+    ) external payable;
 }

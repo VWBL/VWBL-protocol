@@ -97,7 +97,33 @@ contract AccessControlCheckerByNFT is AbstractControlChecker, Ownable {
 
         documentIdToToken[documentId].contractAddress = nftContract;
         documentIdToToken[documentId].tokenId = tokenId;
-
         emit nftDataRegistered(nftContract, tokenId);
+    }
+
+    /**
+     * @notice Batch grant access control, register access condition and NFT info
+     * @param documentIds An array of Identifiers for the digital content and decryption keys
+     * @param minter The address of the digital content creator for all provided document IDs
+     * @param nftContract The contract address of the NFT
+     * @param tokenIds An array of Identifiers for the NFTs corresponding to each document ID
+     */
+    function batchGrantAccessControlAndRegisterNFT(
+        bytes32[] memory documentIds,
+        address minter,
+        address nftContract,
+        uint256[] memory tokenIds
+    ) public payable {
+        require(documentIds.length == tokenIds.length, "documentIds and tokenIds is not same length");
+        IVWBLGatewayV2(getGatewayAddress()).batchGrantAccessControl{value: msg.value}(
+            documentIds,
+            address(this),
+            minter
+        );
+
+        for (uint256 i = 0; i < documentIds.length; i++) {
+            documentIdToToken[documentIds[i]].contractAddress = nftContract;
+            documentIdToToken[documentIds[i]].tokenId = tokenIds[i];
+            emit nftDataRegistered(nftContract, tokenIds[i]);
+        }
     }
 }
