@@ -72,10 +72,12 @@ contract AllocateVWBLFee is ValidatorRegistry, ReentrancyGuard {
             require(validatorToPendingFeeDecimals[msg.sender][erc20Addresses[i]] >= withdrawERC20Amounts[i], "Insufficient ERC20 token fee balance for withdrawal");
         }
 
-        validatorToPendingFeeWei[msg.sender] -= withdrawNativeAmount;
-        totalPendingFeeWei -= withdrawNativeAmount;
-        payable(recipient).transfer(withdrawNativeAmount);
-
+        if (withdrawNativeAmount > 0) {
+            validatorToPendingFeeWei[msg.sender] -= withdrawNativeAmount;
+            totalPendingFeeWei -= withdrawNativeAmount;
+            payable(recipient).transfer(withdrawNativeAmount);
+        }
+        
         for (uint i = 0; i < erc20Addresses.length; i++) {
             validatorToPendingFeeDecimals[msg.sender][erc20Addresses[i]] -= withdrawERC20Amounts[i];
             erc20ToTotalPendingFeeDecimals[erc20Addresses[i]] -= withdrawERC20Amounts[i];
