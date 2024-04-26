@@ -129,8 +129,26 @@ contract VWBLContractWallet is AllocateVWBLFee, AccessControl {
         IStableCoinFeeRegistry(scFeeRegistryAddress).unregisterERC20Address(fiatIndex, erc20Address);
     }
 
-    function setRecipient(address srcAddress, address recipeint) public {
+    /**
+     * @notice Sets the recipient address for a specified source address.
+     * @param srcAddress The address who call payFee method of VWBLGatewayV2 contract.
+     * @param recipient The address to set as the recipient for the specified source address.
+     */
+    function setRecipient(address srcAddress, address recipient) public {
         require(hasRole(OPERATOR_ROLE, msg.sender), "msg sender doesn't have OPERATOR_ROLE");
-        IWithdrawExtraFee(withdrawExtraFeeAddress).setRecipient(srcAddress, recipeint);
+        IWithdrawExtraFee(withdrawExtraFeeAddress).setRecipient(srcAddress, recipient);
+    }
+
+    /**
+     * @notice Set new address of Stable Coin Fee Registry contract
+     * @param newScFeeRegistryAddress The new address of the Stable Coin Fee Registry contract
+     */
+    function setStableCoinFeeRegistry(address newScFeeRegistryAddress) public {
+        require(hasRole(OPERATOR_ROLE, msg.sender), "msg sender doesn't have OPERATOR_ROLE");
+        require(newScFeeRegistryAddress != scFeeRegistryAddress);
+        address oldSCFeeRegistryAddress = scFeeRegistryAddress;
+        scFeeRegistryAddress = newScFeeRegistryAddress;
+
+        emit stableCoinFeeRegistryChanged(oldSCFeeRegistryAddress, newScFeeRegistryAddress);
     }
 }

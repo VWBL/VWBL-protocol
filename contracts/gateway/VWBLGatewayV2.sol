@@ -310,6 +310,16 @@ contract VWBLGatewayV2 is IVWBLGatewayV2, Ownable {
         emit accessControlAdded(documentId, conditionContractAddress);
     }
 
+    /**
+     * @notice This method is **Deprecated**.
+     *         VWBL Fee model has changed.
+     * 　　　　　In gateway v1, fees are collected when calling grantAccessControl (when VWBL NFT mint) and when granting viewing rights to a third party
+     * 　　　　　and a fee was collected by calling this payFee method when granting viewing rights to a third party.
+     *         In gateway v2, fees are collected only when calling grantAccessControl (VWBL NFT mint).
+     *         If the extra VWBL fee is paid by the pay fee method, the address who paid can withdraw from the Withdraw Extra Fee Contract.
+     * @param _documentId The Identifier of digital content and decryption key
+     * @param _user address to grant
+     */
     function payFee(bytes32 _documentId, address _user) public payable {
         IWithdrawExtraFee(withdrawExtraFeeAddress).depositExtraFee{value: msg.value}(msg.sender);
     }

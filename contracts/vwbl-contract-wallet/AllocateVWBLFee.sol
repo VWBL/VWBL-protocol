@@ -148,16 +148,4 @@ contract AllocateVWBLFee is ValidatorRegistry, ReentrancyGuard {
             }
         }
     }
-
-    /**
-     * @notice Set new address of Stable Coin Fee Registry contract
-     * @param newScFeeRegistryAddress The new address of the Stable Coin Fee Registry contract
-     */
-    function setStableCoinFeeRegistry(address newScFeeRegistryAddress) public onlyMultiSigWallet {
-        require(newScFeeRegistryAddress != scFeeRegistryAddress);
-        address oldSCFeeRegistryAddress = scFeeRegistryAddress;
-        scFeeRegistryAddress = newScFeeRegistryAddress;
-
-        emit stableCoinFeeRegistryChanged(oldSCFeeRegistryAddress, newScFeeRegistryAddress);
-    }
 }
