@@ -18,7 +18,10 @@ contract VWBLERC1155 is ERC1155Burnable, AbstractVWBLToken {
         address _gatewayProxy,
         address _accessCheckerContract,
         string memory _signMessage
-    ) ERC1155(_baseURI) AbstractVWBLToken(_initialOwner, _baseURI, _gatewayProxy, _accessCheckerContract, _signMessage) {}
+    )
+        ERC1155(_baseURI)
+        AbstractVWBLToken(_initialOwner, _baseURI, _gatewayProxy, _accessCheckerContract, _signMessage)
+    {}
 
     function uri(uint256 tokenId) public view override returns (string memory) {
         return bytes(baseURI).length > 0 ? string(abi.encodePacked(baseURI, tokenId.toString())) : "";
@@ -68,12 +71,9 @@ contract VWBLERC1155 is ERC1155Burnable, AbstractVWBLToken {
 
         _mintBatch(msg.sender, tokenIds, _amounts, "");
 
-        IAccessControlCheckerByERC1155(accessCheckerContract).batchGrantAccessControlAnderRegisterERC1155{value: msg.value}(
-            _documentIds,
-            address(this),
-            tokenIds,
-            msg.sender
-        );
+        IAccessControlCheckerByERC1155(accessCheckerContract).batchGrantAccessControlAnderRegisterERC1155{
+            value: msg.value
+        }(_documentIds, address(this), tokenIds, msg.sender);
 
         return tokenIds;
     }

@@ -19,7 +19,10 @@ contract VWBLERC721 is AbstractVWBLToken, ERC721Enumerable {
         address _gatewayProxy,
         address _accessCheckerContract,
         string memory _signMessage
-    ) ERC721("VWBL", "VWBL") AbstractVWBLToken(_initialOwner, _baseURI, _gatewayProxy, _accessCheckerContract, _signMessage) {}
+    )
+        ERC721("VWBL", "VWBL")
+        AbstractVWBLToken(_initialOwner, _baseURI, _gatewayProxy, _accessCheckerContract, _signMessage)
+    {}
 
     /**
      * @notice BaseURI for computing {tokenURI}.

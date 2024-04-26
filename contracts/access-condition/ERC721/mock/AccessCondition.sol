@@ -16,7 +16,7 @@ contract AccessCondition is IAccessControlChecker {
         condition = _condition;
     }
 
-    function getOwnerAddress(bytes32 documentId) external view returns (address) {
+    function getOwnerAddress(bytes32 documentId) external pure returns (address) {
         return address(0);
     }
 }

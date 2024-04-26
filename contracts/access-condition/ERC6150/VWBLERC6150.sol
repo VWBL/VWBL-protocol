@@ -19,7 +19,10 @@ contract VWBLERC6150 is Ownable, ERC6150ParentTransferable, AbstractVWBLToken {
         address _gatewayProxy,
         address _accessCheckerContract,
         string memory _signMessage
-    ) ERC6150("VWBL", "VWBL") AbstractVWBLToken(_initialOwner, _baseURI, _gatewayProxy, _accessCheckerContract, _signMessage) {}
+    )
+        ERC6150("VWBL", "VWBL")
+        AbstractVWBLToken(_initialOwner, _baseURI, _gatewayProxy, _accessCheckerContract, _signMessage)
+    {}
 
     /**
      * @notice BaseURI for computing {tokenURI}.

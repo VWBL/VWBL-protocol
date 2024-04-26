@@ -15,11 +15,14 @@ contract VWBLERC721ERC2981ForMetadata is AbstractVWBLToken, ERC721Enumerable, ER
     mapping(uint256 => string) private _tokenURIs;
 
     constructor(
-        address _initialOwner, 
+        address _initialOwner,
         address _gatewayProxy,
         address _accessCheckerContract,
         string memory _signMessage
-    ) ERC721("VWBL", "VWBL") AbstractVWBLToken(_initialOwner, "", _gatewayProxy, _accessCheckerContract, _signMessage) {}
+    )
+        ERC721("VWBL", "VWBL")
+        AbstractVWBLToken(_initialOwner, "", _gatewayProxy, _accessCheckerContract, _signMessage)
+    {}
 
     function tokenURI(uint256 tokenId) public view override returns (string memory) {
         require(bytes(_tokenURIs[tokenId]).length != 0, "ERC721: invalid token ID");

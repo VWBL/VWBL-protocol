@@ -5,13 +5,10 @@ import "./MultiSigWallet.sol";
 
 contract ValidatorRegistry is MultiSigWallet {
     // if AllocationNumerator = 10*10^2, allocation percentage is 10%.
-    mapping (address => uint96) public validatorToAllocationNumerator;
+    mapping(address => uint96) public validatorToAllocationNumerator;
     address[] public activeValidators;
 
-    constructor(
-        address[] memory _owners,
-        uint _required
-    ) MultiSigWallet(_owners, _required) {}
+    constructor(address[] memory _owners, uint256 _required) MultiSigWallet(_owners, _required) {}
 
     function _allocationDenominator() internal pure virtual returns (uint96) {
         return 10000;
@@ -39,19 +36,22 @@ contract ValidatorRegistry is MultiSigWallet {
      *      The allocation numerator is a part of the fraction that represents the validator's allocation percentage.
      *      The denominator is provided by the _allocationDenominator function.
      */
-    function registerValidatorAllocations(address[] memory validators, uint96[] memory allocationNumerators) public onlyMultiSigWallet {
+    function registerValidatorAllocations(address[] memory validators, uint96[] memory allocationNumerators)
+        public
+        onlyMultiSigWallet
+    {
         require(validators.length == allocationNumerators.length, "param lengths is invalid");
         uint96 totalAllocationNumerator;
-        for (uint i = 0; i < allocationNumerators.length; i++) {
+        for (uint256 i = 0; i < allocationNumerators.length; i++) {
             totalAllocationNumerator += allocationNumerators[i];
         }
         require(
-            totalAllocationNumerator <= _allocationDenominator()
-            && totalAllocationNumerator > _allocationDenominator() - 10,
+            totalAllocationNumerator <= _allocationDenominator() &&
+                totalAllocationNumerator > _allocationDenominator() - 10,
             "each allocation numerator is inccorect value"
         );
 
-        for (uint i = 0; i < validators.length; i++) {
+        for (uint256 i = 0; i < validators.length; i++) {
             validatorToAllocationNumerator[validators[i]] = allocationNumerators[i];
         }
         unregisterLeaveValidators(validators);
@@ -67,10 +67,10 @@ contract ValidatorRegistry is MultiSigWallet {
      */
     function unregisterLeaveValidators(address[] memory newValidators) private {
         address[] memory leaveValidators = new address[](activeValidators.length);
-        uint leaveCount = 0;
-        for (uint i = 0; i < activeValidators.length; i++) {
+        uint256 leaveCount = 0;
+        for (uint256 i = 0; i < activeValidators.length; i++) {
             bool found = false;
-            for (uint j = 0; j < newValidators.length && !found;  j++) {
+            for (uint256 j = 0; j < newValidators.length && !found; j++) {
                 if (activeValidators[i] == newValidators[j]) {
                     found = true;
                 }
@@ -82,12 +82,12 @@ contract ValidatorRegistry is MultiSigWallet {
         }
 
         if (leaveCount > 0) {
-            for (uint i = 0; i < leaveCount; i++) {
+            for (uint256 i = 0; i < leaveCount; i++) {
                 delete validatorToAllocationNumerator[leaveValidators[i]];
             }
         }
     }
-    
+
     /**
      * @notice Gets the list of active validators.
      * @dev This function returns an array of addresses of the currently active validators.
@@ -102,7 +102,7 @@ contract ValidatorRegistry is MultiSigWallet {
      * @dev This function returns the length of the activeValidators array, which represents the total number of active validators.
      * @return The total number of active validators.
      */
-    function getActiveValidatorCount() public view returns (uint) {
+    function getActiveValidatorCount() public view returns (uint256) {
         return activeValidators.length;
     }
 }

@@ -19,7 +19,7 @@ abstract contract AbstractVWBLSettings is IVWBL, Ownable {
         address _gatewayProxy,
         address _accessCheckerContract,
         string memory _signMessage
-    ) Ownable(_initialOwner){
+    ) Ownable(_initialOwner) {
         gatewayProxy = _gatewayProxy;
         signMessage = _signMessage;
         accessCheckerContract = _accessCheckerContract;

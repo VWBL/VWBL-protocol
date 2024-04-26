@@ -9,7 +9,6 @@ import "../access-condition/AbstractControlChecker.sol";
 import "./utils/IStableCoinFeeRegistry.sol";
 import "./utils/IWithdrawExtraFee.sol";
 
-
 contract VWBLGatewayV2 is IVWBLGatewayV2, Ownable {
     VWBLGateway immutable vwblGatewayV1Contract;
     address public scFeeRegistryAddress;
@@ -22,7 +21,6 @@ contract VWBLGatewayV2 is IVWBLGatewayV2, Ownable {
     // VWBL mint fee of native token(if this contract exist on Polygon mainnet, native token is MATIC)
     uint256 public feeWei = 1000000000000000000; // 1MATIC
     uint256 public pendingFee;
-
 
     event accessControlAdded(bytes32 documentId, address conditionContract);
     event feeWeiChanged(uint256 oldPercentage, uint256 newPercentage);
@@ -75,10 +73,10 @@ contract VWBLGatewayV2 is IVWBLGatewayV2, Ownable {
     function getDocumentIds() public view returns (bytes32[] memory) {
         bytes32[] memory documentIdsV1 = vwblGatewayV1Contract.getDocumentIds();
         bytes32[] memory combinedDocumentIds = new bytes32[](documentIdsV1.length + documentIdsV2.length);
-        for (uint i = 0; i < documentIdsV1.length; i++) {
+        for (uint256 i = 0; i < documentIdsV1.length; i++) {
             combinedDocumentIds[i] = documentIdsV1[i];
         }
-        for (uint i = 0; i < documentIdsV2.length; i++) {
+        for (uint256 i = 0; i < documentIdsV2.length; i++) {
             combinedDocumentIds[documentIdsV1.length + i] = documentIdsV2[i];
         }
         return combinedDocumentIds;
@@ -91,47 +89,47 @@ contract VWBLGatewayV2 is IVWBLGatewayV2, Ownable {
      * @return An array of document IDs within the specified range.
      */
     function paginateDocumentIds(uint256 startIndex, uint256 endIndex) public view returns (bytes32[] memory) {
-        bytes32[] memory result = new bytes32[](endIndex-startIndex+1);
+        bytes32[] memory result = new bytes32[](endIndex - startIndex + 1);
         bytes32[] memory documentIdsV1 = vwblGatewayV1Contract.getDocumentIds();
-        uint resultIndex = 0;
-        if (startIndex <= documentIdsV1.length-1) {
-            if (endIndex <= documentIdsV1.length-1) {
-                for (uint i = startIndex; i <= endIndex; i++) {
+        uint256 resultIndex = 0;
+        if (startIndex <= documentIdsV1.length - 1) {
+            if (endIndex <= documentIdsV1.length - 1) {
+                for (uint256 i = startIndex; i <= endIndex; i++) {
                     result[resultIndex] = documentIdsV1[i];
                     resultIndex += 1;
                 }
                 return result;
-            } else if (endIndex <= documentIdsV1.length+documentIdsV2.length-1) {
-                for (uint i = startIndex; i < documentIdsV1.length; i++) {
+            } else if (endIndex <= documentIdsV1.length + documentIdsV2.length - 1) {
+                for (uint256 i = startIndex; i < documentIdsV1.length; i++) {
                     result[resultIndex] = documentIdsV1[i];
                     resultIndex += 1;
                 }
-                for (uint i = 0; i <= endIndex-documentIdsV1.length; i++) {
+                for (uint256 i = 0; i <= endIndex - documentIdsV1.length; i++) {
                     result[resultIndex] = documentIdsV2[i];
                     resultIndex += 1;
                 }
                 return result;
             } else {
-                for (uint i = startIndex; i < documentIdsV1.length; i++) {
+                for (uint256 i = startIndex; i < documentIdsV1.length; i++) {
                     result[resultIndex] = documentIdsV1[i];
                     resultIndex += 1;
                 }
-                for (uint i = 0; i < documentIdsV2.length; i++) {
+                for (uint256 i = 0; i < documentIdsV2.length; i++) {
                     result[resultIndex] = documentIdsV2[i];
                     resultIndex += 1;
                 }
                 return result;
             }
         } else {
-            if (endIndex <= documentIdsV1.length+documentIdsV2.length-1) {
-                for (uint i = startIndex; i <= endIndex; i++) {
-                    result[resultIndex] = documentIdsV2[i-documentIdsV1.length];
+            if (endIndex <= documentIdsV1.length + documentIdsV2.length - 1) {
+                for (uint256 i = startIndex; i <= endIndex; i++) {
+                    result[resultIndex] = documentIdsV2[i - documentIdsV1.length];
                     resultIndex += 1;
                 }
                 return result;
             } else {
-                for (uint i = 0; i <= documentIdsV2.length-1; i++) {
-                    result[resultIndex] = documentIdsV2[i+startIndex-documentIdsV1.length];
+                for (uint256 i = 0; i <= documentIdsV2.length - 1; i++) {
+                    result[resultIndex] = documentIdsV2[i + startIndex - documentIdsV1.length];
                     resultIndex + 1;
                 }
                 return result;
@@ -232,7 +230,7 @@ contract VWBLGatewayV2 is IVWBLGatewayV2, Ownable {
         address conditionContractAddress,
         address minter
     ) public payable {
-        require(msg.value == feeWei*documentIds.length, "Paid VWBL Fee is incorrect amount");
+        require(msg.value == feeWei * documentIds.length, "Paid VWBL Fee is incorrect amount");
         for (uint256 i = 0; i < documentIds.length; i++) {
             require(documentIdToConditionContract(documentIds[i]) == address(0), "documentId is already used");
         }
@@ -241,7 +239,7 @@ contract VWBLGatewayV2 is IVWBLGatewayV2, Ownable {
         for (uint256 i = 0; i < documentIds.length; i++) {
             documentIdsV2.push(documentIds[i]);
             setAccessControlInfo(documentIds[i], conditionContractAddress, minter);
-        }        
+        }
     }
 
     /**
@@ -259,16 +257,20 @@ contract VWBLGatewayV2 is IVWBLGatewayV2, Ownable {
         address erc20Address,
         address feePayer
     ) public {
-        (uint feeDecimals, bool registered) = IStableCoinFeeRegistry(scFeeRegistryAddress).getFeeDecimals(erc20Address);
+        (uint256 feeDecimals, bool registered) = IStableCoinFeeRegistry(scFeeRegistryAddress).getFeeDecimals(
+            erc20Address
+        );
         require(registered, "This erc20 is not registered for VWBL Fee Token");
-        require(IERC20(erc20Address).allowance(feePayer, address(this)) >= feeDecimals, "VWBL Gateway Contract's allowance is insufficient");
+        require(
+            IERC20(erc20Address).allowance(feePayer, address(this)) >= feeDecimals,
+            "VWBL Gateway Contract's allowance is insufficient"
+        );
         require(documentIdToConditionContract(documentId) == address(0), "documentId is already used");
 
         IERC20(erc20Address).transferFrom(feePayer, address(this), feeDecimals);
         documentIdsV2.push(documentId);
         setAccessControlInfo(documentId, conditionContractAddress, minter);
-    }  
-
+    }
 
     /**
      * @notice Grant batch access control using ERC20 tokens as payment for the VWBL fee. This method allows users to pay the VWBL fee using a specified ERC20 token instead of the native token for multiple digital contents at once.
@@ -285,9 +287,14 @@ contract VWBLGatewayV2 is IVWBLGatewayV2, Ownable {
         address erc20Address,
         address feePayer
     ) public {
-        (uint feeDecimals, bool registered) = IStableCoinFeeRegistry(scFeeRegistryAddress).getFeeDecimals(erc20Address);
+        (uint256 feeDecimals, bool registered) = IStableCoinFeeRegistry(scFeeRegistryAddress).getFeeDecimals(
+            erc20Address
+        );
         require(registered, "This erc20 is not registered for VWBL Fee Token");
-        require(IERC20(erc20Address).allowance(feePayer, address(this)) >= feeDecimals * documentIds.length, "VWBL Gateway Contract's allowance is insufficient");
+        require(
+            IERC20(erc20Address).allowance(feePayer, address(this)) >= feeDecimals * documentIds.length,
+            "VWBL Gateway Contract's allowance is insufficient"
+        );
         for (uint256 i = 0; i < documentIds.length; i++) {
             require(documentIdToConditionContract(documentIds[i]) == address(0), "documentId is already used");
         }
@@ -305,7 +312,11 @@ contract VWBLGatewayV2 is IVWBLGatewayV2, Ownable {
      * @param conditionContractAddress The address of the access condition contract
      * @param minter The address of the digital content creator
      */
-    function setAccessControlInfo(bytes32 documentId, address conditionContractAddress, address minter) private {
+    function setAccessControlInfo(
+        bytes32 documentId,
+        address conditionContractAddress,
+        address minter
+    ) private {
         documentIdToConditionContractV2[documentId] = conditionContractAddress;
         documentIdToMinterV2[documentId] = minter;
         emit accessControlAdded(documentId, conditionContractAddress);
@@ -355,9 +366,10 @@ contract VWBLGatewayV2 is IVWBLGatewayV2, Ownable {
      * @return withdrawalAmounts An array of amounts withdrawn for each registered fee token.
      */
     function withdrawERC20Fee() public onlyOwner returns (address[] memory, uint256[] memory) {
-        address[] memory prevAndCurRegisteredTokens = IStableCoinFeeRegistry(scFeeRegistryAddress).getPrevAndCurRegisteredTokens();
+        address[] memory prevAndCurRegisteredTokens = IStableCoinFeeRegistry(scFeeRegistryAddress)
+            .getPrevAndCurRegisteredTokens();
         uint256[] memory withdrawalAmounts = new uint256[](prevAndCurRegisteredTokens.length);
-        for (uint i = 0; i < prevAndCurRegisteredTokens.length; i++) {
+        for (uint256 i = 0; i < prevAndCurRegisteredTokens.length; i++) {
             uint256 balance = IERC20(prevAndCurRegisteredTokens[i]).balanceOf(address(this));
             if (balance > 0) {
                 IERC20(prevAndCurRegisteredTokens[i]).transfer(msg.sender, balance);

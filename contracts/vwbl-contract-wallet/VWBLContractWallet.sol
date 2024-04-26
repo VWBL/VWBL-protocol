@@ -14,7 +14,7 @@ contract VWBLContractWallet is AllocateVWBLFee, AccessControl {
 
     constructor(
         address[] memory _owners,
-        uint _required,
+        uint256 _required,
         address _gatewayV1Address,
         address _gatewayV2Address,
         address _scFeeRegistryAddress,
@@ -49,7 +49,7 @@ contract VWBLContractWallet is AllocateVWBLFee, AccessControl {
     function registerOwnedContract(address ownedContractAddress) public {
         require(hasRole(OPERATOR_ROLE, msg.sender), "msg sender doesn't have OPERATOR_ROLE");
         require(Ownable(ownedContractAddress).owner() == address(this), "VWBL Contract Wallet isn't owner");
-        for (uint i = 0; i < ownedContracts.length; i++) {
+        for (uint256 i = 0; i < ownedContracts.length; i++) {
             require(ownedContracts[i] != ownedContractAddress, "This contract is already registered");
         }
 
@@ -61,7 +61,7 @@ contract VWBLContractWallet is AllocateVWBLFee, AccessControl {
      * @param newOwner The address of the new owner to transfer ownership to.
      */
     function transferOwnerships(address newOwner) public onlyMultiSigWallet {
-        for (uint i = 0; i < ownedContracts.length; i++) {
+        for (uint256 i = 0; i < ownedContracts.length; i++) {
             Ownable(ownedContracts[i]).transferOwnership(newOwner);
         }
     }
@@ -83,7 +83,7 @@ contract VWBLContractWallet is AllocateVWBLFee, AccessControl {
      * @param fiatIndex The index of the stable coin to register the fee numerator for.
      * @param newFeeNumerator The new fee numerator denominated in fiat currency to register.
      */
-    function setStableCoinFee(uint fiatIndex, uint newFeeNumerator) public returns (uint256) {
+    function setStableCoinFee(uint256 fiatIndex, uint256 newFeeNumerator) public returns (uint256) {
         require(hasRole(SET_FEE_ROLE, msg.sender), "msg sender doesn't have SET_FEE_ROLE");
         IStableCoinFeeRegistry(scFeeRegistryAddress).registerFeeNumerator(fiatIndex, newFeeNumerator);
         return newFeeNumerator;
@@ -95,7 +95,11 @@ contract VWBLContractWallet is AllocateVWBLFee, AccessControl {
      * @param _erc20Addresses The list of ERC20 addresses representing the stable coin.
      * @param _feeNumerator The fee numerator denominated in fiat currency.
      */
-    function registerStableCoinInfo(string memory _fiatName, address[] memory _erc20Addresses, uint _feeNumerator) public {
+    function registerStableCoinInfo(
+        string memory _fiatName,
+        address[] memory _erc20Addresses,
+        uint256 _feeNumerator
+    ) public {
         require(hasRole(OPERATOR_ROLE, msg.sender), "msg sender doesn't have OPERATOR_ROLE");
         IStableCoinFeeRegistry(scFeeRegistryAddress).registerStableCoinInfo(_fiatName, _erc20Addresses, _feeNumerator);
     }
@@ -105,7 +109,7 @@ contract VWBLContractWallet is AllocateVWBLFee, AccessControl {
      * @param fiatIndex The index of the fiat currency to be renamed.
      * @param newFiatName The new name for the fiat currency.
      */
-    function renameFiat(uint fiatIndex, string memory newFiatName) public {
+    function renameFiat(uint256 fiatIndex, string memory newFiatName) public {
         require(hasRole(OPERATOR_ROLE, msg.sender), "msg sender doesn't have OPERATOR_ROLE");
         IStableCoinFeeRegistry(scFeeRegistryAddress).renameFiat(fiatIndex, newFiatName);
     }
@@ -115,7 +119,7 @@ contract VWBLContractWallet is AllocateVWBLFee, AccessControl {
      * @param fiatIndex The index of the stable coin to register the ERC20 addresses for.
      * @param newERC20Addresses The list of new ERC20 addresses to register.
      */
-    function registerERC20Addresses(uint fiatIndex, address[] memory newERC20Addresses) public {
+    function registerERC20Addresses(uint256 fiatIndex, address[] memory newERC20Addresses) public {
         require(hasRole(OPERATOR_ROLE, msg.sender), "msg sender doesn't have OPERATOR_ROLE");
         IStableCoinFeeRegistry(scFeeRegistryAddress).registerERC20Addresses(fiatIndex, newERC20Addresses);
     }
@@ -125,7 +129,7 @@ contract VWBLContractWallet is AllocateVWBLFee, AccessControl {
      * @param fiatIndex The index of the stable coin to unregister the ERC20 address from.
      * @param erc20Address The address of the ERC20 token to unregister.
      */
-    function unregisterERC20Address(uint fiatIndex, address erc20Address) public {
+    function unregisterERC20Address(uint256 fiatIndex, address erc20Address) public {
         require(hasRole(OPERATOR_ROLE, msg.sender), "msg sender doesn't have OPERATOR_ROLE");
         IStableCoinFeeRegistry(scFeeRegistryAddress).unregisterERC20Address(fiatIndex, erc20Address);
     }

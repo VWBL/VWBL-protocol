@@ -21,7 +21,7 @@ contract AccessControlCheckerByNFT is AbstractControlChecker, Ownable {
 
     constructor(
         address _initialOwner,
-        bool _setMinterHasOnlySetKeyRights, 
+        bool _setMinterHasOnlySetKeyRights,
         address _gatewayProxy
     ) AbstractControlChecker(_setMinterHasOnlySetKeyRights) Ownable(_initialOwner) {
         gatewayProxy = _gatewayProxy;
@@ -74,7 +74,7 @@ contract AccessControlCheckerByNFT is AbstractControlChecker, Ownable {
      * @param user The address of decryption key requester or decryption key sender to VWBL Network
      * @param documentId The Identifier of digital content and decryption key
      */
-    function checkAccessControl(address user, bytes32 documentId) external view returns (bool) {
+    function checkAccessControl(address user, bytes32 documentId) external pure returns (bool) {
         return false;
     }
 

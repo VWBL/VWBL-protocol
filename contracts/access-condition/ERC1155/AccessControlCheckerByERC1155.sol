@@ -21,7 +21,7 @@ contract AccessControlCheckerByERC1155 is AbstractControlChecker, Ownable, IAcce
 
     constructor(
         address _initialOwner,
-        bool _setMinterHasOnlySetKeyRights, 
+        bool _setMinterHasOnlySetKeyRights,
         address _gatewayProxy
     ) AbstractControlChecker(_setMinterHasOnlySetKeyRights) Ownable(_initialOwner) {
         gatewayProxy = _gatewayProxy;
@@ -63,7 +63,7 @@ contract AccessControlCheckerByERC1155 is AbstractControlChecker, Ownable, IAcce
      * @notice Return owner address
      * @param documentId The Identifier of digital content and decryption key
      */
-    function getOwnerAddress(bytes32 documentId) external view returns (address) {
+    function getOwnerAddress(bytes32 documentId) external pure returns (address) {
         return address(0);
     }
 
@@ -111,13 +111,9 @@ contract AccessControlCheckerByERC1155 is AbstractControlChecker, Ownable, IAcce
         uint256[] memory tokenIds,
         address minter
     ) public payable {
-        IVWBLGatewayV2(getGatewayAddress()).batchGrantAccessControl(
-            documentIds, 
-            address(this), 
-            minter
-        );
+        IVWBLGatewayV2(getGatewayAddress()).batchGrantAccessControl(documentIds, address(this), minter);
 
-        for (uint i = 0; i < documentIds.length; i++) {
+        for (uint256 i = 0; i < documentIds.length; i++) {
             documentIdToToken[documentIds[i]].contractAddress = erc1155Contract;
             documentIdToToken[documentIds[i]].tokenId = tokenIds[i];
             emit erc1155DataRegistered(erc1155Contract, tokenIds[i]);

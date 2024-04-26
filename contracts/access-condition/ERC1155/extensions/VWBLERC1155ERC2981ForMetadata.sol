@@ -96,12 +96,9 @@ contract VWBLERC1155ERC2981ForMetadata is ERC1155Burnable, AbstractVWBLToken, ER
 
         _mintBatch(msg.sender, tokenIds, _amounts, "");
 
-        IAccessControlCheckerByERC1155(accessCheckerContract).batchGrantAccessControlAnderRegisterERC1155{value: msg.value}(
-            _documentIds,
-            address(this),
-            tokenIds,
-            msg.sender
-        );
+        IAccessControlCheckerByERC1155(accessCheckerContract).batchGrantAccessControlAnderRegisterERC1155{
+            value: msg.value
+        }(_documentIds, address(this), tokenIds, msg.sender);
 
         return tokenIds;
     }
