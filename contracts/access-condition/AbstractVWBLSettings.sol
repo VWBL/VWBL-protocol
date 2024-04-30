@@ -1,10 +1,10 @@
-// SPDX-License-Identifier: MIT
-pragma solidity ^0.8.17;
+// SPDX-License-Identifier: Apache-2.0
+pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "./IVWBL.sol";
 import "../gateway/IGatewayProxy.sol";
-import "../gateway/IVWBLGateway.sol";
+import "../gateway/IVWBLGatewayV2.sol";
 
 abstract contract AbstractVWBLSettings is IVWBL, Ownable {
     address public gatewayProxy;
@@ -15,10 +15,11 @@ abstract contract AbstractVWBLSettings is IVWBL, Ownable {
     event accessCheckerContractChanged(address oldAccessCheckerContract, address newAccessCheckerContract);
 
     constructor(
+        address _initialOwner,
         address _gatewayProxy,
         address _accessCheckerContract,
         string memory _signMessage
-    ) {
+    ) Ownable(_initialOwner) {
         gatewayProxy = _gatewayProxy;
         signMessage = _signMessage;
         accessCheckerContract = _accessCheckerContract;
@@ -32,7 +33,7 @@ abstract contract AbstractVWBLSettings is IVWBL, Ownable {
      * @notice Get VWBL Fee
      */
     function getFee() public view returns (uint256) {
-        return IVWBLGateway(getGatewayAddress()).feeWei();
+        return IVWBLGatewayV2(getGatewayAddress()).feeWei();
     }
 
     /**

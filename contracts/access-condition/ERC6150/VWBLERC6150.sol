@@ -1,7 +1,6 @@
-// SPDX-License-Identifier: MIT
-pragma solidity ^0.8.17;
+// SPDX-License-Identifier: Apache-2.0
+pragma solidity ^0.8.20;
 
-import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "./ERC6150ParentTransferable.sol";
@@ -12,15 +11,18 @@ import "../AbstractVWBLToken.sol";
  * @dev ERC6150 which is added Viewable features that only ERC6150 Owner can view digital content
  */
 contract VWBLERC6150 is Ownable, ERC6150ParentTransferable, AbstractVWBLToken {
-    using SafeMath for uint256;
     using Strings for uint256;
 
     constructor(
+        address _initialOwner,
         string memory _baseURI,
         address _gatewayProxy,
         address _accessCheckerContract,
         string memory _signMessage
-    ) ERC6150("VWBL", "VWBL") AbstractVWBLToken(_baseURI, _gatewayProxy, _accessCheckerContract, _signMessage) {}
+    )
+        ERC6150("VWBL", "VWBL")
+        AbstractVWBLToken(_initialOwner, _baseURI, _gatewayProxy, _accessCheckerContract, _signMessage)
+    {}
 
     /**
      * @notice BaseURI for computing {tokenURI}.

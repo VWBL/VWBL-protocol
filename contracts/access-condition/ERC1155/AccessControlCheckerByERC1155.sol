@@ -1,10 +1,10 @@
-// SPDX-License-Identifier: MIT
-pragma solidity ^0.8.17;
+// SPDX-License-Identifier: Apache-2.0
+pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/interfaces/IERC1155.sol";
 import "../../gateway/IGatewayProxy.sol";
-import "../../gateway/IVWBLGateway.sol";
+import "../../gateway/IVWBLGatewayV2.sol";
 import "../IAccessControlChecker.sol";
 import "./IAccessControlCheckerByERC1155.sol";
 import "../AbstractControlChecker.sol";
@@ -14,12 +14,16 @@ import "../IVWBL.sol";
  * @dev VWBL's access condition contract which defines that ERC1155 Owner has access right of digital content
  *      and ERC1155 Minter is digital content creator(decryption key creator).
  */
-contract AccessControlCheckerByERC1155 is AbstractControlChecker, Ownable {
+contract AccessControlCheckerByERC1155 is AbstractControlChecker, Ownable, IAccessControlCheckerByERC1155 {
     address public gatewayProxy;
 
     event erc1155DataRegistered(address contractAddress, uint256 tokenId);
 
-    constructor(address _gatewayProxy) public {
+    constructor(
+        address _initialOwner,
+        bool _setMinterHasOnlySetKeyRights,
+        address _gatewayProxy
+    ) AbstractControlChecker(_setMinterHasOnlySetKeyRights) Ownable(_initialOwner) {
         gatewayProxy = _gatewayProxy;
     }
 
@@ -34,7 +38,7 @@ contract AccessControlCheckerByERC1155 is AbstractControlChecker, Ownable {
      * @notice Get array of documentIds, ERC11555 contract address, tokenId.
      */
     function getERC1155Datas() public view returns (bytes32[] memory, Token[] memory) {
-        bytes32[] memory allDocumentIds = IVWBLGateway(getGatewayAddress()).getDocumentIds();
+        bytes32[] memory allDocumentIds = IVWBLGatewayV2(getGatewayAddress()).getDocumentIds();
         bytes32[] memory tempDocumentIds = new bytes32[](allDocumentIds.length);
         Token[] memory tempTokens = new Token[](allDocumentIds.length);
         uint256 count;
@@ -59,7 +63,7 @@ contract AccessControlCheckerByERC1155 is AbstractControlChecker, Ownable {
      * @notice Return owner address
      * @param documentId The Identifier of digital content and decryption key
      */
-    function getOwnerAddress(bytes32 documentId) external view returns (address) {
+    function getOwnerAddress(bytes32 documentId) external pure returns (address) {
         return address(0);
     }
 
@@ -90,7 +94,7 @@ contract AccessControlCheckerByERC1155 is AbstractControlChecker, Ownable {
         address erc1155Contract,
         uint256 tokenId
     ) public payable {
-        IVWBLGateway(getGatewayAddress()).grantAccessControl{value: msg.value}(
+        IVWBLGatewayV2(getGatewayAddress()).grantAccessControl{value: msg.value}(
             documentId,
             address(this),
             IVWBL(erc1155Contract).getMinter(tokenId)
@@ -98,7 +102,21 @@ contract AccessControlCheckerByERC1155 is AbstractControlChecker, Ownable {
 
         documentIdToToken[documentId].contractAddress = erc1155Contract;
         documentIdToToken[documentId].tokenId = tokenId;
-
         emit erc1155DataRegistered(erc1155Contract, tokenId);
+    }
+
+    function batchGrantAccessControlAnderRegisterERC1155(
+        bytes32[] memory documentIds,
+        address erc1155Contract,
+        uint256[] memory tokenIds,
+        address minter
+    ) public payable {
+        IVWBLGatewayV2(getGatewayAddress()).batchGrantAccessControl(documentIds, address(this), minter);
+
+        for (uint256 i = 0; i < documentIds.length; i++) {
+            documentIdToToken[documentIds[i]].contractAddress = erc1155Contract;
+            documentIdToToken[documentIds[i]].tokenId = tokenIds[i];
+            emit erc1155DataRegistered(erc1155Contract, tokenIds[i]);
+        }
     }
 }

@@ -1,5 +1,5 @@
-// SPDX-License-Identifier: MIT
-pragma solidity ^0.8.17;
+// SPDX-License-Identifier: Apache-2.0
+pragma solidity ^0.8.20;
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/interfaces/IERC2981.sol";
@@ -28,7 +28,7 @@ contract Market is ManageSoldEvent {
     event royaltiesRecord(uint256 tokenId, uint256 value);
     event marketFeePercentageChanged(uint256 oldPercentage, uint256 newPercentage);
 
-    constructor(address _contractAddress) ManageSoldEvent(_contractAddress) {
+    constructor(address _initialOwner, address _contractAddress) ManageSoldEvent(_initialOwner, _contractAddress) {
         itemContract = ERC721(_contractAddress);
         itemContractAddress = _contractAddress;
     }

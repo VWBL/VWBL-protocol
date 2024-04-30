@@ -1,9 +1,8 @@
-// SPDX-License-Identifier: MIT
-pragma solidity ^0.8.17;
+// SPDX-License-Identifier: Apache-2.0
+pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/common/ERC2981.sol";
 
 import "../IAccessControlCheckerByNFT.sol";
@@ -12,14 +11,18 @@ import "../../AbstractVWBLToken.sol";
 /**
  * @dev NFT which is added Viewable features that only NFT Owner can view digital content
  */
-contract VWBLERC721ERC2981ForMetadata is Ownable, AbstractVWBLToken, ERC721Enumerable, ERC2981 {
+contract VWBLERC721ERC2981ForMetadata is AbstractVWBLToken, ERC721Enumerable, ERC2981 {
     mapping(uint256 => string) private _tokenURIs;
 
     constructor(
+        address _initialOwner,
         address _gatewayProxy,
         address _accessCheckerContract,
         string memory _signMessage
-    ) ERC721("VWBL", "VWBL") AbstractVWBLToken("", _gatewayProxy, _accessCheckerContract, _signMessage) {}
+    )
+        ERC721("VWBL", "VWBL")
+        AbstractVWBLToken(_initialOwner, "", _gatewayProxy, _accessCheckerContract, _signMessage)
+    {}
 
     function tokenURI(uint256 tokenId) public view override returns (string memory) {
         require(bytes(_tokenURIs[tokenId]).length != 0, "ERC721: invalid token ID");

@@ -1,12 +1,12 @@
-// SPDX-License-Identifier: MIT
-pragma solidity ^0.8.17;
+// SPDX-License-Identifier: Apache-2.0
+pragma solidity ^0.8.20;
 
 import "../../IAccessControlChecker.sol";
 
 contract AccessCondition is IAccessControlChecker {
     bool condition = true;
 
-    constructor() public {}
+    constructor() {}
 
     function checkAccessControl(address user, bytes32 documentId) external view returns (bool) {
         return condition;
@@ -16,7 +16,7 @@ contract AccessCondition is IAccessControlChecker {
         condition = _condition;
     }
 
-    function getOwnerAddress(bytes32 documentId) external view returns (address) {
+    function getOwnerAddress(bytes32 documentId) external pure returns (address) {
         return address(0);
     }
 }

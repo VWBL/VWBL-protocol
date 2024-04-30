@@ -1,40 +1,26 @@
-// SPDX-License-Identifier: MIT
-pragma solidity ^0.8.17;
+// SPDX-License-Identifier: Apache-2.0
+pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/token/common/ERC2981.sol";
 import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Burnable.sol";
-import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
 import "../IAccessControlCheckerByERC1155.sol";
-import "../ERC1155Enumerable.sol";
 import "../../AbstractVWBLToken.sol";
 
 /**
  * @dev Erc1155 which is added Viewable features that only ERC1155 Owner can view digital content
  */
-contract VWBLERC1155ERC2981ForMetadata is Ownable, ERC1155Enumerable, ERC1155Burnable, AbstractVWBLToken, ERC2981 {
-    using SafeMath for uint256;
+contract VWBLERC1155ERC2981ForMetadata is ERC1155Burnable, AbstractVWBLToken, ERC2981 {
     using Strings for uint256;
 
     mapping(uint256 => string) private _tokenURIs;
 
     constructor(
+        address _initialOwner,
         address _gatewayProxy,
         address _accessCheckerContract,
         string memory _signMessage
-    ) ERC1155("") AbstractVWBLToken("", _gatewayProxy, _accessCheckerContract, _signMessage) {}
-
-    function _beforeTokenTransfer(
-        address operator,
-        address from,
-        address to,
-        uint256[] memory ids,
-        uint256[] memory amounts,
-        bytes memory data
-    ) internal override(ERC1155, ERC1155Enumerable) {
-        super._beforeTokenTransfer(operator, from, to, ids, amounts, data);
-    }
+    ) ERC1155("") AbstractVWBLToken(_initialOwner, "", _gatewayProxy, _accessCheckerContract, _signMessage) {}
 
     function uri(uint256 tokenId) public view override returns (string memory) {
         require(bytes(_tokenURIs[tokenId]).length != 0, "ERC1155: invalid token ID");
@@ -110,42 +96,11 @@ contract VWBLERC1155ERC2981ForMetadata is Ownable, ERC1155Enumerable, ERC1155Bur
 
         _mintBatch(msg.sender, tokenIds, _amounts, "");
 
-        (bool calResult, uint256 fee) = msg.value.tryDiv(_amounts.length);
-        require(calResult, "Calculation error of div");
-        for (uint32 i = 0; i < _amounts.length; i++) {
-            IAccessControlCheckerByERC1155(accessCheckerContract).grantAccessControlAndRegisterERC1155{value: fee}(
-                _documentIds[i],
-                address(this),
-                tokenIds[i]
-            );
-        }
+        IAccessControlCheckerByERC1155(accessCheckerContract).batchGrantAccessControlAnderRegisterERC1155{
+            value: msg.value
+        }(_documentIds, address(this), tokenIds, msg.sender);
 
         return tokenIds;
-    }
-
-    function safeTransferAndPayFee(
-        address from,
-        address to,
-        uint256 id,
-        uint256 amount,
-        bytes memory data
-    ) public payable {
-        safeTransferFrom(from, to, id, amount, data);
-        IVWBLGateway(getGatewayAddress()).payFee{value: msg.value}(tokenIdToTokenInfo[id].documentId, to);
-    }
-
-    function safeBatchTransferAndPayFee(
-        address from,
-        address to,
-        uint256[] memory ids,
-        uint256[] memory amounts,
-        bytes memory data
-    ) public payable {
-        safeBatchTransferFrom(from, to, ids, amounts, data);
-        (bool calResult, uint256 fee) = msg.value.tryDiv(ids.length);
-        for (uint32 i = 0; i < ids.length; i++) {
-            IVWBLGateway(getGatewayAddress()).payFee{value: fee}(tokenIdToTokenInfo[ids[i]].documentId, to);
-        }
     }
 
     /**

@@ -1,10 +1,10 @@
-// SPDX-License-Identifier: MIT
-pragma solidity ^0.8.17;
+// SPDX-License-Identifier: Apache-2.0
+pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "../../gateway/IGatewayProxy.sol";
-import "../../gateway/IVWBLGateway.sol";
+import "../../gateway/IVWBLGatewayV2.sol";
 import "../IAccessControlChecker.sol";
 import "./IAccessControlCheckerByNFT.sol";
 import "../AbstractControlChecker.sol";
@@ -19,7 +19,11 @@ contract AccessControlCheckerByNFT is AbstractControlChecker, Ownable {
 
     event nftDataRegistered(address contractAddress, uint256 tokenId);
 
-    constructor(address _gatewayProxy) {
+    constructor(
+        address _initialOwner,
+        bool _setMinterHasOnlySetKeyRights,
+        address _gatewayProxy
+    ) AbstractControlChecker(_setMinterHasOnlySetKeyRights) Ownable(_initialOwner) {
         gatewayProxy = _gatewayProxy;
     }
 
@@ -34,7 +38,7 @@ contract AccessControlCheckerByNFT is AbstractControlChecker, Ownable {
      * @notice Get array of documentIds, NFT contract address, tokenId.
      */
     function getNFTDatas() public view returns (bytes32[] memory, Token[] memory) {
-        bytes32[] memory allDocumentIds = IVWBLGateway(getGatewayAddress()).getDocumentIds();
+        bytes32[] memory allDocumentIds = IVWBLGatewayV2(getGatewayAddress()).getDocumentIds();
         bytes32[] memory tempDocumentIds = new bytes32[](allDocumentIds.length);
         Token[] memory tempTokens = new Token[](allDocumentIds.length);
         uint256 count;
@@ -70,7 +74,7 @@ contract AccessControlCheckerByNFT is AbstractControlChecker, Ownable {
      * @param user The address of decryption key requester or decryption key sender to VWBL Network
      * @param documentId The Identifier of digital content and decryption key
      */
-    function checkAccessControl(address user, bytes32 documentId) external view returns (bool) {
+    function checkAccessControl(address user, bytes32 documentId) external pure returns (bool) {
         return false;
     }
 
@@ -85,7 +89,7 @@ contract AccessControlCheckerByNFT is AbstractControlChecker, Ownable {
         address nftContract,
         uint256 tokenId
     ) public payable {
-        IVWBLGateway(getGatewayAddress()).grantAccessControl{value: msg.value}(
+        IVWBLGatewayV2(getGatewayAddress()).grantAccessControl{value: msg.value}(
             documentId,
             address(this),
             IVWBL(nftContract).getMinter(tokenId)
@@ -93,7 +97,33 @@ contract AccessControlCheckerByNFT is AbstractControlChecker, Ownable {
 
         documentIdToToken[documentId].contractAddress = nftContract;
         documentIdToToken[documentId].tokenId = tokenId;
-
         emit nftDataRegistered(nftContract, tokenId);
+    }
+
+    /**
+     * @notice Batch grant access control, register access condition and NFT info
+     * @param documentIds An array of Identifiers for the digital content and decryption keys
+     * @param minter The address of the digital content creator for all provided document IDs
+     * @param nftContract The contract address of the NFT
+     * @param tokenIds An array of Identifiers for the NFTs corresponding to each document ID
+     */
+    function batchGrantAccessControlAndRegisterNFT(
+        bytes32[] memory documentIds,
+        address minter,
+        address nftContract,
+        uint256[] memory tokenIds
+    ) public payable {
+        require(documentIds.length == tokenIds.length, "documentIds and tokenIds is not same length");
+        IVWBLGatewayV2(getGatewayAddress()).batchGrantAccessControl{value: msg.value}(
+            documentIds,
+            address(this),
+            minter
+        );
+
+        for (uint256 i = 0; i < documentIds.length; i++) {
+            documentIdToToken[documentIds[i]].contractAddress = nftContract;
+            documentIdToToken[documentIds[i]].tokenId = tokenIds[i];
+            emit nftDataRegistered(nftContract, tokenIds[i]);
+        }
     }
 }

@@ -1,9 +1,8 @@
-// SPDX-License-Identifier: MIT
-pragma solidity ^0.8.17;
+// SPDX-License-Identifier: Apache-2.0
+pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 
 import "./IAccessControlCheckerByNFT.sol";
@@ -13,13 +12,17 @@ import "../AbstractVWBLToken.sol";
 /**
  * @dev NFT which is added Viewable features that only NFT Owner can view digital content
  */
-contract VWBLERC721 is Ownable, AbstractVWBLToken, ERC721Enumerable {
+contract VWBLERC721 is AbstractVWBLToken, ERC721Enumerable {
     constructor(
+        address _initialOwner,
         string memory _baseURI,
         address _gatewayProxy,
         address _accessCheckerContract,
         string memory _signMessage
-    ) ERC721("VWBL", "VWBL") AbstractVWBLToken(_baseURI, _gatewayProxy, _accessCheckerContract, _signMessage) {}
+    )
+        ERC721("VWBL", "VWBL")
+        AbstractVWBLToken(_initialOwner, _baseURI, _gatewayProxy, _accessCheckerContract, _signMessage)
+    {}
 
     /**
      * @notice BaseURI for computing {tokenURI}.

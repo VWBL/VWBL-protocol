@@ -1,5 +1,5 @@
-// SPDX-License-Identifier: MIT
-pragma solidity ^0.8.17;
+// SPDX-License-Identifier: Apache-2.0
+pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 
@@ -21,7 +21,7 @@ contract ManageSoldEvent is Ownable {
         _;
     }
 
-    constructor(address _whiteListAddress) {
+    constructor(address _initialOwner, address _whiteListAddress) Ownable(_initialOwner) {
         whiteListAddresses.push(_whiteListAddress);
     }
 
