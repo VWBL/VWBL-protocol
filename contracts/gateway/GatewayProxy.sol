@@ -11,7 +11,7 @@ contract GatewayProxy is Ownable, IGatewayProxy {
     address gatewayAddress;
     event gatewayContractChanged(address oldGatewayContract, address newGatewayContract);
 
-    constructor(address _initialOwner, address _gatewayAddress) Ownable(_initialOwner) {
+    constructor(address _gatewayAddress) Ownable(msg.sender) {
         gatewayAddress = _gatewayAddress;
     }
 
