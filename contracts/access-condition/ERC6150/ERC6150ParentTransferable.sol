@@ -7,7 +7,7 @@ import "./interfaces/IERC6150ParentTransferable.sol";
 abstract contract ERC6150ParentTransferable is ERC6150, IERC6150ParentTransferable {
     function transferParent(uint256 newParentId, uint256 tokenId) public virtual override {
         require(
-            _isApprovedOrOwner(_msgSender(), tokenId),
+            _isApprovedOrOwner(msg.sender, tokenId),
             "ERC6150ParentTransferable: caller is not token owner nor approved"
         );
         if (newParentId != 0) {

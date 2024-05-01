@@ -14,6 +14,10 @@ import "../../AbstractVWBLToken.sol";
  */
 contract VWBLERC721ERC2981ForMetadata is Ownable, AbstractVWBLToken, ERC721Enumerable, ERC2981 {
     mapping(uint256 => string) private _tokenURIs;
+    // tokenId => grantee => bool
+    mapping (uint256 => mapping (address => bool)) public hasViewRight;
+
+    event ViewRightGranted(uint256 tokenId, address grantee);
 
     constructor(
         address _gatewayProxy,
@@ -70,5 +74,26 @@ contract VWBLERC721ERC2981ForMetadata is Ownable, AbstractVWBLToken, ERC721Enume
         returns (bool)
     {
         return super.supportsInterface(interfaceId);
+    }
+
+    /**
+     * @notice Grant view permission to grantee from nft owner
+     * @param tokenId The identifier of NFT
+     * @param grantee The Address who grantee of view permission right 
+     */
+    function grantViewPermission(uint256 tokenId, address grantee) public returns (uint256) {
+        require(msg.sender == ownerOf(tokenId), "msg sender is not nft owner");
+        hasViewRight[tokenId][grantee] = true;
+        emit ViewRightGranted(tokenId, grantee);
+        return tokenId;
+    }
+
+    /**
+     * @notice Check view permission to user
+     * @param tokenId The Identifier of NFT
+     * @param user The address of verification target
+     */
+    function checkViewPermission(uint256 tokenId, address user) public view returns (bool) {
+        return hasViewRight[tokenId][user];
     }
 }
