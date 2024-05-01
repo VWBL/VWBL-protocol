@@ -17,7 +17,7 @@ contract VWBLERC1155 is Ownable, ERC1155Enumerable, ERC1155Burnable, AbstractVWB
     using Strings for uint256;
 
     // tokenId => grantee => bool
-    mapping (uint256 => mapping (address => bool)) public hasViewRight;
+    mapping(uint256 => mapping(address => bool)) public hasViewRight;
 
     event ViewRightGranted(uint256 tokenId, address grantee);
 
@@ -128,7 +128,7 @@ contract VWBLERC1155 is Ownable, ERC1155Enumerable, ERC1155Burnable, AbstractVWB
     /**
      * @notice Grant view permission to grantee from nft owner
      * @param tokenId The identifier of NFT
-     * @param grantee The Address who grantee of view permission right 
+     * @param grantee The Address who grantee of view permission right
      */
     function grantViewPermission(uint256 tokenId, address grantee) public returns (uint256) {
         require(balanceOf(msg.sender, tokenId) > 0, "msg sender is not nft owner");

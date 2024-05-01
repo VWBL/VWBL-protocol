@@ -47,7 +47,7 @@ interface IVWBL {
     /**
      * @notice Grant view permission to grantee from nft owner
      * @param tokenId The identifier of NFT
-     * @param grantee The Address who grantee of view permission right 
+     * @param grantee The Address who grantee of view permission right
      */
     function grantViewPermission(uint256 tokenId, address grantee) external returns (uint256);
 
