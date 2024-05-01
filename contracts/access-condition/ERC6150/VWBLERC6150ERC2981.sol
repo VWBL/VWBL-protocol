@@ -17,9 +17,9 @@ contract VWBLERC6150ERC2981 is Ownable, ERC6150ParentTransferable, AbstractVWBLT
     using Strings for uint256;
 
     // tokenId => grantee => bool
-    mapping(uint256 => mapping(address => bool)) public hasViewRight;
+    mapping(uint256 => mapping(address => bool)) public hasViewPermission;
 
-    event ViewRightGranted(uint256 tokenId, address grantee);
+    event ViewPermissionGranted(uint256 tokenId, address grantee);
 
     constructor(
         string memory _baseURI,
@@ -83,8 +83,8 @@ contract VWBLERC6150ERC2981 is Ownable, ERC6150ParentTransferable, AbstractVWBLT
      */
     function grantViewPermission(uint256 tokenId, address grantee) public returns (uint256) {
         require(msg.sender == ownerOf(tokenId), "msg sender is not nft owner");
-        hasViewRight[tokenId][grantee] = true;
-        emit ViewRightGranted(tokenId, grantee);
+        hasViewPermission[tokenId][grantee] = true;
+        emit ViewPermissionGranted(tokenId, grantee);
         return tokenId;
     }
 
@@ -94,6 +94,6 @@ contract VWBLERC6150ERC2981 is Ownable, ERC6150ParentTransferable, AbstractVWBLT
      * @param user The address of verification target
      */
     function checkViewPermission(uint256 tokenId, address user) public view returns (bool) {
-        return hasViewRight[tokenId][user];
+        return hasViewPermission[tokenId][user];
     }
 }

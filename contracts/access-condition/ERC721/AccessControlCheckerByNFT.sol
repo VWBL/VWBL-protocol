@@ -72,9 +72,12 @@ contract AccessControlCheckerByNFT is AbstractControlChecker, Ownable {
      */
     function checkAccessControl(address user, bytes32 documentId) external view returns (bool) {
         Token memory token = documentIdToToken[documentId];
-        try IVWBL(token.contractAddress).checkViewPermission(token.tokenId, user) returns (bool result) {} catch {
+        try IVWBL(token.contractAddress).checkViewPermission(token.tokenId, user) returns (bool result) {
+            return result;
+        } catch {
             return false;
         }
+
     }
 
     /**

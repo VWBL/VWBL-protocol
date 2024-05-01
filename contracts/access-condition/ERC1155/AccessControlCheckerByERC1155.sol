@@ -72,11 +72,15 @@ contract AccessControlCheckerByERC1155 is AbstractControlChecker, Ownable {
     function checkAccessControl(address user, bytes32 documentId) external view returns (bool) {
         Token memory token = documentIdToToken[documentId];
 
-        if (IERC1155(token.contractAddress).balanceOf(user, token.tokenId) > 0) {
-            return true;
+        bool isOwner = IERC1155(token.contractAddress).balanceOf(user, token.tokenId) > 0;
+        bool isGrantee;
+        try  IVWBL(token.contractAddress).checkViewPermission(token.tokenId, user) returns (bool result) {
+            isGrantee = result;
+        } catch  {
+            isGrantee = false;
         }
 
-        return false;
+        return isOwner || isGrantee;
     }
 
     /**

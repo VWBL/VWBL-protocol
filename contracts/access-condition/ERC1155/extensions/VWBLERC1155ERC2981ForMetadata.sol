@@ -20,9 +20,9 @@ contract VWBLERC1155ERC2981ForMetadata is Ownable, ERC1155Enumerable, ERC1155Bur
     mapping(uint256 => string) private _tokenURIs;
 
     // tokenId => grantee => bool
-    mapping(uint256 => mapping(address => bool)) public hasViewRight;
+    mapping(uint256 => mapping(address => bool)) public hasViewPermission;
 
-    event ViewRightGranted(uint256 tokenId, address grantee);
+    event ViewPermissionGranted(uint256 tokenId, address grantee);
 
     constructor(
         address _gatewayProxy,
@@ -167,8 +167,8 @@ contract VWBLERC1155ERC2981ForMetadata is Ownable, ERC1155Enumerable, ERC1155Bur
      */
     function grantViewPermission(uint256 tokenId, address grantee) public returns (uint256) {
         require(balanceOf(msg.sender, tokenId) > 0, "msg sender is not nft owner");
-        hasViewRight[tokenId][grantee] = true;
-        emit ViewRightGranted(tokenId, grantee);
+        hasViewPermission[tokenId][grantee] = true;
+        emit ViewPermissionGranted(tokenId, grantee);
         return tokenId;
     }
 
@@ -178,6 +178,6 @@ contract VWBLERC1155ERC2981ForMetadata is Ownable, ERC1155Enumerable, ERC1155Bur
      * @param user The address of verification target
      */
     function checkViewPermission(uint256 tokenId, address user) public view returns (bool) {
-        return hasViewRight[tokenId][user];
+        return hasViewPermission[tokenId][user];
     }
 }
