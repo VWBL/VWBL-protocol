@@ -101,4 +101,19 @@ describe("VWBLERC6150ERC2981", async () => {
         const parentOfChild = await vwblERC6150ERC2981.parentOf(childTokenId);
         assert.equal(parentTokenId.toNumber(), parentOfChild.toNumber())
     })
+
+    it("should fail to grant view permission from not erc6150 owner", async () => {
+        await expect(
+            vwblERC6150ERC2981
+                .connect(accounts[2])
+                .grantViewPermission(1, accounts[4].address)
+        ).to.be.revertedWith("msg sender is not nft owner")
+    })
+
+    it("should successfully grant view permission from erc6150 owner", async () => {
+        await vwblGateway.connect(accounts[0]).setFeeWei(utils.parseEther("0"))
+        await vwblERC6150ERC2981.connect(accounts[1]).grantViewPermission(1, accounts[4].address);
+        const isPermitted = await vwblGateway.hasAccessControl(accounts[4].address, TEST_DOCUMENT_ID1)
+        assert.equal(isPermitted, true)
+    })
 })

@@ -8,11 +8,12 @@ import "@openzeppelin/contracts/token/common/ERC2981.sol";
 
 import "./IAccessControlCheckerByNFT.sol";
 import "../AbstractVWBLToken.sol";
+import "./IViewPermission.sol";
 
 /**
  * @dev NFT which is added Viewable features that only NFT Owner can view digital content
  */
-contract VWBLERC721ERC2981 is Ownable, AbstractVWBLToken, ERC721Enumerable, ERC2981 {
+contract VWBLERC721ERC2981 is Ownable, AbstractVWBLToken, ERC721Enumerable, ERC2981, IViewPermission {
     // tokenId => grantee => bool
     mapping(uint256 => mapping(address => bool)) public hasViewPermission;
 

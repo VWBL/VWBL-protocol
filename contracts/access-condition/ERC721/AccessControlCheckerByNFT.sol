@@ -9,9 +9,10 @@ import "../IAccessControlChecker.sol";
 import "./IAccessControlCheckerByNFT.sol";
 import "../AbstractControlChecker.sol";
 import "../IVWBL.sol";
+import "./IViewPermission.sol";
 
 /**
- * @dev VWBL's access condition contract which is defined by NFT Owner has access right of digital content
+ * @dev VWBL's access condition contract which is defined by NFT Owner and Grantee has access right of digital content
  *      and NFT Minter is digital contract creator(decryption key creator)
  */
 contract AccessControlCheckerByNFT is AbstractControlChecker, Ownable {
@@ -72,12 +73,11 @@ contract AccessControlCheckerByNFT is AbstractControlChecker, Ownable {
      */
     function checkAccessControl(address user, bytes32 documentId) external view returns (bool) {
         Token memory token = documentIdToToken[documentId];
-        try IVWBL(token.contractAddress).checkViewPermission(token.tokenId, user) returns (bool result) {
+        try IViewPermission(token.contractAddress).checkViewPermission(token.tokenId, user) returns (bool result) {
             return result;
         } catch {
             return false;
         }
-
     }
 
     /**
