@@ -17,8 +17,13 @@ contract VWBLERC6150 is Ownable, ERC6150ParentTransferable, AbstractVWBLToken {
 
     // tokenId => grantee => bool
     mapping(uint256 => mapping(address => bool)) public hasViewPermission;
+    // parentTokenId => grantee => bool
+    mapping(uint256 => mapping(address => bool)) public hasAncestorPermission;
 
     event ViewPermissionGranted(uint256 tokenId, address grantee);
+    event ViewPermissionRevoked(uint256 tokenId, address revoker);
+    event AncestorPermissionGranted(uint256 tokenId, address grantee);
+    event AncestorPermissionRevoked(uint256 tokenId, address revoker);
 
     constructor(
         string memory _baseURI,
@@ -76,11 +81,64 @@ contract VWBLERC6150 is Ownable, ERC6150ParentTransferable, AbstractVWBLToken {
     }
 
     /**
+     * @notice Revoke view permission from nft owner
+     * @param tokenId The identifier of the NFT
+     * @param revoker The address revoking the view permission
+     * @return The tokenId of the NFT token
+     */
+    function revokeViewPermission(uint256 tokenId, address revoker) public returns (uint256) {
+        require(msg.sender == ownerOf(tokenId), "msg sender is not nft owner");
+        hasViewPermission[tokenId][revoker] = false;
+        emit ViewPermissionRevoked(tokenId, revoker);
+        return tokenId;
+    }
+
+    /**
+     * @notice Grant view permission to parent NFT from nft owner
+     * @param tokenId The identifier of the NFT
+     * @param grantee The address of the grantee receiving view permission
+     * @return The tokenId of the NFT token
+     */
+    function grantViewPermissionToParent(uint256 tokenId, address grantee) public returns (uint256) {
+        require(msg.sender == ownerOf(tokenId), "msg sender is not nft owner");
+        hasAncestorPermission[tokenId][grantee] = true;
+        hasViewPermission[tokenId][grantee] = true;
+        emit ViewPermissionGranted(tokenId, grantee);
+        emit AncestorPermissionGranted(tokenId, grantee);
+        return tokenId;
+    }
+
+    /**
+     * @notice Revoke ancestor permission from nft owner
+     * @param tokenId The identifier of the NFT
+     * @param revoker The address revoking the ancestor permission
+     * @return The tokenId of the NFT token
+     */
+    function revokeAncestorPermission(uint256 tokenId, address revoker) public returns (uint256) {
+        require(msg.sender == ownerOf(tokenId), "msg sender is not nft owner");
+        hasAncestorPermission[tokenId][revoker] = false;
+        emit AncestorPermissionRevoked(tokenId, revoker);
+        return tokenId;
+    }
+
+    /**
      * @notice Check view permission to user
      * @param tokenId The Identifier of NFT
      * @param user The address of verification target
      */
     function checkViewPermission(uint256 tokenId, address user) public view returns (bool) {
         return hasViewPermission[tokenId][user];
+    }
+
+    /**
+     * @notice Check if the user has ancestor permission for a specific NFT token
+     * @param tokenId The identifier of the NFT
+     * @param user The address of verification target
+     * @return A boolean indicating whether the user has ancestor permission
+     */
+    function checkAncestorPermission(uint256 tokenId, address user) public view returns (bool) {
+        if (tokenId == 0) return false;
+        uint parentTokenId = parentOf(tokenId);
+        return hasAncestorPermission[parentTokenId][user] || checkAncestorPermission(parentTokenId, user);
     }
 }
