@@ -153,7 +153,7 @@ contract VWBLERC6150ERC2981 is Ownable, ERC6150ParentTransferable, AbstractVWBLT
      */
     function checkAncestorPermission(uint256 tokenId, address user) public view returns (bool) {
         if (tokenId == 0) return false;
-        uint parentTokenId = parentOf(tokenId);
+        uint256 parentTokenId = parentOf(tokenId);
         return hasAncestorPermission[parentTokenId][user] || checkAncestorPermission(parentTokenId, user);
     }
 }
