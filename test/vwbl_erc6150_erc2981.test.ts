@@ -13,6 +13,7 @@ describe("VWBLERC6150ERC2981", async () => {
     const TEST_DOCUMENT_ID1 = "0xac00000000000000000000000000000000000000000000000000000000000000"
     const TEST_DOCUMENT_ID2 = "0xbc00000000000000000000000000000000000000000000000000000000000000"
     const TEST_DOCUMENT_ID3 = "0xcc00000000000000000000000000000000000000000000000000000000000000"
+    const TEST_DOCUMENT_ID4 = "0xdc00000000000000000000000000000000000000000000000000000000000000"
     const fee = utils.parseEther("1")
 
     before(async () => {
@@ -73,7 +74,7 @@ describe("VWBLERC6150ERC2981", async () => {
         const isPermitted = await vwblGateway.hasAccessControl(accounts[1].address, TEST_DOCUMENT_ID1)
         assert.equal(isPermitted, true)
     })
-    it("should mint child nft", async () => {
+    it("should mint child nft of tier1", async () => {
         const parentTokenMintTx = await vwblERC6150ERC2981.connect(accounts[1]).mint(
           "http://xxx.yyy.com",
           0, // root
@@ -88,7 +89,7 @@ describe("VWBLERC6150ERC2981", async () => {
         const parentTokenId = parentMintEvent.args.tokenId;
         const childTokenMintTx = await vwblERC6150ERC2981.connect(accounts[1]).mint(
           "http://xxx.yyy.com",
-          parentTokenId, // root
+          parentTokenId, // parent
           500, // royalty = 5%
           TEST_DOCUMENT_ID3,
           {
@@ -99,7 +100,25 @@ describe("VWBLERC6150ERC2981", async () => {
         const childMintEvent = childTokenMintRc.events.find((e: any) => e.event === 'Transfer');
         const childTokenId = childMintEvent.args.tokenId;
         const parentOfChild = await vwblERC6150ERC2981.parentOf(childTokenId);
-        assert.equal(parentTokenId.toNumber(), parentOfChild.toNumber())
+        assert.equal(parentTokenId.toNumber(), parentOfChild.toNumber());
+    })
+
+    it("should mint child nft of tier2", async () => {
+          const parentTokenId = 3;
+          const childTokenMintTx = await vwblERC6150ERC2981.connect(accounts[1]).mint(
+            "http://xxx.yyy.com",
+            parentTokenId, // root
+            500, // royalty = 5%
+            TEST_DOCUMENT_ID4,
+            {
+                value: utils.parseEther("1"),
+            }
+          );
+          const childTokenMintRc = await childTokenMintTx.wait();
+          const childMintEvent = childTokenMintRc.events.find((e: any) => e.event === 'Transfer');
+          const childTokenId = childMintEvent.args.tokenId;
+          const parentOfChild = await vwblERC6150ERC2981.parentOf(childTokenId);
+          assert.equal(parentTokenId, parentOfChild.toNumber());
     })
 
     it("should fail to grant view permission from not erc6150 owner", async () => {
@@ -107,7 +126,7 @@ describe("VWBLERC6150ERC2981", async () => {
             vwblERC6150ERC2981
                 .connect(accounts[2])
                 .grantViewPermission(1, accounts[4].address)
-        ).to.be.revertedWith("msg sender is not nft owner")
+        ).to.be.revertedWith("msg sender is not ERC6150 owner")
     })
 
     it("should successfully grant view permission from erc6150 owner", async () => {
@@ -115,5 +134,49 @@ describe("VWBLERC6150ERC2981", async () => {
         await vwblERC6150ERC2981.connect(accounts[1]).grantViewPermission(1, accounts[4].address);
         const isPermitted = await vwblGateway.hasAccessControl(accounts[4].address, TEST_DOCUMENT_ID1)
         assert.equal(isPermitted, true)
+    })
+
+    it ("should fail to revoke view permission from not erc6150 owner", async () => {
+        await expect(
+            vwblERC6150ERC2981
+                .connect(accounts[0])
+                .revokeViewPermission(1, accounts[4].address)
+        ).to.be.revertedWith("msg sender is not ERC6150 owner")
+    })
+
+    it ("should fail to grant view permission to directory from not erc6150 owner", async () => {
+        await expect(
+            vwblERC6150ERC2981
+                .connect(accounts[0])
+                .grantViewPermissionToDir(2, accounts[4].address)
+        ).to.be.revertedWith("msg sender is not ERC6150 owner")
+    })
+
+    it ("should successfully grant view permission ot directory from erc6150 owner", async () => {
+        await vwblERC6150ERC2981.connect(accounts[1]).grantViewPermissionToDir(2, accounts[4].address);
+        const isPermittedOfTokenId2 = await vwblGateway.hasAccessControl(accounts[4].address, TEST_DOCUMENT_ID2)
+        assert.equal(isPermittedOfTokenId2, true)
+        const isPermittedOfTokenId3 = await vwblGateway.hasAccessControl(accounts[4].address, TEST_DOCUMENT_ID3)
+        assert.equal(isPermittedOfTokenId3, true)
+        const isPermittedOfTokenId4 = await vwblGateway.hasAccessControl(accounts[4].address, TEST_DOCUMENT_ID4)
+        assert.equal(isPermittedOfTokenId4, true)
+    })
+
+    it("should fail to revoke ancestor permission from not erc6150 owner", async () => {
+        await expect(
+            vwblERC6150ERC2981
+                .connect(accounts[0])
+                .revokeAncestorPermission(2, accounts[4].address)
+        ).to.be.revertedWith("msg sender is not ERC6150 owner")
+    })
+
+    it ("should successfully ancestor permission from erc6150 owner", async () => {
+        await vwblERC6150ERC2981.connect(accounts[1]).revokeAncestorPermission(2, accounts[4].address)
+        const isPermittedOfTokenId2 = await vwblGateway.hasAccessControl(accounts[4].address, TEST_DOCUMENT_ID2)
+        assert.equal(isPermittedOfTokenId2, true)
+        const isPermittedOfTokenId3 = await vwblGateway.hasAccessControl(accounts[4].address, TEST_DOCUMENT_ID3)
+        assert.equal(isPermittedOfTokenId3, false)
+        const isPermittedOfTokenId4 = await vwblGateway.hasAccessControl(accounts[4].address, TEST_DOCUMENT_ID4)
+        assert.equal(isPermittedOfTokenId4, false)
     })
 })

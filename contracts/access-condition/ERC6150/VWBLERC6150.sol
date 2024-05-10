@@ -94,12 +94,12 @@ contract VWBLERC6150 is Ownable, ERC6150ParentTransferable, AbstractVWBLToken {
     }
 
     /**
-     * @notice Grant view permission to parent ERC6150 from ERC6150 owner
+     * @notice Grant view permission to Directory(ERC6150 under parent token) from ERC6150 owner
      * @param tokenId The identifier of the ERC6150
      * @param grantee The address of the grantee receiving view permission
      * @return The tokenId of the ERC6150
      */
-    function grantViewPermissionToParent(uint256 tokenId, address grantee) public returns (uint256) {
+    function grantViewPermissionToDir(uint256 tokenId, address grantee) public returns (uint256) {
         require(msg.sender == ownerOf(tokenId), "msg sender is not ERC6150 owner");
         hasAncestorPermission[tokenId][grantee] = true;
         hasViewPermission[tokenId][grantee] = true;
