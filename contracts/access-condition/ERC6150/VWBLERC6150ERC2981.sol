@@ -82,23 +82,23 @@ contract VWBLERC6150ERC2981 is Ownable, ERC6150ParentTransferable, AbstractVWBLT
     }
 
     /**
-     * @notice Grant view permission to grantee from nft owner
-     * @param tokenId The identifier of NFT
+     * @notice Grant view permission to grantee from ERC6150 owner
+     * @param tokenId The identifier of ERC6150
      * @param grantee The Address who grantee of view permission right
-     * @return The tokenId of the NFT token
+     * @return The tokenId of the ERC6150
      */
     function grantViewPermission(uint256 tokenId, address grantee) public returns (uint256) {
-        require(msg.sender == ownerOf(tokenId), "msg sender is not nft owner");
+        require(msg.sender == ownerOf(tokenId), "msg sender is not ERC6150 owner");
         hasViewPermission[tokenId][grantee] = true;
         emit ViewPermissionGranted(tokenId, grantee);
         return tokenId;
     }
 
     /**
-     * @notice Revoke view permission from nft owner
-     * @param tokenId The identifier of the NFT
+     * @notice Revoke view permission from ERC6150 owner
+     * @param tokenId The identifier of the ERC6150
      * @param revoker The address revoking the view permission
-     * @return The tokenId of the NFT token
+     * @return The tokenId of the ERC6150
      */
     function revokeViewPermission(uint256 tokenId, address revoker) public returns (uint256) {
         require(msg.sender == ownerOf(tokenId), "msg sender is not nft owner");
@@ -108,13 +108,13 @@ contract VWBLERC6150ERC2981 is Ownable, ERC6150ParentTransferable, AbstractVWBLT
     }
 
     /**
-     * @notice Grant view permission to parent NFT from nft owner
-     * @param tokenId The identifier of the NFT
+     * @notice Grant view permission to parent ERC6150 from ERC6150 owner
+     * @param tokenId The identifier of the ERC6150
      * @param grantee The address of the grantee receiving view permission
-     * @return The tokenId of the NFT token
+     * @return The tokenId of the ERC6150
      */
     function grantViewPermissionToParent(uint256 tokenId, address grantee) public returns (uint256) {
-        require(msg.sender == ownerOf(tokenId), "msg sender is not nft owner");
+        require(msg.sender == ownerOf(tokenId), "msg sender is not ERC6150 owner");
         hasAncestorPermission[tokenId][grantee] = true;
         hasViewPermission[tokenId][grantee] = true;
         emit ViewPermissionGranted(tokenId, grantee);
@@ -123,21 +123,21 @@ contract VWBLERC6150ERC2981 is Ownable, ERC6150ParentTransferable, AbstractVWBLT
     }
 
     /**
-     * @notice Revoke ancestor permission from nft owner
-     * @param tokenId The identifier of the NFT
+     * @notice Revoke ancestor permission from ERC6150 owner
+     * @param tokenId The identifier of the ERC6150
      * @param revoker The address revoking the ancestor permission
-     * @return The tokenId of the NFT token
+     * @return The tokenId of the ERC6150
      */
     function revokeAncestorPermission(uint256 tokenId, address revoker) public returns (uint256) {
-        require(msg.sender == ownerOf(tokenId), "msg sender is not nft owner");
+        require(msg.sender == ownerOf(tokenId), "msg sender is not ERC6150 owner");
         hasAncestorPermission[tokenId][revoker] = false;
         emit AncestorPermissionRevoked(tokenId, revoker);
         return tokenId;
     }
 
     /**
-     * @notice Check if the user has view permission for a specific NFT token
-     * @param tokenId The identifier of the NFT
+     * @notice Check if the user has view permission for a specific ERC6150
+     * @param tokenId The identifier of the ERC6150
      * @param user The address of the user to check view permission for
      * @return A boolean indicating whether the user has view permission
      */
@@ -146,8 +146,8 @@ contract VWBLERC6150ERC2981 is Ownable, ERC6150ParentTransferable, AbstractVWBLT
     }
 
     /**
-     * @notice Check if the user has ancestor permission for a specific NFT token
-     * @param tokenId The identifier of the NFT
+     * @notice Check if the user has ancestor permission for a specific ERC6150
+     * @param tokenId The identifier of the ERC6150
      * @param user The address of verification target
      * @return A boolean indicating whether the user has ancestor permission
      */
