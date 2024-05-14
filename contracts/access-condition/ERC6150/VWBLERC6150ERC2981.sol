@@ -8,18 +8,19 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "./ERC6150ParentTransferable.sol";
 import "../ERC721/IAccessControlCheckerByNFT.sol";
 import "../AbstractVWBLToken.sol";
+import "./IViewPermissionERC6150.sol";
 
 /**
  * @dev ERC6150 which is added Viewable features that only ERC6150 Owner can view digital content
  */
-contract VWBLERC6150ERC2981 is Ownable, ERC6150ParentTransferable, AbstractVWBLToken, ERC2981 {
+contract VWBLERC6150ERC2981 is Ownable, ERC6150ParentTransferable, AbstractVWBLToken, ERC2981, IViewPermissionERC6150 {
     using SafeMath for uint256;
     using Strings for uint256;
 
     // tokenId => grantee => bool
     mapping(uint256 => mapping(address => bool)) public hasViewPermission;
     // parentTokenId => grantee => bool
-    mapping(uint256 => mapping(address => bool)) public hasAncestorPermission;
+    mapping(uint256 => mapping(address => bool)) public hasDirPermission;
 
     event ViewPermissionGranted(uint256 tokenId, address grantee);
     event ViewPermissionRevoked(uint256 tokenId, address revoker);
@@ -82,6 +83,25 @@ contract VWBLERC6150ERC2981 is Ownable, ERC6150ParentTransferable, AbstractVWBLT
     }
 
     /**
+     * @notice Grant view permission to a specific address for a specific ERC6150 token from ERC6150 owner.
+     * @param tokenId The identifier of the ERC6150 token.
+     * @param grantee The address to which view permission will be granted.
+     * @param toDir A boolean indicating whether to grant view permission directly or single ERC6150 token.
+     * @return The tokenId of the ERC6150 token for which permission was granted.
+     */
+    function grantViewPermission(
+        uint256 tokenId,
+        address grantee,
+        bool toDir
+    ) public returns (uint256) {
+        if (toDir) {
+            return grantViewPermissionToDir(tokenId, grantee);
+        } else {
+            return grantViewPermission(tokenId, grantee);
+        }
+    }
+
+    /**
      * @notice Grant view permission to grantee from ERC6150 owner
      * @param tokenId The identifier of ERC6150
      * @param grantee The Address who grantee of view permission right
@@ -115,7 +135,7 @@ contract VWBLERC6150ERC2981 is Ownable, ERC6150ParentTransferable, AbstractVWBLT
      */
     function grantViewPermissionToDir(uint256 tokenId, address grantee) public returns (uint256) {
         require(msg.sender == ownerOf(tokenId), "msg sender is not ERC6150 owner");
-        hasAncestorPermission[tokenId][grantee] = true;
+        hasDirPermission[tokenId][grantee] = true;
         hasViewPermission[tokenId][grantee] = true;
         emit ViewPermissionGranted(tokenId, grantee);
         emit AncestorPermissionGranted(tokenId, grantee);
@@ -128,9 +148,9 @@ contract VWBLERC6150ERC2981 is Ownable, ERC6150ParentTransferable, AbstractVWBLT
      * @param revoker The address revoking the ancestor permission
      * @return The tokenId of the ERC6150
      */
-    function revokeAncestorPermission(uint256 tokenId, address revoker) public returns (uint256) {
+    function revokeDirPermission(uint256 tokenId, address revoker) public returns (uint256) {
         require(msg.sender == ownerOf(tokenId), "msg sender is not ERC6150 owner");
-        hasAncestorPermission[tokenId][revoker] = false;
+        hasDirPermission[tokenId][revoker] = false;
         emit AncestorPermissionRevoked(tokenId, revoker);
         return tokenId;
     }
@@ -142,18 +162,18 @@ contract VWBLERC6150ERC2981 is Ownable, ERC6150ParentTransferable, AbstractVWBLT
      * @return A boolean indicating whether the user has view permission
      */
     function checkViewPermission(uint256 tokenId, address user) public view returns (bool) {
-        return hasViewPermission[tokenId][user] || checkAncestorPermission(tokenId, user);
+        return hasViewPermission[tokenId][user] || checkDirPermission(tokenId, user);
     }
 
     /**
-     * @notice Check if the user has ancestor permission for a specific ERC6150
+     * @notice Check if the user has Directory(ERC6150 under parent token) permission for a specific ERC6150
      * @param tokenId The identifier of the ERC6150
      * @param user The address of verification target
      * @return A boolean indicating whether the user has ancestor permission
      */
-    function checkAncestorPermission(uint256 tokenId, address user) public view returns (bool) {
+    function checkDirPermission(uint256 tokenId, address user) public view returns (bool) {
         if (tokenId == 0) return false;
         uint256 parentTokenId = parentOf(tokenId);
-        return hasAncestorPermission[parentTokenId][user] || checkAncestorPermission(parentTokenId, user);
+        return hasDirPermission[parentTokenId][user] || checkDirPermission(parentTokenId, user);
     }
 }

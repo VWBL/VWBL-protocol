@@ -288,6 +288,20 @@ describe("VWBLGateway", async () => {
         assert.equal(isPermitted, true)
     })
 
+    it("should fail to revoke permission from not nft owner", async () => {
+        await expect(
+            vwblERC721
+                .connect(accounts[1])
+                .revokeViewPermission(1, accounts[4].address)
+        ).to.be.revertedWith("msg sender is not nft owner")
+    })
+
+    it ("should successfully revoke view permission from nft owner", async () => {
+        await vwblERC721.connect(accounts[3]).revokeViewPermission(1, accounts[4].address);
+        const isPermitted = await vwblGateway.hasAccessControl(accounts[4].address, TEST_DOCUMENT_ID1)
+        assert.equal(isPermitted, false)
+    })
+
     it("should not set VWBLGateway contract from not contract owner", async () => {
         await expect(gatewayProxy.connect(accounts[1]).setGatewayAddress(accounts[4].address)).to.be.revertedWith(
             "Ownable: caller is not the owner"

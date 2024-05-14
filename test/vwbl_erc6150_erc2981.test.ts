@@ -124,14 +124,13 @@ describe("VWBLERC6150ERC2981", async () => {
     it("should fail to grant view permission from not erc6150 owner", async () => {
         await expect(
             vwblERC6150ERC2981
-                .connect(accounts[2])
-                .grantViewPermission(1, accounts[4].address)
+                .connect(accounts[2])["grantViewPermission(uint256,address,bool)"](1, accounts[4].address, false)
         ).to.be.revertedWith("msg sender is not ERC6150 owner")
     })
 
     it("should successfully grant view permission from erc6150 owner", async () => {
         await vwblGateway.connect(accounts[0]).setFeeWei(utils.parseEther("0"))
-        await vwblERC6150ERC2981.connect(accounts[1]).grantViewPermission(1, accounts[4].address);
+        await vwblERC6150ERC2981.connect(accounts[1])["grantViewPermission(uint256,address,bool)"](1, accounts[4].address, false);
         const isPermitted = await vwblGateway.hasAccessControl(accounts[4].address, TEST_DOCUMENT_ID1)
         assert.equal(isPermitted, true)
     })
@@ -147,13 +146,12 @@ describe("VWBLERC6150ERC2981", async () => {
     it ("should fail to grant view permission to directory from not erc6150 owner", async () => {
         await expect(
             vwblERC6150ERC2981
-                .connect(accounts[0])
-                .grantViewPermissionToDir(2, accounts[4].address)
+                .connect(accounts[0])["grantViewPermission(uint256,address,bool)"](2, accounts[4].address, true)
         ).to.be.revertedWith("msg sender is not ERC6150 owner")
     })
 
     it ("should successfully grant view permission ot directory from erc6150 owner", async () => {
-        await vwblERC6150ERC2981.connect(accounts[1]).grantViewPermissionToDir(2, accounts[4].address);
+        await vwblERC6150ERC2981.connect(accounts[1])["grantViewPermission(uint256,address,bool)"](2, accounts[4].address, true);
         const isPermittedOfTokenId2 = await vwblGateway.hasAccessControl(accounts[4].address, TEST_DOCUMENT_ID2)
         assert.equal(isPermittedOfTokenId2, true)
         const isPermittedOfTokenId3 = await vwblGateway.hasAccessControl(accounts[4].address, TEST_DOCUMENT_ID3)
@@ -162,16 +160,16 @@ describe("VWBLERC6150ERC2981", async () => {
         assert.equal(isPermittedOfTokenId4, true)
     })
 
-    it("should fail to revoke ancestor permission from not erc6150 owner", async () => {
+    it("should fail to revoke dir permission from not erc6150 owner", async () => {
         await expect(
             vwblERC6150ERC2981
                 .connect(accounts[0])
-                .revokeAncestorPermission(2, accounts[4].address)
+                .revokeDirPermission(2, accounts[4].address)
         ).to.be.revertedWith("msg sender is not ERC6150 owner")
     })
 
-    it ("should successfully ancestor permission from erc6150 owner", async () => {
-        await vwblERC6150ERC2981.connect(accounts[1]).revokeAncestorPermission(2, accounts[4].address)
+    it ("should successfully revoke dir permission from erc6150 owner", async () => {
+        await vwblERC6150ERC2981.connect(accounts[1]).revokeDirPermission(2, accounts[4].address)
         const isPermittedOfTokenId2 = await vwblGateway.hasAccessControl(accounts[4].address, TEST_DOCUMENT_ID2)
         assert.equal(isPermittedOfTokenId2, true)
         const isPermittedOfTokenId3 = await vwblGateway.hasAccessControl(accounts[4].address, TEST_DOCUMENT_ID3)

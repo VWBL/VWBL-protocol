@@ -19,6 +19,7 @@ contract VWBLERC721ERC2981ForMetadata is Ownable, AbstractVWBLToken, ERC721Enume
     mapping(uint256 => mapping(address => bool)) public hasViewPermission;
 
     event ViewPermissionGranted(uint256 tokenId, address grantee);
+    event ViewPermissionRevoked(uint256 tokenId, address revoker);
 
     constructor(
         address _gatewayProxy,
@@ -86,6 +87,19 @@ contract VWBLERC721ERC2981ForMetadata is Ownable, AbstractVWBLToken, ERC721Enume
         require(msg.sender == ownerOf(tokenId), "msg sender is not nft owner");
         hasViewPermission[tokenId][grantee] = true;
         emit ViewPermissionGranted(tokenId, grantee);
+        return tokenId;
+    }
+
+    /**
+     * @notice Revoke view permission from nft owner
+     * @param tokenId The identifier of the NFT
+     * @param revoker The address revoking the view permission
+     * @return The tokenId of the NFT token
+     */
+    function revokeViewPermission(uint256 tokenId, address revoker) public returns (uint256) {
+        require(msg.sender == ownerOf(tokenId), "msg sender is not nft owner");
+        hasViewPermission[tokenId][revoker] = false;
+        emit ViewPermissionRevoked(tokenId, revoker);
         return tokenId;
     }
 

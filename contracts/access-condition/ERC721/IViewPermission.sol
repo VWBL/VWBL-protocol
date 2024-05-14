@@ -10,6 +10,14 @@ interface IViewPermission {
     function grantViewPermission(uint256 tokenId, address grantee) external returns (uint256);
 
     /**
+     * @notice Revoke view permission from nft owner
+     * @param tokenId The identifier of the NFT
+     * @param revoker The address revoking the view permission
+     * @return The tokenId of the NFT token
+     */
+    function revokeViewPermission(uint256 tokenId, address revoker) external returns (uint256);
+
+    /**
      * @notice Check view permission to user
      * @param tokenId The Identifier of NFT
      * @param user The address of verification target
