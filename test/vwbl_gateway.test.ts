@@ -268,10 +268,38 @@ describe("VWBLGateway", async () => {
         const oldFeeWei = await vwblGateway.feeWei()
         assert.equal(oldFeeWei.toString(), utils.parseEther("1"))
 
-        await vwblGateway.connect(accounts[0]).setFeeWei(utils.parseEther("2"))
+        await vwblGateway.connect(accounts[0]).setFeeWei(utils.parseEther("0"))
 
         const newFeeWei = await vwblGateway.feeWei()
-        assert.equal(newFeeWei.toString(), utils.parseEther("2"))
+        assert.equal(newFeeWei.toString(), utils.parseEther("0"))
+    })
+
+    it("should fail to grant view permission from not nft owner", async () => {
+        await expect(
+            vwblERC721
+                .connect(accounts[1])
+                .grantViewPermission(1, accounts[4].address)
+        ).to.be.revertedWith("msg sender is not nft owner")
+    })
+
+    it("should successfully grant view permission from nft owner", async () => {
+        await vwblERC721.connect(accounts[3]).grantViewPermission(1, accounts[4].address);
+        const isPermitted = await vwblGateway.hasAccessControl(accounts[4].address, TEST_DOCUMENT_ID1)
+        assert.equal(isPermitted, true)
+    })
+
+    it("should fail to revoke permission from not nft owner", async () => {
+        await expect(
+            vwblERC721
+                .connect(accounts[1])
+                .revokeViewPermission(1, accounts[4].address)
+        ).to.be.revertedWith("msg sender is not nft owner")
+    })
+
+    it ("should successfully revoke view permission from nft owner", async () => {
+        await vwblERC721.connect(accounts[3]).revokeViewPermission(1, accounts[4].address);
+        const isPermitted = await vwblGateway.hasAccessControl(accounts[4].address, TEST_DOCUMENT_ID1)
+        assert.equal(isPermitted, false)
     })
 
     it("should not set VWBLGateway contract from not contract owner", async () => {

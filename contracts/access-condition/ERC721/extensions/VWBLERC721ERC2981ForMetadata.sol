@@ -8,12 +8,18 @@ import "@openzeppelin/contracts/token/common/ERC2981.sol";
 
 import "../IAccessControlCheckerByNFT.sol";
 import "../../AbstractVWBLToken.sol";
+import "../IViewPermission.sol";
 
 /**
  * @dev NFT which is added Viewable features that only NFT Owner can view digital content
  */
-contract VWBLERC721ERC2981ForMetadata is Ownable, AbstractVWBLToken, ERC721Enumerable, ERC2981 {
+contract VWBLERC721ERC2981ForMetadata is Ownable, AbstractVWBLToken, ERC721Enumerable, ERC2981, IViewPermission {
     mapping(uint256 => string) private _tokenURIs;
+    // tokenId => grantee => bool
+    mapping(uint256 => mapping(address => bool)) public hasViewPermission;
+
+    event ViewPermissionGranted(uint256 tokenId, address grantee);
+    event ViewPermissionRevoked(uint256 tokenId, address revoker);
 
     constructor(
         address _gatewayProxy,
@@ -70,5 +76,39 @@ contract VWBLERC721ERC2981ForMetadata is Ownable, AbstractVWBLToken, ERC721Enume
         returns (bool)
     {
         return super.supportsInterface(interfaceId);
+    }
+
+    /**
+     * @notice Grant view permission to grantee from nft owner
+     * @param tokenId The identifier of NFT
+     * @param grantee The Address who grantee of view permission right
+     */
+    function grantViewPermission(uint256 tokenId, address grantee) public returns (uint256) {
+        require(msg.sender == ownerOf(tokenId), "msg sender is not nft owner");
+        hasViewPermission[tokenId][grantee] = true;
+        emit ViewPermissionGranted(tokenId, grantee);
+        return tokenId;
+    }
+
+    /**
+     * @notice Revoke view permission from nft owner
+     * @param tokenId The identifier of the NFT
+     * @param revoker The address revoking the view permission
+     * @return The tokenId of the NFT token
+     */
+    function revokeViewPermission(uint256 tokenId, address revoker) public returns (uint256) {
+        require(msg.sender == ownerOf(tokenId), "msg sender is not nft owner");
+        hasViewPermission[tokenId][revoker] = false;
+        emit ViewPermissionRevoked(tokenId, revoker);
+        return tokenId;
+    }
+
+    /**
+     * @notice Check view permission to user
+     * @param tokenId The Identifier of NFT
+     * @param user The address of verification target
+     */
+    function checkViewPermission(uint256 tokenId, address user) public view returns (bool) {
+        return hasViewPermission[tokenId][user];
     }
 }
