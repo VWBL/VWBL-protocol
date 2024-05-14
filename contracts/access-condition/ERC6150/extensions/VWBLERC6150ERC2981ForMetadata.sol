@@ -13,7 +13,13 @@ import "./../IViewPermissionERC6150.sol";
 /**
  * @dev ERC6150 which is added Viewable features that only ERC6150 Owner can view digital content
  */
-contract VWBLERC6150ERC2981ForMetadata is Ownable, ERC6150ParentTransferable, AbstractVWBLToken, ERC2981, IViewPermissionERC6150 {
+contract VWBLERC6150ERC2981ForMetadata is
+    Ownable,
+    ERC6150ParentTransferable,
+    AbstractVWBLToken,
+    ERC2981,
+    IViewPermissionERC6150
+{
     using SafeMath for uint256;
     using Strings for uint256;
 
