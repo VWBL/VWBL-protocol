@@ -49,6 +49,14 @@ const config: HardhatUserConfig = {
         aurora_testnet: {
             url: process.env.AURORA_TESTNET_URL || "",
             accounts: process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : []
+        },
+        joc: {
+            url: process.env.JOC_MAINNET_URL || "",
+            accounts: process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : []
+        },
+        joc_testnet: {
+            url: process.env.JOC_TESTNET_URL || "",
+            accounts: process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : []
         }
     },
 }

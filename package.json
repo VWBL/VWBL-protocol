@@ -27,6 +27,8 @@
     "deploy:sepolia": "env-cmd -f ./config/.env.sepolia hardhat run --network sepolia scripts/deploy.ts",
     "deploy:aurora": "env-cmd -f ./config/.env.aurora hardhat run --network aurora scripts/deploy.ts",
     "deploy:aurora_testnet": "env-cmd -f ./config/.env.aurora_testnet hardhat run --network aurora_testnet scripts/deploy.ts",
+    "deploy:joc": "env-cmd -f ./config/.env.joc hardhat run --network joc scripts/deploy.ts",
+    "deploy:joc_testnet": "env-cmd -f ./config/.env.joc_testnet hardhat run --network joc_testnet scripts/deploy.ts",
     "verify": "hardhat verify"
   },
   "devDependencies": {
