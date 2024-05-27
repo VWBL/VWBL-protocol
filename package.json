@@ -22,12 +22,13 @@
     "deploy": "hardhat run scripts/deploy.ts",
     "deploy:local": "hardhat run --network localhost scripts/deploy.ts",
     "deploy:polygon": "env-cmd -f ./config/.env.polygon hardhat run --network polygon scripts/deploy.ts",
-    "deploy:mumbai": "env-cmd -f ./config/.env.mumbai hardhat run --network mumbai scripts/deploy.ts",
+    "deploy:amoy": "env-cmd -f ./config/.env.amoy hardhat run --network amoy scripts/deploy.ts",
     "deploy:ethereum": "env-cmd -f ./config/.env.ethereum hardhat run --network ethereum scripts/deploy.ts",
-    "deploy:goerli": "env-cmd -f ./config/.env.goerli hardhat run --network goerli scripts/deploy.ts",
     "deploy:sepolia": "env-cmd -f ./config/.env.sepolia hardhat run --network sepolia scripts/deploy.ts",
     "deploy:aurora": "env-cmd -f ./config/.env.aurora hardhat run --network aurora scripts/deploy.ts",
     "deploy:aurora_testnet": "env-cmd -f ./config/.env.aurora_testnet hardhat run --network aurora_testnet scripts/deploy.ts",
+    "deploy:joc": "env-cmd -f ./config/.env.joc hardhat run --network joc scripts/deploy.ts",
+    "deploy:joc_testnet": "env-cmd -f ./config/.env.joc_testnet hardhat run --network joc_testnet scripts/deploy.ts",
     "verify": "hardhat verify"
   },
   "devDependencies": {
