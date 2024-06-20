@@ -23,6 +23,7 @@ async function main() {
     const messageToBeSigned = process.env.MESSAGE_TO_BE_SIGNED!
     console.log("Message to be signed: ", messageToBeSigned)
 
+    // Below is deploy script of VWBLERC721ERC2981 Contract that metadata is stored on AWS S3.
     let VWBLERC721Contract: Contract;
     const vwblERC721 = await ethers.getContractFactory("VWBLERC721ERC2981")
     VWBLERC721Contract = await vwblERC721.deploy(
@@ -35,7 +36,7 @@ async function main() {
     console.log("VWBLERC721 Contract deployed to:", VWBLERC721Contract.address)
 
     /**
-     * Below is deploy script of VWBLMetadata Contract.
+     * Below is deploy script of VWBLERC721ERC2981ForMetadata Contract that metadata is stored on IPFS.
      * Unlike the VWBL Contract, the metadata url is stored when mint.
     
     let VWBLERC721MetadataContract: Contract;
