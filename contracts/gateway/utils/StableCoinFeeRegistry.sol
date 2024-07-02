@@ -1,10 +1,11 @@
+/* eslint-disable no-console */
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.20;
+import "hardhat/console.sol";
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "./IStableCoinFeeRegistry.sol";
-
 contract StableCoinFeeRegistry is IStableCoinFeeRegistry, Ownable {
     struct StableCoinInfo {
         string fiatName;
@@ -58,7 +59,11 @@ contract StableCoinFeeRegistry is IStableCoinFeeRegistry, Ownable {
         for (uint256 i = 0; i < _erc20Addresses.length; i++) {
             require(!registered(_erc20Addresses[i]), "ERC20 is already registered");
         }
-        uint256 fiatIndex = nextFiatIndex++;
+        console.log("Before registration - nextFiatIndex:", nextFiatIndex);
+        uint256 fiatIndex = nextFiatIndex;
+        nextFiatIndex++;
+        console.log("After registration - nextFiatIndex:", nextFiatIndex);
+        console.log("Used fiatIndex:", fiatIndex);
         StableCoinInfo storage scInfo = fiatIndexToSCInfo[fiatIndex];
         scInfo.fiatName = _fiatName;
         scInfo.erc20Addresses = _erc20Addresses;
@@ -167,16 +172,70 @@ contract StableCoinFeeRegistry is IStableCoinFeeRegistry, Ownable {
      * @return feeDecimals The fee decimals associated with the ERC20 token.
      * @return isRegistered A boolean indicating if the ERC20 token is registered.
      */
-    function getFeeDecimals(address erc20Address) public view returns (uint256, bool) {
-        if (!registered(erc20Address)) {
-            return (0, false);
-        }
-        uint256 fiatIndex = erc20ToFiatIndex[erc20Address];
-        uint256 feeNumerator = fiatIndexToSCInfo[fiatIndex].feeNumerator;
-        uint8 decimals = ERC20(erc20Address).decimals();
-        uint256 feeDecimals = feeNumerator * (10**decimals / _feeDenominator());
-        return (feeDecimals, true);
+    // function getFeeDecimals(address erc20Address) public view returns (uint256, bool) {
+    //     if (!registered(erc20Address)) {
+    //         return (0, false);
+    //     }
+    //     uint256 fiatIndex = erc20ToFiatIndex[erc20Address];
+
+    //     console.log(
+    //     ">>>fiatIndex",
+    //     fiatIndex
+    //     );
+    //     uint256 feeNumerator = fiatIndexToSCInfo[fiatIndex].feeNumerator;
+    //     console.log(
+    //     ">>>feeNumerator",
+    //     fiatIndexToSCInfo[fiatIndex].feeNumerator
+    //     );
+    //     console.log(
+    //     ">>>feeNumerator",
+    //     feeNumerator
+    //     );
+    //      console.log(
+    //     ">>>decimals"
+    //     );
+    //     console.log(
+    //     ">>>decimals",
+    //     ERC20(erc20Address).decimals()
+    //     );
+    //     uint8 decimals = ERC20(erc20Address).decimals();
+    //     console.log(
+    //     ">>>decimals"
+    //     );
+    //     uint256 feeDecimals = feeNumerator * (10**decimals / _feeDenominator());
+    //     console.log(
+    //     ">>>feeDecimals",
+    //     feeDecimals
+    //     );
+    //     return (feeDecimals, true);
+    // }
+   function getFeeDecimals(address erc20Address) public view returns (uint256, bool) {
+    if (!registered(erc20Address)) {
+        return (0, false);
     }
+    uint256 fiatIndex = erc20ToFiatIndex[erc20Address];
+    uint256 feeNumerator = fiatIndexToSCInfo[fiatIndex].feeNumerator;
+
+    // Check if the contract has the decimals() function
+    (bool success, bytes memory result) = erc20Address.staticcall(abi.encodeWithSignature("decimals()"));
+    if (!success || result.length != 32) {
+        return (0, false);
+    }
+    uint8 decimals = abi.decode(result, (uint8));
+    console.log(
+        ">>>decimals"
+        );
+    console.log(
+        ">>>decimals",
+        decimals
+    );
+
+    uint256 feeDecimals = feeNumerator * (10**decimals / _feeDenominator());
+    return (feeDecimals, true);
+    }
+
+
+
 
     /**
      * @notice Returns the list of registered ERC20 Fee tokens in the fee registry.
@@ -241,4 +300,23 @@ contract StableCoinFeeRegistry is IStableCoinFeeRegistry, Ownable {
     function getPrevAndCurRegisteredTokensCount() public view returns (uint256) {
         return registeredTokensCount + prevRegisteredTokens.length;
     }
+    function getErc20ToFiatIndex(address erc20Address) public view returns (uint256) {
+    return erc20ToFiatIndex[erc20Address];
+
+    }
+    function reset() public onlyOwner {
+    nextFiatIndex = 1;
+    registeredTokensCount = 0;
+
+    // Clear all mappings
+    for (uint256 i = 1; i < nextFiatIndex; i++) {
+        delete fiatIndexToSCInfo[i];
+    }
+
+    for (uint256 i = 0; i < prevRegisteredTokens.length; i++) {
+        delete erc20ToFiatIndex[prevRegisteredTokens[i]];
+    }
+
+    delete prevRegisteredTokens;
+}
 }
