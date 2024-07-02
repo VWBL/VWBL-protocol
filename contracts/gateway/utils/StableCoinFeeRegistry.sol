@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.20;
+import "hardhat/console.sol";
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "./IStableCoinFeeRegistry.sol";
-
 contract StableCoinFeeRegistry is IStableCoinFeeRegistry, Ownable {
     struct StableCoinInfo {
         string fiatName;
@@ -18,6 +18,7 @@ contract StableCoinFeeRegistry is IStableCoinFeeRegistry, Ownable {
     uint256 public nextFiatIndex = 1;
     mapping(uint256 => StableCoinInfo) fiatIndexToSCInfo;
     mapping(address => uint256) public erc20ToFiatIndex;
+    mapping (address => uint8) public erc20ToDecimals;
     uint256 public registeredTokensCount;
     address[] public prevRegisteredTokens;
 
@@ -48,23 +49,27 @@ contract StableCoinFeeRegistry is IStableCoinFeeRegistry, Ownable {
      * @notice Registers information about a new stable coin.
      * @param _fiatName The name of fiat currency.
      * @param _erc20Addresses The list of ERC20 addresses representing the stable coin.
+     * @param _decimalses The list of ERC20 address decimals
      * @param _feeNumerator The fee numerator denominated in fiat currency.
      */
     function registerStableCoinInfo(
         string memory _fiatName,
         address[] memory _erc20Addresses,
+        uint8[] memory _decimalses,
         uint256 _feeNumerator
     ) public onlyOwner {
         for (uint256 i = 0; i < _erc20Addresses.length; i++) {
             require(!registered(_erc20Addresses[i]), "ERC20 is already registered");
         }
-        uint256 fiatIndex = nextFiatIndex++;
+        uint256 fiatIndex = nextFiatIndex;
+        nextFiatIndex++;
         StableCoinInfo storage scInfo = fiatIndexToSCInfo[fiatIndex];
         scInfo.fiatName = _fiatName;
         scInfo.erc20Addresses = _erc20Addresses;
         scInfo.feeNumerator = _feeNumerator;
         for (uint256 i = 0; i < _erc20Addresses.length; i++) {
             erc20ToFiatIndex[_erc20Addresses[i]] = fiatIndex;
+            erc20ToDecimals[_erc20Addresses[i]] = _decimalses[i];
         }
         registeredTokensCount += _erc20Addresses.length;
     }
@@ -79,22 +84,25 @@ contract StableCoinFeeRegistry is IStableCoinFeeRegistry, Ownable {
         fiatIndexToSCInfo[fiatIndex].fiatName = newFiatName;
     }
 
+    // TODO: decimals登録
     /**
      * @notice Registers new ERC20 addresses for a specific stable coin.
      * @param fiatIndex The index of the stable coin to register the ERC20 addresses for.
+     * @param _decimalses The list of ERC20 address decimals
      * @param newERC20Addresses The list of new ERC20 addresses to register.
      */
-    function registerERC20Addresses(uint256 fiatIndex, address[] memory newERC20Addresses) public onlyOwner {
+    function registerERC20Addresses(uint256 fiatIndex, address[] memory newERC20Addresses,
+        uint8[] memory _decimalses
+    ) public onlyOwner {
         require(fiatIndex < nextFiatIndex, "fiatIndex is invalid");
         StableCoinInfo storage scInfo = fiatIndexToSCInfo[fiatIndex];
         for (uint256 i = 0; i < newERC20Addresses.length; i++) {
             require(!registered(newERC20Addresses[i]), "This ERC20 is already registered");
         }
-
-        registeredTokensCount += newERC20Addresses.length;
         for (uint256 i = 0; i < newERC20Addresses.length; i++) {
             scInfo.erc20Addresses.push(newERC20Addresses[i]);
             erc20ToFiatIndex[newERC20Addresses[i]] = fiatIndex;
+            erc20ToDecimals[newERC20Addresses[i]] = _decimalses[i];
             emit FeeTokenRegistered(newERC20Addresses[i]);
         }
         registeredTokensCount += newERC20Addresses.length;
@@ -121,6 +129,7 @@ contract StableCoinFeeRegistry is IStableCoinFeeRegistry, Ownable {
         }
         scInfo.erc20Addresses = newERC20Addresses;
         delete erc20ToFiatIndex[erc20Address];
+        delete erc20ToDecimals[erc20Address];
 
         bool prevRegistered = false;
         for (uint256 i = 0; i < prevRegisteredTokens.length; i++) {
@@ -167,15 +176,16 @@ contract StableCoinFeeRegistry is IStableCoinFeeRegistry, Ownable {
      * @return feeDecimals The fee decimals associated with the ERC20 token.
      * @return isRegistered A boolean indicating if the ERC20 token is registered.
      */
-    function getFeeDecimals(address erc20Address) public view returns (uint256, bool) {
-        if (!registered(erc20Address)) {
-            return (0, false);
-        }
-        uint256 fiatIndex = erc20ToFiatIndex[erc20Address];
-        uint256 feeNumerator = fiatIndexToSCInfo[fiatIndex].feeNumerator;
-        uint8 decimals = ERC20(erc20Address).decimals();
-        uint256 feeDecimals = feeNumerator * (10**decimals / _feeDenominator());
-        return (feeDecimals, true);
+   function getFeeDecimals(address erc20Address) public view returns (uint256, bool) {
+    if (!registered(erc20Address)) {
+        return (0, false);
+    }
+    uint256 fiatIndex = erc20ToFiatIndex[erc20Address];
+    uint256 feeNumerator = fiatIndexToSCInfo[fiatIndex].feeNumerator;
+    uint8 decimals = erc20ToDecimals[erc20Address];
+    uint256 feeDecimals = (feeNumerator * 10**decimals) / _feeDenominator();
+    // uint256 feeDecimals = feeNumerator * (10**decimals / _feeDenominator());
+    return (feeDecimals, true);
     }
 
     /**
@@ -240,5 +250,24 @@ contract StableCoinFeeRegistry is IStableCoinFeeRegistry, Ownable {
      */
     function getPrevAndCurRegisteredTokensCount() public view returns (uint256) {
         return registeredTokensCount + prevRegisteredTokens.length;
+    }
+    function getErc20ToFiatIndex(address erc20Address) public view returns (uint256) {
+    return erc20ToFiatIndex[erc20Address];
+
+    }
+    function reset() public onlyOwner {
+    nextFiatIndex = 1;
+    registeredTokensCount = 0;
+
+    // Clear all mappings
+    for (uint256 i = 1; i < nextFiatIndex; i++) {
+        delete fiatIndexToSCInfo[i];
+    }
+
+    for (uint256 i = 0; i < prevRegisteredTokens.length; i++) {
+        delete erc20ToFiatIndex[prevRegisteredTokens[i]];
+    }
+
+    delete prevRegisteredTokens;
     }
 }

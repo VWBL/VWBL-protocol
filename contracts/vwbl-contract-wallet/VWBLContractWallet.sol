@@ -98,10 +98,11 @@ contract VWBLContractWallet is AllocateVWBLFee, AccessControl {
     function registerStableCoinInfo(
         string memory _fiatName,
         address[] memory _erc20Addresses,
+        uint8[] memory _decimalses,
         uint256 _feeNumerator
     ) public {
         require(hasRole(OPERATOR_ROLE, msg.sender), "msg sender doesn't have OPERATOR_ROLE");
-        IStableCoinFeeRegistry(scFeeRegistryAddress).registerStableCoinInfo(_fiatName, _erc20Addresses, _feeNumerator);
+        IStableCoinFeeRegistry(scFeeRegistryAddress).registerStableCoinInfo(_fiatName, _erc20Addresses, _decimalses, _feeNumerator);
     }
 
     /**
@@ -119,9 +120,9 @@ contract VWBLContractWallet is AllocateVWBLFee, AccessControl {
      * @param fiatIndex The index of the stable coin to register the ERC20 addresses for.
      * @param newERC20Addresses The list of new ERC20 addresses to register.
      */
-    function registerERC20Addresses(uint256 fiatIndex, address[] memory newERC20Addresses) public {
+    function registerERC20Addresses(uint256 fiatIndex, address[] memory newERC20Addresses, uint8[] memory _decimalses) public {
         require(hasRole(OPERATOR_ROLE, msg.sender), "msg sender doesn't have OPERATOR_ROLE");
-        IStableCoinFeeRegistry(scFeeRegistryAddress).registerERC20Addresses(fiatIndex, newERC20Addresses);
+        IStableCoinFeeRegistry(scFeeRegistryAddress).registerERC20Addresses(fiatIndex, newERC20Addresses, _decimalses);
     }
 
     /**
