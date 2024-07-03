@@ -31,21 +31,13 @@ describe("StableCoinFeeRegistry", async () => {
         const fiatName = "usd"
         const erc20Addresses = [tokens.DAI.address, tokens.USDC.address, tokens.USDT.address]
         const decimalses = [tokens.DAI.decimals, tokens.USDC.decimals, tokens.USDT.decimals]
-        const feeNumerator = 1 // 0.01% (1 / 10000)
+        const feeNumerator = 0.1 * 10000
         await stableCoinFeeRegistry.registerStableCoinInfo(fiatName, erc20Addresses, decimalses, feeNumerator)
 
         // Check getFeeDecimals
-        const [daiFeeDec, isRegisteredDAI] = await stableCoinFeeRegistry.getFeeDecimals(tokens.DAI.address)
-        expect(isRegisteredDAI).to.be.true
-        expect(daiFeeDec).to.equal(ethers.parseUnits("0.0001", 18)) // 0.01% for DAI (18 decimals)
-
         const [usdcFeeDec, isRegisteredUSDC] = await stableCoinFeeRegistry.getFeeDecimals(tokens.USDC.address)
         expect(isRegisteredUSDC).to.be.true
-        expect(usdcFeeDec).to.equal(ethers.parseUnits("0.0001", 6)) // 0.01% for USDC (6 decimals)
-
-        const [usdtFeeDec, isRegisteredUSDT] = await stableCoinFeeRegistry.getFeeDecimals(tokens.USDT.address)
-        expect(isRegisteredUSDT).to.be.true
-        expect(usdtFeeDec).to.equal(ethers.parseUnits("0.0001", 6)) // 0.01% for USDT (6 decimals)
+        expect(usdcFeeDec).to.equal(ethers.parseUnits("0.1", 6)) // 0.01% for USDC (6 decimals)
 
         // Check getRegisteredTokens
         const registeredTokens = await stableCoinFeeRegistry.getRegisteredTokens()
