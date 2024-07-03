@@ -177,15 +177,14 @@ contract StableCoinFeeRegistry is IStableCoinFeeRegistry, Ownable {
      * @return isRegistered A boolean indicating if the ERC20 token is registered.
      */
    function getFeeDecimals(address erc20Address) public view returns (uint256, bool) {
-    if (!registered(erc20Address)) {
-        return (0, false);
-    }
-    uint256 fiatIndex = erc20ToFiatIndex[erc20Address];
-    uint256 feeNumerator = fiatIndexToSCInfo[fiatIndex].feeNumerator;
-    uint8 decimals = erc20ToDecimals[erc20Address];
-    uint256 feeDecimals = (feeNumerator * 10**decimals) / _feeDenominator();
-    // uint256 feeDecimals = feeNumerator * (10**decimals / _feeDenominator());
-    return (feeDecimals, true);
+        if (!registered(erc20Address)) {
+            return (0, false);
+        }
+        uint256 fiatIndex = erc20ToFiatIndex[erc20Address];
+        uint256 feeNumerator = fiatIndexToSCInfo[fiatIndex].feeNumerator;
+        uint8 decimals = erc20ToDecimals[erc20Address];
+        uint256 feeDecimals = feeNumerator * (10**decimals / _feeDenominator());
+        return (feeDecimals, true);
     }
 
     /**
@@ -250,24 +249,5 @@ contract StableCoinFeeRegistry is IStableCoinFeeRegistry, Ownable {
      */
     function getPrevAndCurRegisteredTokensCount() public view returns (uint256) {
         return registeredTokensCount + prevRegisteredTokens.length;
-    }
-    function getErc20ToFiatIndex(address erc20Address) public view returns (uint256) {
-    return erc20ToFiatIndex[erc20Address];
-
-    }
-    function reset() public onlyOwner {
-    nextFiatIndex = 1;
-    registeredTokensCount = 0;
-
-    // Clear all mappings
-    for (uint256 i = 1; i < nextFiatIndex; i++) {
-        delete fiatIndexToSCInfo[i];
-    }
-
-    for (uint256 i = 0; i < prevRegisteredTokens.length; i++) {
-        delete erc20ToFiatIndex[prevRegisteredTokens[i]];
-    }
-
-    delete prevRegisteredTokens;
     }
 }

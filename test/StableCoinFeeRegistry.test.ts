@@ -1,3 +1,4 @@
+import { loadFixture } from "@nomicfoundation/hardhat-network-helpers"
 import { expect } from "chai"
 import { ethers } from "hardhat"
 interface TokenInfo {
@@ -9,67 +10,65 @@ interface TokenDictionary {
     [key: string]: TokenInfo
 }
 describe("StableCoinFeeRegistry", async () => {
-    let stableCoinFeeRegistry: any
-    let owner: any
-
     const tokens: TokenDictionary = {
         DAI: { address: "0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063", decimals: 18 },
         USDC: { address: "0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359", decimals: 6 },
         USDT: { address: "0xc2132D05D31c914a87C6611C10748AEb04B58e8F", decimals: 6 },
         BUSD: { address: "0x9C9e5fD8bbc25984B178FdCE6117Defa39d2db39", decimals: 18 },
     }
-
-    beforeEach(async function () {
-        ;[owner] = await ethers.getSigners()
+    async function deployStableCoinFeeRegistryFixture() {
+        const [owner, ...otherAccounts] = await ethers.getSigners()
         const StableCoinFeeRegistry = await ethers.getContractFactory("StableCoinFeeRegistry")
-        stableCoinFeeRegistry = await StableCoinFeeRegistry.deploy(owner.address)
+        const stableCoinFeeRegistry = await StableCoinFeeRegistry.deploy(owner.address)
         await stableCoinFeeRegistry.waitForDeployment()
-        await stableCoinFeeRegistry.connect(owner).reset()
-    })
-    // registerStableCoinInfo methodが正常に動作するか
+        return { stableCoinFeeRegistry, owner, otherAccounts }
+    }
+
     it("should register stable coin info correctly", async function () {
+        const { stableCoinFeeRegistry } = await loadFixture(deployStableCoinFeeRegistryFixture)
+
         const fiatName = "usd"
         const erc20Addresses = [tokens.DAI.address, tokens.USDC.address, tokens.USDT.address]
         const decimalses = [tokens.DAI.decimals, tokens.USDC.decimals, tokens.USDT.decimals]
         const feeNumerator = 0.1 * 10000
         await stableCoinFeeRegistry.registerStableCoinInfo(fiatName, erc20Addresses, decimalses, feeNumerator)
 
-        // Check getFeeDecimals
         const [usdcFeeDec, isRegisteredUSDC] = await stableCoinFeeRegistry.getFeeDecimals(tokens.USDC.address)
         expect(isRegisteredUSDC).to.be.true
-        expect(usdcFeeDec).to.equal(ethers.parseUnits("0.1", 6)) // 0.01% for USDC (6 decimals)
+        expect(usdcFeeDec).to.equal(ethers.parseUnits("0.1", 6))
 
-        // Check getRegisteredTokens
         const registeredTokens = await stableCoinFeeRegistry.getRegisteredTokens()
         expect(registeredTokens).to.deep.equal(erc20Addresses)
 
-        // Check getRegisteredTokensCount
         const tokenCount = await stableCoinFeeRegistry.getRegisteredTokensCount()
         expect(tokenCount).to.equal(3)
     })
 
-    // registerStableCoinInfo methodを登録ずみのトークンで呼び出した場合にエラー
     it("should revert when registering already registered ERC20", async function () {
+        const { stableCoinFeeRegistry } = await loadFixture(deployStableCoinFeeRegistryFixture)
         await stableCoinFeeRegistry.registerStableCoinInfo("usd", [tokens.DAI.address], [tokens.DAI.decimals], 1000)
         await expect(
             stableCoinFeeRegistry.registerStableCoinInfo("usd", [tokens.DAI.address], [tokens.DAI.decimals], 1000)
         ).to.be.revertedWith("ERC20 is already registered")
     })
-    // registerERC20Addressesを正しくないfiatIndexで呼び出した場合にエラー
+
     it("should revert when called with invalid fiatIndex", async function () {
+        const { stableCoinFeeRegistry } = await loadFixture(deployStableCoinFeeRegistryFixture)
         await expect(
             stableCoinFeeRegistry.registerERC20Addresses(999, [tokens.BUSD.address], [tokens.BUSD.decimals])
         ).to.be.revertedWith("fiatIndex is invalid")
     })
-    // registerERC20Addressesを録ずみのトークンで呼び出した場合にエラー
+
     it("should revert when registering already registered ERC20", async function () {
+        const { stableCoinFeeRegistry } = await loadFixture(deployStableCoinFeeRegistryFixture)
         await stableCoinFeeRegistry.registerStableCoinInfo("usd", [tokens.DAI.address], [tokens.DAI.decimals], 1000)
         await expect(
             stableCoinFeeRegistry.registerERC20Addresses(1, [tokens.DAI.address], [tokens.DAI.decimals])
         ).to.be.revertedWith("This ERC20 is already registered")
     })
-    //registerERC20Addressesが正常に動作するか？
+
     it("should register new ERC20 addresses correctly", async function () {
+        const { stableCoinFeeRegistry } = await loadFixture(deployStableCoinFeeRegistryFixture)
         await stableCoinFeeRegistry.registerStableCoinInfo(
             "usd",
             [tokens.DAI.address, tokens.USDC.address],
@@ -90,21 +89,24 @@ describe("StableCoinFeeRegistry", async () => {
         const tokenCount = await stableCoinFeeRegistry.getRegisteredTokensCount()
         expect(tokenCount).to.equal(3)
     })
-    // unregisterERC20Addressを正しくないfiatIndexで呼び出した場合にエラー
-    it("should revert when called with invalid fiatIndex", async function () {
+
+    it("should revert when unregistering with invalid fiatIndex", async function () {
+        const { stableCoinFeeRegistry } = await loadFixture(deployStableCoinFeeRegistryFixture)
         await expect(stableCoinFeeRegistry.unregisterERC20Address(999, tokens.USDT.address)).to.be.revertedWith(
             "fiatIndex is invalid"
         )
     })
-    // unregisterERC20Addressを登録されていないトークンで呼び出した場合にエラー
+
     it("should revert when unregistering an unregistered ERC20", async function () {
+        const { stableCoinFeeRegistry } = await loadFixture(deployStableCoinFeeRegistryFixture)
         await stableCoinFeeRegistry.registerStableCoinInfo("usd", [tokens.DAI.address], [tokens.DAI.decimals], 1000)
         await expect(stableCoinFeeRegistry.unregisterERC20Address(1, tokens.USDT.address)).to.be.revertedWith(
             "This ERC20 is not registered"
         )
     })
-    // unregisterERC20Addressが正常に動作するか
+
     it("should unregister ERC20 addresses correctly", async function () {
+        const { stableCoinFeeRegistry } = await loadFixture(deployStableCoinFeeRegistryFixture)
         await stableCoinFeeRegistry.registerStableCoinInfo(
             "usd",
             [tokens.DAI.address, tokens.USDC.address, tokens.USDT.address, tokens.BUSD.address],
@@ -123,12 +125,14 @@ describe("StableCoinFeeRegistry", async () => {
         const tokenCount = await stableCoinFeeRegistry.getRegisteredTokensCount()
         expect(tokenCount).to.equal(2)
     })
-    // registerFeeNumeratorを正しくないfiatIndexで呼び出した場合にエラー
-    it("should revert when called with invalid fiatIndex", async function () {
+
+    it("should revert when registering fee numerator with invalid fiatIndex", async function () {
+        const { stableCoinFeeRegistry } = await loadFixture(deployStableCoinFeeRegistryFixture)
         await expect(stableCoinFeeRegistry.registerFeeNumerator(999, 500)).to.be.revertedWith("fiatIndex is invalid")
     })
-    // registerFeeNumeratorが正常に動作するか
+
     it("should register new fee numerator correctly", async function () {
+        const { stableCoinFeeRegistry } = await loadFixture(deployStableCoinFeeRegistryFixture)
         await stableCoinFeeRegistry.registerStableCoinInfo("usd", [tokens.USDC.address], [tokens.USDC.decimals], 1000)
         await stableCoinFeeRegistry.registerFeeNumerator(1, 500) // 0.05%
 
