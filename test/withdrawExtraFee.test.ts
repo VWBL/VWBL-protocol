@@ -11,7 +11,8 @@ describe("WithdrawExtraFee", function () {
     let withdrawExtraFee: WithdrawExtraFee
 
     before(async function () {
-        ;[owner, addr1, addr2, ...addrs] = await ethers.getSigners()
+        [owner, addr1, addr2, ...addrs] = await ethers.getSigners()
+
         WithdrawExtraFeeFactory = await ethers.getContractFactory("WithdrawExtraFee")
     })
 
