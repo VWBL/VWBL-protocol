@@ -5,11 +5,10 @@ export const ZERO_ADDRESS = ZeroAddress
 export const ONE_GWEI = 1_000_000_000
 export const fee = ONE_GWEI
 
-export async function deployContractsGatewayV2(ownerSigner: any, ownerAddress: string) {
+export async function deployContractsGatewayV2() {
     console.log("Starting deployContracts")
     try {
         const accounts = await ethers.getSigners()
-
         const testTokenAddress = ZERO_ADDRESS
 
         // StableCoinFeeRegistryのデプロイ
@@ -17,37 +16,42 @@ export async function deployContractsGatewayV2(ownerSigner: any, ownerAddress: s
         const stableCoinFeeRegistry = await StableCoinFeeRegistryFactory.deploy(accounts[0].address)
         await stableCoinFeeRegistry.waitForDeployment()
         console.log("StableCoinFeeRegistry deployed to:", await stableCoinFeeRegistry.getAddress())
+        console.log("StableCoinFeeRegistry Owner:", await stableCoinFeeRegistry.owner())
 
         // WithdrawExtraFeeコントラクトをデプロイ
         const WithdrawExtraFeeFactory = await ethers.getContractFactory("WithdrawExtraFee")
-        const withdrawExtraFee = await WithdrawExtraFeeFactory.deploy(accounts[0].address)
-        await withdrawExtraFee.waitForDeployment()
-        console.log("WithdrawExtraFee deployed to:", await withdrawExtraFee.getAddress())
+        const withdrawExtraFeeRegistry = await WithdrawExtraFeeFactory.deploy(accounts[0].address)
+        await withdrawExtraFeeRegistry.waitForDeployment()
+        console.log("WithdrawExtraFee deployed to:", await withdrawExtraFeeRegistry.getAddress())
+        console.log("WithdrawExtraFee Owner:", await withdrawExtraFeeRegistry.owner())
 
         // VWBLGatewayV1
-        const VWBLGateway = await ethers.getContractFactory("VWBLGateway")
-        const vwblGateway = await VWBLGateway.connect(ownerSigner).deploy(fee)
-        await vwblGateway.waitForDeployment()
-        const vwblGatewayV1Address = await vwblGateway.getAddress()
+        const vwblGatewayV1Factory = await ethers.getContractFactory("VWBLGateway")
+        const vwblGatewayV1Registry = await vwblGatewayV1Factory.connect(accounts[0]).deploy(fee)
+        await vwblGatewayV1Registry.waitForDeployment()
+        const vwblGatewayV1Address = await vwblGatewayV1Registry.getAddress()
         console.log("VWBLGateway deployed to:", vwblGatewayV1Address)
+        console.log("vwblGatewayV1RegistryOwner:", await vwblGatewayV1Registry.owner())
 
         // GatewayProxy
         const GatewayProxy = await ethers.getContractFactory("GatewayProxy")
-        const gatewayProxy = await GatewayProxy.deploy(vwblGatewayV1Address)
-        await gatewayProxy.waitForDeployment()
-        console.log("GatewayProxy deployed to:", await gatewayProxy.getAddress())
+        const GatewayProxyRegistry = await GatewayProxy.deploy(vwblGatewayV1Address)
+        await GatewayProxyRegistry.waitForDeployment()
+        console.log("GatewayProxy deployed to:", await GatewayProxyRegistry.getAddress())
+        console.log("GatewayProxy Owner:", await GatewayProxyRegistry.owner())
 
         // VWBLGatewayV2のデプロイ
         const VWBLGatewayV2Factory = await ethers.getContractFactory("VWBLGatewayV2")
-        const vwblGatewayV2 = await VWBLGatewayV2Factory.deploy(
+        const vwblGatewayV2Registry = await VWBLGatewayV2Factory.deploy(
             accounts[0].address,
             vwblGatewayV1Address,
             await stableCoinFeeRegistry.getAddress(),
-            await withdrawExtraFee.getAddress()
+            await withdrawExtraFeeRegistry.getAddress()
         )
-        await vwblGatewayV2.waitForDeployment()
-        const vwblGatewayV2Address = await vwblGatewayV2.getAddress()
+        await vwblGatewayV2Registry.waitForDeployment()
+        const vwblGatewayV2Address = await vwblGatewayV2Registry.getAddress()
         console.log("VWBLGatewayV2 deployed to:", vwblGatewayV2Address)
+        console.log("VWBLGatewayV2 Owner:", await vwblGatewayV2Registry.owner())
 
         // VWBLContractWalletのデプロイ
         const VWBLContractWalletFactory = await ethers.getContractFactory("VWBLContractWallet")
@@ -58,36 +62,23 @@ export async function deployContractsGatewayV2(ownerSigner: any, ownerAddress: s
             vwblGatewayV2Address,
             await stableCoinFeeRegistry.getAddress(),
             accounts[2].address,
-            accounts[3].address
+            await withdrawExtraFeeRegistry.getAddress()
         )
         await vwblContractWallet.waitForDeployment()
         console.log("VWBLContractWallet deployed to:", await vwblContractWallet.getAddress())
 
-        // ロールの確認
-        const DEFAULT_ADMIN_ROLE = await vwblContractWallet.DEFAULT_ADMIN_ROLE()
         const OPERATOR_ROLE = await vwblContractWallet.OPERATOR_ROLE()
-        const SET_FEE_ROLE = await vwblContractWallet.SET_FEE_ROLE()
-
-        let hasAdminRole = await vwblContractWallet.hasRole(DEFAULT_ADMIN_ROLE, accounts[0].address)
-        console.log("accounts[0] has DEFAULT_ADMIN_ROLE:", hasAdminRole)
-
-        if (!hasAdminRole) {
-            console.log("Granting DEFAULT_ADMIN_ROLE to accounts[0]")
-            await vwblContractWallet.grantRole(DEFAULT_ADMIN_ROLE, accounts[0].address)
-            hasAdminRole = await vwblContractWallet.hasRole(DEFAULT_ADMIN_ROLE, accounts[0].address)
-            console.log("accounts[0] has DEFAULT_ADMIN_ROLE after granting:", hasAdminRole)
-        }
-
-        // 他のロールを付与
-        await vwblContractWallet.connect(accounts[0]).grantRole(OPERATOR_ROLE, accounts[0].address)
-        await vwblContractWallet.connect(accounts[0]).grantRole(SET_FEE_ROLE, accounts[0].address)
+        const isOperator = await vwblContractWallet.hasRole(OPERATOR_ROLE, accounts[0].address)
+        console.log("Is accounts[0] an operator?", isOperator)
 
         console.log("Roles granted successfully")
         return {
-            vwblContractWallet,
             stableCoinFeeRegistry,
-            vwblGatewayV1Address,
-            vwblGatewayV2Address,
+            withdrawExtraFeeRegistry,
+            vwblGatewayV1Registry,
+            vwblGatewayV2Registry,
+            GatewayProxyRegistry,
+            vwblContractWallet,
             accounts,
             testTokenAddress,
         }
