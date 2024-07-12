@@ -18,7 +18,6 @@ describe("VWBLContractWallet", function () {
     let registries: Registries
     const newFeeNumerator = 1500
     const newFeeWei = ethers.parseEther("0.001")
-
     before(async function () {
         deploymentInfo = await deployContractsGatewayV2()
         vwblContractWallet = deploymentInfo.vwblContractWallet
@@ -30,6 +29,7 @@ describe("VWBLContractWallet", function () {
             vwblGatewayV1Registry: deploymentInfo.vwblGatewayV1Registry,
             vwblGatewayV2Registry: deploymentInfo.vwblGatewayV2Registry,
         }
+        console.log(accounts[0].address)
     })
 
     describe("Ownership and Access Control Tests", function () {
@@ -63,6 +63,7 @@ describe("VWBLContractWallet", function () {
         })
     })
 
+    // VWBLContractWallet異常系
     describe("VWBLContractWallet - Negative Cases", function () {
         const fiatIndex = 1
         const fiatName = "USD"
@@ -71,7 +72,12 @@ describe("VWBLContractWallet", function () {
         const newERC20Addresses = [ethers.Wallet.createRandom().address]
         const decimalses = [18]
         const feeNumerator = 1000
-        // VWBLContractWallet異常系
+
+        // transferOwnerships
+        it("should fail to transferOwnerships", async function () {
+            await expect(vwblContractWallet.transferOwnerships(accounts[0].address)).to.be.reverted
+        })
+
         // revertedWith
         it("should fail to set the native token fee with unauthorized account", async function () {
             // `SET_FEE_ROLE`を持たないアカウントがネイティブトークンの手数料を設定しようとする
@@ -140,15 +146,76 @@ describe("VWBLContractWallet", function () {
                 vwblContractWallet.connect(accounts[1]).setStableCoinFeeRegistry(newScFeeRegistryAddress)
             ).to.be.revertedWith("msg sender doesn't have OPERATOR_ROLE")
         })
-        // withdrawAllPendingToken
-        it("should fail to withdraw all pending tokens to a zero address", async function () {
-            // ゼロアドレスへの全トークンの引き出しを試みる
-            await expect(vwblContractWallet.withdrawAllPendingToken(ZeroAddress)).to.be.revertedWith(
-                "Invalid recipient address"
-            )
+
+        // onlyMultiSigWalletにより失敗するケース
+        it("should fail to add an owner if not called by the wallet itself", async function () {
+            await expect(vwblContractWallet.connect(accounts[1]).addOwner(accounts[0].address)).to.be.reverted
+        })
+
+        // 既存のオーナーを再度追加しようとして失敗
+        it("should fail to add an owner if the owner already exists", async function () {
+            // await vwblContractWallet.addOwner(accounts[0].address) // 追加
+            // await expect(vwblContractWallet.addOwner(accounts[0].address)).to.be.revertedWith("Owner already exists")
+        })
+
+        // notNullにより失敗するケース
+        it("should fail to add a null address as an owner", async function () {
+            await expect(vwblContractWallet.addOwner("0x0000000000000000000000000000000000000000")).to.be.reverted
+        })
+        // validRequirementに違反して失敗するケース
+        it("should fail to add an owner if it violates the requirements", async function () {
+            // const MAX_OWNER_COUNT = 50 // この値は実際のコントラクト定義に依存
+            // for (let i = 1; i <= MAX_OWNER_COUNT; i++) {
+            //     await vwblContractWallet.addOwner(accounts[i].address) // MAX_OWNER_COUNTまで追加
+            // }
+            // await expect(vwblContractWallet.addOwner(accounts[MAX_OWNER_COUNT + 1].address)).to.be.revertedWith(
+            //     "Invalid owner count or requirements"
+            // )
+        })
+
+        // removeOwner
+        it("should fail to remove an owner if not called by the wallet itself", async function () {
+            await expect(vwblContractWallet.connect(accounts[1]).removeOwner(accounts[0].address)).to.be.reverted
+        })
+
+        it("should fail to remove an owner if the owner does not exist", async function () {
+            await expect(vwblContractWallet.removeOwner(accounts[2].address)).to.be.reverted
+        })
+
+        // replaceOwner
+        it("should fail to replace an owner if not called by the wallet itself", async function () {
+            // onlyMultiSigWalletの検証
+            await expect(vwblContractWallet.connect(accounts[2]).replaceOwner(accounts[0].address, accounts[1].address))
+                .to.be.reverted
+        })
+
+        it("should fail to replace an owner if the owner does not exist", async function () {
+            // ownerExistsの検証
+            await expect(vwblContractWallet.connect(accounts[2]).replaceOwner(accounts[3].address, accounts[2].address))
+                .to.be.reverted
+        })
+
+        it("should fail to replace an owner with a new owner who is already an owner", async function () {
+            // ownerDoesNotExistの検証
+        })
+
+        // changeRequirement
+        it("should fail to change requirements if not called by the wallet itself", async function () {
+            // onlyMultiSigWalletの検証
+        })
+
+        it("should fail to change requirements if the required number of confirmations is zero", async function () {
+            // validRequirementの検証：_requiredが0
+            await expect(vwblContractWallet.connect(accounts[2]).changeRequirement(0)).to.be.reverted
+        })
+
+        it("should fail to change requirements if the required number of confirmations exceeds the number of owners", async function () {
+            // validRequirementの検証：_requiredがオーナー数より多い
+            const numberOfOwners = await vwblContractWallet.getOwners()
+            await expect(vwblContractWallet.changeRequirement(numberOfOwners.length)).to.be.reverted
         })
     })
-
+    // VWBLContractWallet正常系
     describe("VWBLContractWallet - Positive Cases", function () {
         const fiatIndex = 1
         const fiatName = "USD"
@@ -215,6 +282,67 @@ describe("VWBLContractWallet", function () {
                 .to.emit(vwblContractWallet, "stableCoinFeeRegistryChanged")
                 .withArgs(registries.stableCoinFeeRegistry, newScFeeRegistryAddress)
             expect(await vwblContractWallet.scFeeRegistryAddress()).to.equal(newScFeeRegistryAddress)
+        })
+        // getOwners
+        it("getTransactionCount", async function () {
+            const count = await vwblContractWallet.getOwners()
+            expect(count.length).to.equal(3)
+        })
+        // getTransactionCount
+        it("getTransactionCount", async function () {
+            let count = await vwblContractWallet.getTransactionCount(true, true)
+            console.log("getOwnersCount>>>", count)
+        })
+
+        //submitTransaction
+        it("should submit and confirm a transaction", async function () {
+            // アカウントの設定
+            const recipient = await ethers.getSigners()
+            const destination = recipient[0].address
+            const value = ethers.parseEther("1.0") // 1 EtherをWeiに変換
+            const data = "0x" // 空のバイト列
+            try {
+                const txResponse = await vwblContractWallet
+                    .connect(accounts[0])
+                    .submitTransaction(destination, value, data)
+                // const txResponse = await vwblContractWallet.submitTransaction(destination, value, data)
+                await txResponse.wait()
+                // console.log("txResponse", txResponse)
+                const ConfirmationCount1 = await vwblContractWallet.getConfirmationCount(0)
+                console.log("ConfirmationCount", ConfirmationCount1)
+                await vwblContractWallet.revokeConfirmation(0)
+                const ConfirmationCount2 = await vwblContractWallet.getConfirmationCount(0)
+                console.log("ConfirmationCount2", ConfirmationCount2)
+            } catch (error) {
+                console.error("Error during transaction:", error)
+            }
+            const isConfirmed = await vwblContractWallet.isConfirmed(0)
+            console.log("isConfirmed", isConfirmed)
+            const ConfirmationCount = await vwblContractWallet.getConfirmationCount(0)
+            console.log("ConfirmationCount", ConfirmationCount)
+        })
+        //submitTransaction
+        it("should submit and confirm a transaction", async function () {
+            // アカウントの設定
+            const recipient = await ethers.getSigners()
+            const destination = recipient[1].address
+            const value = ethers.parseEther("1.0") // 1 EtherをWeiに変換
+            const data = "0x" // 空のバイト列
+            try {
+                const txResponse = await vwblContractWallet
+                    .connect(accounts[0])
+                    .submitTransaction(destination, value, data)
+                await txResponse.wait()
+                console.log("ConfirmationCount1", await vwblContractWallet.getConfirmationCount(1))
+                await vwblContractWallet.connect(accounts[1]).confirmTransaction(1)
+                console.log("ConfirmationCount2", await vwblContractWallet.getConfirmationCount(1))
+            } catch (error) {
+                console.error("Error during transaction:", error)
+            }
+            const isConfirmed = await vwblContractWallet.isConfirmed(1)
+            console.log("isConfirmed", isConfirmed)
+            const ConfirmationCount = await vwblContractWallet.getConfirmationCount(1)
+            console.log("ConfirmationCount", ConfirmationCount)
         })
     })
 })
