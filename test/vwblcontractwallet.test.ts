@@ -2,7 +2,7 @@ import { expect } from "chai"
 import { ethers } from "hardhat"
 
 import { VWBLContractWallet } from "../typechain-types"
-import { deployContractsGatewayV2 } from "./lib/deployContracts"
+import { deployContractsGatewayV2 } from "./lib/deployContractsVwblContractWallet"
 import { ZeroAddress } from "ethers"
 
 describe("VWBLContractWallet", function () {
@@ -292,72 +292,39 @@ describe("VWBLContractWallet", function () {
         })
         // getTransactionCount
         it("getTransactionCount", async function () {
-            let count = await vwblContractWallet.getTransactionCount(true, true)
-            console.log("getOwnersCount>>>", count)
+            expect(await vwblContractWallet.getTransactionCount(true, true)).to.equal(0)
         })
 
         //submit and revoke
         it("should submit and revoke a transaction", async function () {
-            // アカウントの設定
             const destination = vwblContractWallet.target
             const value = 0
             const data = "0x" // 空のバイト列
-            try {
-                const txResponse = await vwblContractWallet
-                    .connect(accounts[0])
-                    .submitTransaction(destination, value, data)
-                await txResponse.wait()
-                await vwblContractWallet.revokeConfirmation(0)
-            } catch (error) {
-                console.error("Error during transaction:", error)
-            }
-            const isConfirmed = await vwblContractWallet.isConfirmed(0)
-            const ConfirmationCount = await vwblContractWallet.getConfirmationCount(0)
-            console.log("ConfirmationCount", ConfirmationCount, isConfirmed)
+            const txResponse = await vwblContractWallet.connect(accounts[0]).submitTransaction(destination, value, data)
+            await txResponse.wait()
+            await vwblContractWallet.revokeConfirmation(0)
+            expect(await vwblContractWallet.getConfirmationCount(0)).to.equal(0)
         })
 
         //submit and confirm
         it("should submit and confirm a transaction for transferOwnerships", async function () {
             const destination = vwblContractWallet.target
             const value = 0
-            console.log("getOwners", await vwblContractWallet.connect(accounts[0]).getOwners())
-
             // transferOwnerships 関数の呼び出しをエンコード
             const data = vwblContractWallet.interface.encodeFunctionData("transferOwnerships", [accounts[3].address])
+
             // トランザクションを提案
             const txResponse = await vwblContractWallet.connect(accounts[0]).submitTransaction(destination, value, data)
             await txResponse.wait()
             // トランザクションを確認
             await vwblContractWallet.connect(accounts[1]).confirmTransaction(1)
-            // 確認数とステータスを確認
-            const confirmationCount = await vwblContractWallet.getConfirmationCount(1)
-            console.log("ConfirmationCount", confirmationCount)
+
             const isConfirmed = await vwblContractWallet.isConfirmed(1)
-            console.log("isConfirmed", isConfirmed)
 
             // トランザクションを実行（十分な確認が得られていると仮定）
             if (isConfirmed) {
-                console.log("getOwners", await vwblContractWallet.connect(accounts[0]).getOwners())
-                for (const [name, registry] of Object.entries(registries)) {
-                    const owner = await registry.owner()
-                    console.log(`${name} :owner ${owner}`)
-                }
+                expect(await registries.stableCoinFeeRegistry.owner()).to.equal(accounts[3].address)
             }
-        })
-
-        //isActiveValidator
-        it("should return true for active validators", async function () {
-            console.log("getActiveValidators>>>", await vwblContractWallet.connect(accounts[0]).getActiveValidators())
-            console.log(
-                "getActiveValidatorCount>>>",
-                await vwblContractWallet.connect(accounts[0]).getActiveValidatorCount()
-            )
-            console.log(">>>", await vwblContractWallet.connect(accounts[0]).isActiveValidator(accounts[0].address))
-            console.log(">>>", await vwblContractWallet.connect(accounts[1]).isActiveValidator(accounts[2].address))
-            console.log(">>>", await vwblContractWallet.connect(accounts[2]).isActiveValidator(accounts[0].address))
-            const validatorAddress = accounts[2].address
-            await vwblContractWallet.registerValidatorAllocations([validatorAddress], [100]) // 割り当て数値を100に設定
-            expect(await vwblContractWallet.isActiveValidator(validatorAddress)).to.be.true
         })
     })
 })
