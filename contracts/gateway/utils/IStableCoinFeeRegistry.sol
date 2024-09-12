@@ -11,6 +11,7 @@ interface IStableCoinFeeRegistry {
     function registerStableCoinInfo(
         string memory _fiatName,
         address[] memory _erc20Addresses,
+        uint8[] memory _decimalses,
         uint256 _feeNumerator
     ) external;
 
@@ -33,7 +34,7 @@ interface IStableCoinFeeRegistry {
      * @param fiatIndex The index of the stable coin to register the ERC20 addresses for.
      * @param newERC20Addresses The list of new ERC20 addresses to register.
      */
-    function registerERC20Addresses(uint256 fiatIndex, address[] memory newERC20Addresses) external;
+    function registerERC20Addresses(uint256 fiatIndex, address[] memory newERC20Addresses, uint8[] memory _decimalses) external;
 
     /**
      * @notice Unregisters an ERC20 address for a specific stable coin.
