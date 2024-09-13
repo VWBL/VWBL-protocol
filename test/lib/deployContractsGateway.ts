@@ -46,8 +46,7 @@ export interface DeploymentInfo {
 
 export async function deployContracts(ownerSigner: any, ownerAddress: string): Promise<DeploymentInfo> {
     console.log("Starting deployContracts")
-
-    const accounts = await ethers.getSigners()
+    const accounts = await ethers.getSigners();
     const validators = [accounts[0].address, accounts[1].address, accounts[2].address, accounts[3].address]
 
     // Deploy VWBLGatewayV1

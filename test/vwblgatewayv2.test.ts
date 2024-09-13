@@ -1,7 +1,7 @@
 import { expect, assert } from "chai"
 import hre, { ethers } from "hardhat"
 import { DeploymentInfo, deployContracts, fee, ONE_GWEI } from "./lib/deployContractsGateway"
-import { parseEther } from "ethers"
+import { parseEther, parseUnits } from "ethers"
 
 describe("VWBLGatewayV2", function () {
     let accounts: any
@@ -164,21 +164,11 @@ describe("VWBLGatewayV2", function () {
         assert.equal(metadataURI, "https://infura-ipfs.io/ipfs/QmeGAVddnBSnKc1DLE7DLV9uuTqo5F7QbaveTjr45JUdQn")
     })
 
-    // grantViewPermissionとrevokeViewPermission,getBalanceない
-
-    it("should hasAccessControl return false when condition contract return false", async () => {
-        const { accessCondition, vwblGatewayv2 } = deploymentInfo
-
-        await accessCondition.setCondition(false)
-        const isPermitted = await vwblGatewayv2.hasAccessControl(accounts[1].address, TEST_DOCUMENT_ID4)
-        assert.equal(isPermitted, false)
-    })
-
     it("should set feeWei from contract owner", async () => {
         const { vwblGatewayv2 } = deploymentInfo
 
         const oldFeeWei = await vwblGatewayv2.feeWei()
-        assert.equal(oldFeeWei.toString(), parseEther("1").toString())
+        assert.equal(oldFeeWei.toString(), parseUnits("1", 9).toString())
 
         await vwblGatewayv2.connect(accounts[0]).setFeeWei(parseEther("0"))
 

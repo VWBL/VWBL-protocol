@@ -56,6 +56,7 @@ export async function deployContractsGatewayV2(): Promise<DeploymentInfo> {
         const VWBLGatewayV2Factory = await ethers.getContractFactory("VWBLGatewayV2")
         const vwblGatewayV2Registry = await VWBLGatewayV2Factory.deploy(
             accounts[0].address,
+            fee,
             vwblGatewayV1Address,
             await stableCoinFeeRegistry.getAddress(),
             await withdrawExtraFeeRegistry.getAddress()

@@ -18,6 +18,7 @@
     "clean": "npx hardhat clean",
     "compile": "npx hardhat compile",
     "test": "npx hardhat test",
+    "test:fork": "npx hardhat test --network localhost",
     "local": "npx hardhat node",
     "fork-polygon": "source .env && npx hardhat node --fork https://polygon-mainnet.g.alchemy.com/v2/$ALCHEMY_API_KEY",
     "deploy": "hardhat run scripts/deploy.ts",
