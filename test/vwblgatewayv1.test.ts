@@ -1,7 +1,7 @@
 import { expect, assert } from "chai"
 import hre, { ethers } from "hardhat"
 import { DeploymentInfo, deployContracts, fee, ONE_GWEI } from "./lib/deployContractsGateway"
-import { parseEther } from "ethers"
+import { parseEther, parseUnits } from "ethers"
 
 describe("VWBLGatewayV1 Contract", function () {
     let accounts: any
@@ -47,28 +47,30 @@ describe("VWBLGatewayV1 Contract", function () {
         assert.equal(isPermitted, true)
     })
 
-    // it("should successfully grant AccessControl calling from external nft EOA", async () => {
-    //     const { vwblGateway, vwblERC721, accessControlCheckerByNFT, externalNFT } = await deploymentInfo
+    it("should successfully grant AccessControl calling from external nft EOA", async () => {
+        const { vwblGateway, accessControlCheckerByNFT, externalNFT } = await deploymentInfo
+    
+        await externalNFT.connect(accounts[2]).mint(accounts[2].address);
+        const beforeBalance = await ethers.provider.getBalance(vwblGateway.getAddress())
+        await accessControlCheckerByNFT
+            .connect(accounts[1])
+            .grantAccessControlAndRegisterNFT(TEST_DOCUMENT_ID2, externalNFT.getAddress(), 0, {
+                value: ONE_GWEI,
+            })
+    
+        const afterBalance = await ethers.provider.getBalance(vwblGateway.target)
+        assert.equal(afterBalance - beforeBalance, BigInt(ONE_GWEI))
+    
+        const createdToken = await accessControlCheckerByNFT.documentIdToToken(TEST_DOCUMENT_ID2)
+        assert.equal(createdToken.contractAddress, externalNFT.target)
+        const owner = await accessControlCheckerByNFT.getOwnerAddress(TEST_DOCUMENT_ID2)
+        assert.equal(owner, accounts[2].address)
+        const isPermitted = await vwblGateway.hasAccessControl(accounts[2].address, TEST_DOCUMENT_ID2)
+        assert.equal(isPermitted, true)
+    })
 
-    //     const beforeBalance = await ethers.provider.getBalance(vwblGateway.getAddress())
-    //     await accessControlCheckerByNFT
-    //         .connect(accounts[1])
-    //         .grantAccessControlAndRegisterNFT(TEST_DOCUMENT_ID2, externalNFT.getAddress(), 0, {
-    //             value: ONE_GWEI,
-    //         })
-
-    //     const afterBalance = await ethers.provider.getBalance(vwblGateway.target)
-    //     assert.equal(afterBalance - beforeBalance, BigInt(ONE_GWEI))
-
-    //     const createdToken = await accessControlCheckerByNFT.documentIdToToken(TEST_DOCUMENT_ID2)
-    //     assert.equal(createdToken.contractAddress, externalNFT.target)
-    //     const owner = await accessControlCheckerByNFT.getOwnerAddress(TEST_DOCUMENT_ID2)
-    //     assert(owner, accounts[2].address)
-    //     const isPermitted = await vwblGateway.hasAccessControl(accounts[1].address, TEST_DOCUMENT_ID2)
-    //     assert.equal(isPermitted, true)
-    // })
     it("should successfully transfer nft and minter has access control", async () => {
-        const { vwblGateway, vwblERC721, transferVWBLNFTContract, externalNFT } = await deploymentInfo
+        const { vwblGateway, vwblERC721, transferVWBLNFTContract } = await deploymentInfo
 
         await vwblERC721.connect(accounts[2]).setApprovalForAll(transferVWBLNFTContract.getAddress(), true)
         await transferVWBLNFTContract.connect(accounts[2]).transferNFT(vwblERC721.getAddress(), accounts[3].address, 1)
@@ -101,7 +103,7 @@ describe("VWBLGatewayV1 Contract", function () {
         ).to.be.revertedWith("Fee is too high")
     })
     it("should fail to grant AccessControl to NFT when documentId is already used", async () => {
-        const { accessControlCheckerByNFT, vwblERC721, transferVWBLNFTContract, externalNFT } = await deploymentInfo
+        const { accessControlCheckerByNFT, externalNFT } = await deploymentInfo
 
         await expect(
             accessControlCheckerByNFT
@@ -116,13 +118,13 @@ describe("VWBLGatewayV1 Contract", function () {
         const { accessControlCheckerByNFT, externalNFT, vwblERC721 } = await deploymentInfo
 
         const nftDatas = await accessControlCheckerByNFT.getNFTDatas()
-        // console.log(nftDatas)
+        console.log(nftDatas)
         assert.isTrue(nftDatas[0].includes(TEST_DOCUMENT_ID1))
-        // assert.isTrue(nftDatas[0].includes(TEST_DOCUMENT_ID2))
+        assert.isTrue(nftDatas[0].includes(TEST_DOCUMENT_ID2))
         assert.equal(nftDatas[1][0].contractAddress, vwblERC721.target.toString())
-        assert.equal(nftDatas[1][0].tokenId, BigInt(0))
-        // assert.equal(nftDatas[1][1].contractAddress, externalNFT.target.toString())
-        // assert.equal(nftDatas[1][1].tokenId, BigInt(1))
+        assert.equal(nftDatas[1][0].tokenId, BigInt(1))
+        assert.equal(nftDatas[1][1].contractAddress, externalNFT.target.toString())
+        assert.equal(nftDatas[1][1].tokenId, BigInt(0))
     })
 
     it("should fail to grant AccessControl to condition contract when fee amount is invalid", async () => {
@@ -147,7 +149,7 @@ describe("VWBLGatewayV1 Contract", function () {
         ).to.be.revertedWith("Fee is too high")
     })
     it("should fail to grant AccessControl to condition contract when documentId is already used", async () => {
-        const { vwblGateway, accessCondition, vwblERC721 } = await deploymentInfo
+        const { vwblGateway, accessCondition } = await deploymentInfo
 
         await expect(
             vwblGateway
@@ -159,7 +161,7 @@ describe("VWBLGatewayV1 Contract", function () {
     })
 
     it("should successfully grant AccessControl to condition contract", async () => {
-        const { vwblGateway, accessCondition, vwblERC721 } = await deploymentInfo
+        const { vwblGateway, accessCondition } = await deploymentInfo
 
         const beforeBalance = await ethers.provider.getBalance(vwblGateway.target)
         await vwblGateway
@@ -228,13 +230,14 @@ describe("VWBLGatewayV1 Contract", function () {
     })
 
     it("should not withdraw fee from not contract owner", async () => {
-        const { vwblGateway, vwblERC721Metadata, accessControlCheckerByNFT } = await deploymentInfo
-        await expect(vwblGateway.connect(accounts[1]).withdrawFee()).to.be.revertedWith(
-            "Ownable: caller is not the owner"
+        const { vwblGateway } = await deploymentInfo
+        await expect(vwblGateway.connect(accounts[1]).withdrawFee()).to.be.revertedWithCustomError(
+            vwblGateway,
+            "OwnableUnauthorizedAccount"
         )
     })
     it("should withdraw fee from contract owner", async () => {
-        const { vwblGateway, vwblERC721Metadata, accessControlCheckerByNFT } = await deploymentInfo
+        const { vwblGateway } = await deploymentInfo
 
         const beforeOwnerBalance = await ethers.provider.getBalance(accounts[0].address)
         const beforeGatewayBalance = await ethers.provider.getBalance(vwblGateway.target)
@@ -253,15 +256,16 @@ describe("VWBLGatewayV1 Contract", function () {
     it("should not set feeWei from not contract owner", async () => {
         const { vwblGateway } = await deploymentInfo
 
-        await expect(vwblGateway.connect(accounts[1]).setFeeWei(parseEther("2"))).to.be.revertedWith(
-            "Ownable: caller is not the owner"
+        await expect(vwblGateway.connect(accounts[1]).setFeeWei(parseEther("2"))).to.be.revertedWithCustomError(
+            vwblGateway,
+            "OwnableUnauthorizedAccount"
         )
     })
     it("should set feeWei from contract owner", async () => {
         const { vwblGateway } = await deploymentInfo
 
         const oldFeeWei = await vwblGateway.feeWei()
-        assert.equal(oldFeeWei.toString(), parseEther("1").toString())
+        assert.equal(oldFeeWei.toString(), parseUnits("1", 9).toString())
 
         await vwblGateway.connect(accounts[0]).setFeeWei(parseEther("0"))
 
@@ -286,7 +290,7 @@ describe("VWBLGatewayV1 Contract", function () {
     })
 
     it("should fail to revoke permission from not nft owner", async () => {
-        const { vwblERC721, vwblGateway } = await deploymentInfo
+        const { vwblERC721 } = await deploymentInfo
 
         await expect(vwblERC721.connect(accounts[1]).revokeViewPermission(1, accounts[4].address)).to.be.revertedWith(
             "msg sender is not nft owner"
@@ -304,12 +308,14 @@ describe("VWBLGatewayV1 Contract", function () {
     it("should not set VWBLGateway contract from not contract owner", async () => {
         const { gatewayProxy } = await deploymentInfo
 
-        await expect(gatewayProxy.connect(accounts[1]).setGatewayAddress(accounts[4].address)).to.be.revertedWith(
-            "Ownable: caller is not the owner"
+        await expect(gatewayProxy.connect(accounts[1]).setGatewayAddress(accounts[4].address)).to.be.revertedWithCustomError(
+            gatewayProxy,
+            "OwnableUnauthorizedAccount"
         )
 
-        await expect(gatewayProxy.connect(accounts[1]).setGatewayAddress(accounts[5].address)).to.be.revertedWith(
-            "Ownable: caller is not the owner"
+        await expect(gatewayProxy.connect(accounts[1]).setGatewayAddress(accounts[5].address)).to.be.revertedWithCustomError(
+           gatewayProxy,
+           "OwnableUnauthorizedAccount"
         )
     })
 
@@ -327,8 +333,9 @@ describe("VWBLGatewayV1 Contract", function () {
 
     it("should not set Access check contract from not contract owner", async () => {
         const { vwblERC721 } = await deploymentInfo
-        await expect(vwblERC721.connect(accounts[1]).setAccessCheckerContract(accounts[4].address)).to.be.revertedWith(
-            "Ownable: caller is not the owner"
+        await expect(vwblERC721.connect(accounts[1]).setAccessCheckerContract(accounts[4].address)).to.be.revertedWithCustomError(
+            vwblERC721,
+            "OwnableUnauthorizedAccount"
         )
     })
 
