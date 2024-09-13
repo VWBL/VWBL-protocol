@@ -69,6 +69,41 @@ contract VWBLERC721ERC2981ForMetadata is Ownable, AbstractVWBLToken, ERC721Enume
     }
 
     /**
+     * @notice Batch Mint NFT, grant access feature and register access condition of digital content.
+     * @param _metadataURLs The URl of nft metadata
+     * @param _getKeyURl The URl of VWBL Network(Key management network)
+     * @param _feeNumerator Royalty of NFT
+     * @param _documentIds The Identifier array of digital content and decryption key
+     */
+    function batchMint(
+        string[] memory _metadataURLs,
+        string memory _getKeyURl, 
+        uint96 _feeNumerator, 
+        bytes32[] memory _documentIds
+    ) public payable returns (uint256[] memory) {
+        uint256[] memory tokenIds = new uint256[](_documentIds.length);
+        for (uint i = 0; i < _documentIds.length; i++) {
+            uint256 tokenId = ++counter;
+            tokenIds[i] = tokenId;
+            TokenInfo memory tokenInfo = TokenInfo(_documentIds[i], msg.sender, _getKeyURl);
+            tokenIdToTokenInfo[tokenId] = tokenInfo;
+            _mint(msg.sender, tokenId);
+            _tokenURIs[tokenId] = _metadataURLs[i];
+            if (_feeNumerator > 0) {
+                _setTokenRoyalty(tokenId, msg.sender, _feeNumerator);
+            }
+        }
+        // batch grant access control to nft and pay vwbl fee and register nft data to access control checker contract
+        IAccessControlCheckerByNFT(accessCheckerContract).batchGrantAccessControlAndRegisterNFT{value: msg.value}(
+            _documentIds,
+            msg.sender,
+            address(this),
+            tokenIds
+        );
+        return tokenIds;
+    }
+
+    /**
      * @dev See {IERC165-supportsInterface}.
      */
     function supportsInterface(bytes4 interfaceId)

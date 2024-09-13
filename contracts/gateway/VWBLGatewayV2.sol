@@ -28,10 +28,12 @@ contract VWBLGatewayV2 is IVWBLGatewayV2, Ownable {
 
     constructor(
         address _initialOwner,
+        uint256 _feeWei,
         address _vwblGatewayV1Address,
         address _scFeeRegistryAddress,
         address _withdrawExtraFeeAddress
     ) Ownable(_initialOwner) {
+        feeWei = _feeWei;
         vwblGatewayV1Contract = VWBLGateway(_vwblGatewayV1Address);
         scFeeRegistryAddress = _scFeeRegistryAddress;
         withdrawExtraFeeAddress = _withdrawExtraFeeAddress;

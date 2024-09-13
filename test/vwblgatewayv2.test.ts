@@ -12,14 +12,27 @@ describe("VWBLGatewayV2", function () {
     const TEST_DOCUMENT_ID3 = "0xcc00000000000000000000000000000000000000000000000000000000000000"
     const TEST_DOCUMENT_ID4 = "0xdc00000000000000000000000000000000000000000000000000000000000000"
     const TEST_DOCUMENT_ID5 = "0xec00000000000000000000000000000000000000000000000000000000000000"
-    const fee = parseEther("1.0")
-
+    const TEST_DOCUMENT_ID6 = "0xfc00000000000000000000000000000000000000000000000000000000000000"
+   
     before(async function () {
         accounts = await hre.ethers.getSigners()
     })
 
     it("should deploy", async () => {
         deploymentInfo = await deployContracts(accounts[0], accounts[0].address)
+    })
+
+    it("should not set VWBLGateway contract from not contract owner", async () => {
+        const { gatewayProxy } = deploymentInfo
+        await expect(gatewayProxy.connect(accounts[1]).setGatewayAddress(accounts[4].address)).to.be.reverted
+    })
+
+    it("should set VWBLGateway contract from contract owner", async () => {
+        const { gatewayProxy, vwblGatewayv2 } = deploymentInfo
+
+        await gatewayProxy.connect(accounts[0]).setGatewayAddress(await vwblGatewayv2.getAddress())
+        const newContract = await gatewayProxy.getGatewayAddress()
+        assert.equal(newContract, await vwblGatewayv2.getAddress());
     })
 
     // 特定のユーザーがアクセス権を持っていないことを確認
@@ -76,6 +89,39 @@ describe("VWBLGatewayV2", function () {
         assert.equal(isOwnerHasSetKey, true);
     })
 
+    it("should fail to batch mint with invalid fee", async () => {
+        const { vwblERC721 } = deploymentInfo
+        const invalidFee = ONE_GWEI;
+        await expect(
+            vwblERC721.connect(accounts[1]).batchMint(
+                "http://xxx.yyy.com",
+                100,
+                [TEST_DOCUMENT_ID3, TEST_DOCUMENT_ID4],
+                {
+                    value: invalidFee
+                }
+            )
+        ).to.be.revertedWith("Paid VWBL Fee is incorrect amount")
+    })
+
+    it("should successfully batch mint", async () => {
+        const { vwblGatewayv2, vwblERC721 } = deploymentInfo
+        const fee = ONE_GWEI*2;
+        console.log("fee", fee);
+        await vwblERC721.connect(accounts[1]).batchMint(
+            "http://xxx.yyy.com",
+            100,
+            [TEST_DOCUMENT_ID3, TEST_DOCUMENT_ID4],
+            {
+                value: fee
+            }
+        )
+        const isMinterHasAccess = await vwblGatewayv2.hasAccessControl(accounts[1].address, TEST_DOCUMENT_ID3)
+        assert.equal(isMinterHasAccess, true)
+        const isMinterHasSetKey = await vwblGatewayv2.hasSetKeyRights(accounts[1].address, TEST_DOCUMENT_ID3);
+        assert.equal(isMinterHasSetKey, true)
+    })
+
     it("should get nft datas", async () => {
         const { accessControlCheckerByNFT, vwblERC721, externalNFT } = deploymentInfo
         const nftDatas = await accessControlCheckerByNFT.getNFTDatas()
@@ -128,11 +174,6 @@ describe("VWBLGatewayV2", function () {
         assert.equal(isPermitted, false)
     })
 
-    it("should not set VWBLGateway contract from not contract owner", async () => {
-        const { gatewayProxy } = deploymentInfo
-        await expect(gatewayProxy.connect(accounts[1]).setGatewayAddress(accounts[4].address)).to.be.reverted
-        await expect(gatewayProxy.connect(accounts[1]).setGatewayAddress(accounts[5].address)).to.be.reverted
-    })
     it("should set feeWei from contract owner", async () => {
         const { vwblGatewayv2 } = deploymentInfo
 
@@ -143,17 +184,6 @@ describe("VWBLGatewayV2", function () {
 
         const newFeeWei = await vwblGatewayv2.feeWei()
         assert.equal(newFeeWei.toString(), parseEther("0").toString())
-    })
-    it("should set VWBLGateway contract from contract owner", async () => {
-        const { gatewayProxy } = deploymentInfo
-
-        await gatewayProxy.connect(accounts[0]).setGatewayAddress(accounts[4].address)
-        let newContract = await gatewayProxy.getGatewayAddress()
-        assert.equal(newContract, accounts[4].address)
-
-        await gatewayProxy.connect(accounts[0]).setGatewayAddress(accounts[5].address)
-        newContract = await gatewayProxy.getGatewayAddress()
-        assert.equal(newContract, accounts[5].address)
     })
 
     it("should not set Access check contract from not contract owner", async () => {

@@ -58,6 +58,28 @@ contract VWBLERC721 is Ownable, AbstractVWBLToken, ERC721Enumerable, IViewPermis
     }
 
     /**
+     * @notice Batch Mint NFT, grant access feature and register access condition of digital content.
+     * @param _getKeyURl The URl of VWBL Network(Key management network)
+     * @param _documentIds The Identifier array of digital content and decryption key
+     */
+    function batchMint(string memory _getKeyURl, bytes32[] memory _documentIds) public payable returns (uint256) {
+        uint256[] memory tokenIds = new uint256[](_documentIds.length);
+        for (uint i = 0; i < _documentIds.length; i++) {
+            uint256 tokenId = ++counter;
+            tokenIds[i] = tokenId;
+            TokenInfo memory tokenInfo = TokenInfo(_documentIds[i], msg.sender, _getKeyURl);
+            tokenIdToTokenInfo[tokenId] = tokenInfo;
+            _mint(msg.sender, tokenId);
+        }
+        IAccessControlCheckerByNFT(accessCheckerContract).batchGrantAccessControlAndRegisterNFT{value: msg.value}(
+            _documentIds,
+            msg.sender,
+            address(this),
+            tokenIds
+        );
+    }
+
+    /**
      * @notice Grant view permission to grantee from nft owner
      * @param tokenId The identifier of NFT
      * @param grantee The Address who grantee of view permission right
