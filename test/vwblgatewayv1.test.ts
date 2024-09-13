@@ -118,7 +118,6 @@ describe("VWBLGatewayV1 Contract", function () {
         const { accessControlCheckerByNFT, externalNFT, vwblERC721 } = await deploymentInfo
 
         const nftDatas = await accessControlCheckerByNFT.getNFTDatas()
-        console.log(nftDatas)
         assert.isTrue(nftDatas[0].includes(TEST_DOCUMENT_ID1))
         assert.isTrue(nftDatas[0].includes(TEST_DOCUMENT_ID2))
         assert.equal(nftDatas[1][0].contractAddress, vwblERC721.target.toString())
@@ -128,7 +127,7 @@ describe("VWBLGatewayV1 Contract", function () {
     })
 
     it("should fail to grant AccessControl to condition contract when fee amount is invalid", async () => {
-        const { vwblGateway, accessCondition, vwblERC721 } = await deploymentInfo
+        const { vwblGateway, accessCondition } = await deploymentInfo
         const ONE_GWEI = 1000000000n // 1 Gwei as bigint
         const lessThanOneGwei = ONE_GWEI - BigInt(100000000) // 0.1 Gwei 減少
         const littleMoreOneGwei = ONE_GWEI + BigInt(100000000) // 0.1 Gwei 増加

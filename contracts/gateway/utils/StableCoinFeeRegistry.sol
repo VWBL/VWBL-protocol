@@ -84,14 +84,15 @@ contract StableCoinFeeRegistry is IStableCoinFeeRegistry, Ownable {
         fiatIndexToSCInfo[fiatIndex].fiatName = newFiatName;
     }
 
-    // TODO: decimals登録
     /**
      * @notice Registers new ERC20 addresses for a specific stable coin.
      * @param fiatIndex The index of the stable coin to register the ERC20 addresses for.
      * @param _decimalses The list of ERC20 address decimals
      * @param newERC20Addresses The list of new ERC20 addresses to register.
      */
-    function registerERC20Addresses(uint256 fiatIndex, address[] memory newERC20Addresses,
+    function registerERC20Addresses(
+        uint256 fiatIndex, 
+        address[] memory newERC20Addresses,
         uint8[] memory _decimalses
     ) public onlyOwner {
         require(fiatIndex < nextFiatIndex, "fiatIndex is invalid");

@@ -42,7 +42,11 @@ describe("StableCoinFeeRegistry", () => {
         // Check getFeeDecimals
         const [usdcFeeDec, isRegisteredUSDC] = await stableCoinFeeRegistry.getFeeDecimals(tokens.USDC.address)
         expect(isRegisteredUSDC).to.be.true
-        expect(usdcFeeDec).to.equal(ethers.parseUnits("0.1", 6)) // 0.1% for USDC (6 decimals)
+        expect(usdcFeeDec).to.equal(ethers.parseUnits("0.1", 6)) // 0.1 for USDC (6 decimals)
+
+        const [daiFeeDec, isRegisteredDAI] = await stableCoinFeeRegistry.getFeeDecimals(tokens.DAI.address);
+        expect(isRegisteredDAI).to.be.true
+        expect(daiFeeDec).to.equal(ethers.parseUnits("0.1", 18));
 
         // Check getRegisteredTokens
         const registeredTokens = await stableCoinFeeRegistry.getRegisteredTokens()
@@ -115,7 +119,7 @@ describe("StableCoinFeeRegistry", () => {
         await expect(stableCoinFeeRegistry.registerFeeNumerator(999, 500)).to.be.revertedWith("fiatIndex is invalid")
     })
     it("should register new fee numerator correctly", async function () {
-        await stableCoinFeeRegistry.registerFeeNumerator(1, 500) // 0.05%
+        await stableCoinFeeRegistry.registerFeeNumerator(1, 500) // 0.05
 
         const [feeDecimals, isRegistered] = await stableCoinFeeRegistry.getFeeDecimals(tokens.USDC.address)
         expect(isRegistered).to.be.true
