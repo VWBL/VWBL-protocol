@@ -4,8 +4,10 @@ import {
     GatewayProxy,
     VWBLERC1155ERC2981,
     VWBLGateway,
-    VWBLERC1155ERC2981ForMetadata
+    VWBLERC1155ERC2981ForMetadata,
+    VWBLContractWallet
 } from "../../typechain-types"
+import { ContractRunner } from "ethers";
 
 
 export const ONE_GWEI = 1_000_000_000;
@@ -21,25 +23,33 @@ export interface DeploymentInfo {
 
 export async function deployContracts(ownerSigner: any, ownerAddress: string): Promise<DeploymentInfo> {
     const VWBLGateway = await hre.ethers.getContractFactory("VWBLGateway");
-        const vwblGateway = await VWBLGateway.connect(ownerSigner).deploy(fee);
+    const vwblGateway = await VWBLGateway.connect(ownerSigner).deploy(fee);
 
-        const GatewayProxy = await hre.ethers.getContractFactory("GatewayProxy")
-        const gatewayProxy = await GatewayProxy.deploy(await vwblGateway.getAddress())
+    const GatewayProxy = await hre.ethers.getContractFactory("GatewayProxy")
+    const gatewayProxy = await GatewayProxy.deploy(await vwblGateway.getAddress())
 
-        const AccessControlCheckerByERC1155 = await hre.ethers.getContractFactory("AccessControlCheckerByERC1155")
-        const accessControlCheckerByERC1155 = await AccessControlCheckerByERC1155.connect(ownerSigner).deploy(ownerAddress, false, await gatewayProxy.getAddress())
+    const AccessControlCheckerByERC1155 = await hre.ethers.getContractFactory("AccessControlCheckerByERC1155")
+    const accessControlCheckerByERC1155 = await AccessControlCheckerByERC1155.connect(ownerSigner).deploy(ownerAddress, false, await gatewayProxy.getAddress())
 
-        const VWBLERC1155 = await hre.ethers.getContractFactory("VWBLERC1155ERC2981")
-        const vwblERC1155ERC2981 = await VWBLERC1155.connect(ownerSigner).deploy(
-            ownerAddress,
-            "http://xxx.yyy.com",
-            await gatewayProxy.getAddress(),
-            await accessControlCheckerByERC1155.getAddress(),
-            "Hello, VWBL"
-        )
+    const VWBLERC1155 = await hre.ethers.getContractFactory("VWBLERC1155ERC2981")
+    const vwblERC1155ERC2981 = await VWBLERC1155.connect(ownerSigner).deploy(
+        ownerAddress,
+        "http://xxx.yyy.com",
+        await gatewayProxy.getAddress(),
+        await accessControlCheckerByERC1155.getAddress(),
+        "Hello, VWBL"
+    )
 
-        const VWBLERC1155Metadata = await hre.ethers.getContractFactory("VWBLERC1155ERC2981ForMetadata")
-        const vwblERC1155Metadata = await VWBLERC1155Metadata.connect(ownerSigner).deploy(ownerAddress, gatewayProxy.getAddress(), accessControlCheckerByERC1155.getAddress(), "Hello, VWBL")
+    const VWBLERC1155Metadata = await hre.ethers.getContractFactory("VWBLERC1155ERC2981ForMetadata")
+    const vwblERC1155Metadata = await VWBLERC1155Metadata.connect(ownerSigner).deploy(ownerAddress, gatewayProxy.getAddress(), accessControlCheckerByERC1155.getAddress(), "Hello, VWBL")
 
-        return {vwblGateway, gatewayProxy, accessControlCheckerByERC1155, vwblERC1155ERC2981, vwblERC1155Metadata};
+    return {vwblGateway, gatewayProxy, accessControlCheckerByERC1155, vwblERC1155ERC2981, vwblERC1155Metadata};
+}
+
+export async function execMultiSigTx(vwblContractWallet: VWBLContractWallet, owners: ContractRunner[], transactionId: number, dest: string, value: number, data: string): Promise<boolean> {
+    const txResponse = await vwblContractWallet.connect(owners[0]).submitTransaction(dest, value, data);
+    await txResponse.wait();
+    await vwblContractWallet.connect(owners[1]).confirmTransaction(transactionId);
+    const isConfirmed = await vwblContractWallet.isConfirmed(transactionId);
+    return isConfirmed;
 }

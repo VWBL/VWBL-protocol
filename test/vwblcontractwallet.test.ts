@@ -3,7 +3,6 @@ import { ethers } from "hardhat"
 
 import { VWBLContractWallet } from "../typechain-types"
 import { deployContractsGatewayV2 } from "./lib/deployContractsVwblContractWallet"
-import { ZeroAddress } from "ethers"
 
 describe("VWBLContractWallet", function () {
     interface Registries {
@@ -320,7 +319,6 @@ describe("VWBLContractWallet", function () {
             await vwblContractWallet.connect(accounts[1]).confirmTransaction(1)
 
             const isConfirmed = await vwblContractWallet.isConfirmed(1)
-
             // トランザクションを実行（十分な確認が得られていると仮定）
             if (isConfirmed) {
                 expect(await registries.stableCoinFeeRegistry.owner()).to.equal(accounts[3].address)
