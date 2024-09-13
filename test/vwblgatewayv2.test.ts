@@ -33,7 +33,7 @@ describe("VWBLGatewayV2", function () {
         const { vwblGatewayv2, vwblERC721, accessControlCheckerByNFT } = deploymentInfo
         await vwblERC721.connect(accounts[1]).mint(
             "http://xxx.yyy.com",
-            100, // token amount
+            100,
             TEST_DOCUMENT_ID1,
             {
                 value: ONE_GWEI,
@@ -41,8 +41,39 @@ describe("VWBLGatewayV2", function () {
         )
         const createdToken = await accessControlCheckerByNFT.documentIdToToken(TEST_DOCUMENT_ID1)
         assert.equal(createdToken.contractAddress, await vwblERC721.getAddress())
-        const isPermitted = await vwblGatewayv2.hasAccessControl(accounts[1].address, TEST_DOCUMENT_ID1)
-        assert.equal(isPermitted, true)
+        await vwblERC721.connect(accounts[1]).transferFrom(accounts[1].address, accounts[2].address, 1)
+        
+        const isMinterHasAccess = await vwblGatewayv2.hasAccessControl(accounts[1].address, TEST_DOCUMENT_ID1)
+        assert.equal(isMinterHasAccess, true)
+        const isMinterHasSetKey = await vwblGatewayv2.hasSetKeyRights(accounts[1].address, TEST_DOCUMENT_ID1);
+        assert.equal(isMinterHasSetKey, true)
+        const isOwnerHasAccess = await vwblGatewayv2.hasAccessControl(accounts[2].address, TEST_DOCUMENT_ID1)
+        assert.equal(isOwnerHasAccess, true)
+        const isOwnerHasSetKey = await vwblGatewayv2.hasSetKeyRights(accounts[2].address, TEST_DOCUMENT_ID1);
+        assert.equal(isOwnerHasSetKey, true);
+    })
+
+    it("should minter has only set key right", async() => {
+        const { vwblGatewayv2, vwblERC721, accessControlCheckerByNFTOnlySetkey } = deploymentInfo
+        await vwblERC721.connect(accounts[0]).setAccessCheckerContract(await accessControlCheckerByNFTOnlySetkey.getAddress());
+        await vwblERC721.connect(accounts[1]).mint(
+            "http://xxx.yyy.com",
+            100, 
+            TEST_DOCUMENT_ID2,
+            {
+                value: ONE_GWEI,
+            }
+        );
+        await vwblERC721.connect(accounts[1]).transferFrom(accounts[1].address, accounts[2].address, 2)
+        
+        const isMinterHasAccess = await vwblGatewayv2.hasAccessControl(accounts[1].address, TEST_DOCUMENT_ID2)
+        assert.equal(isMinterHasAccess, false)
+        const isMinterHasSetKey = await vwblGatewayv2.hasSetKeyRights(accounts[1].address, TEST_DOCUMENT_ID2);
+        assert.equal(isMinterHasSetKey, true)
+        const isOwnerHasAccess = await vwblGatewayv2.hasAccessControl(accounts[2].address, TEST_DOCUMENT_ID2)
+        assert.equal(isOwnerHasAccess, true)
+        const isOwnerHasSetKey = await vwblGatewayv2.hasSetKeyRights(accounts[2].address, TEST_DOCUMENT_ID2);
+        assert.equal(isOwnerHasSetKey, true);
     })
 
     it("should get nft datas", async () => {
@@ -51,20 +82,6 @@ describe("VWBLGatewayV2", function () {
         assert.isTrue(nftDatas[0].includes(TEST_DOCUMENT_ID1))
         assert.equal(nftDatas[1][0].contractAddress, vwblERC721.target.toString())
         assert.equal(nftDatas[1][0].tokenId, BigInt(1))
-    })
-
-    // NFTの転送をテストし、残高が適切に更新されているかを確認,移転したらhasAccessControlなくなる？
-    it("should transfer", async () => {
-        const { vwblERC721, transferVWBLNFTContract, vwblGatewayv2 } = deploymentInfo
-        // await vwblERC721.connect(accounts[1]).safeTransferFrom(accounts[1].address, accounts[2].address, 1)
-        await vwblERC721.connect(accounts[1]).setApprovalForAll(transferVWBLNFTContract.target, true)
-        await transferVWBLNFTContract.connect(accounts[1]).transferNFT(vwblERC721.target, accounts[3].address, 1)
-        const isPermittedOfOwner = await vwblGatewayv2.hasAccessControl(accounts[3].address, TEST_DOCUMENT_ID1)
-        const isPermittedOfMinter = await vwblGatewayv2.hasAccessControl(accounts[1].address, TEST_DOCUMENT_ID1)
-        console.log(">>>isPermittedOfOwner", isPermittedOfOwner)
-        console.log(">>>isPermittedOfMinter", isPermittedOfMinter)
-        assert.equal(isPermittedOfOwner, true)
-        // assert.equal(isPermittedOfMinter, true)
     })
 
     it("should submit and confirm a transaction for registerValidatorAllocations", async function () {

@@ -27,6 +27,7 @@ export interface DeploymentInfo {
     vwblGatewayv2: VWBLGatewayV2
     gatewayProxy: GatewayProxy
     accessControlCheckerByNFT: AccessControlCheckerByNFT
+    accessControlCheckerByNFTOnlySetkey: AccessControlCheckerByNFT
     accessCondition: AccessCondition
     externalNFT: ExternalNFT
     vwblERC721: VWBLERC721ERC2981
@@ -111,6 +112,11 @@ export async function deployContracts(ownerSigner: any, ownerAddress: string): P
     const AccessControlCheckerByNFTFactory = await ethers.getContractFactory("AccessControlCheckerByNFT")
     const accessControlCheckerByNFT = await AccessControlCheckerByNFTFactory.deploy(
         ownerAddress,
+        false,
+        gatewayProxy.getAddress()
+    )
+    const accessControlCheckerByNFTOnlySetkey = await AccessControlCheckerByNFTFactory.deploy(
+        ownerAddress,
         true,
         gatewayProxy.getAddress()
     )
@@ -182,6 +188,7 @@ export async function deployContracts(ownerSigner: any, ownerAddress: string): P
         vwblGatewayv2,
         gatewayProxy,
         accessControlCheckerByNFT,
+        accessControlCheckerByNFTOnlySetkey,
         accessCondition,
         externalNFT,
         vwblERC721,
