@@ -29,4 +29,38 @@ interface IAccessControlCheckerByNFT is IAccessControlChecker {
         address nftContract,
         uint256[] memory tokenIds
     ) external payable;
+
+    /**
+     * @notice Grant access control using ERC20 tokens as payment for the VWBL fee and register access condition and NFT info
+     * @param documentId The Identifier of digital content and decryption key
+     * @param nftContract The contract address of NFT
+     * @param tokenId The Identifier of NFT
+     * @param erc20Address The address of the ERC20 token used to pay the fee
+     * @param feePayer The address of the entity paying the fee
+     */
+    function grantAccessControlWithERC20AndRegisterNFT(
+        bytes32 documentId,
+        address nftContract,
+        uint256 tokenId,
+        address erc20Address,
+        address feePayer
+    ) external;
+
+    /**
+     * @notice Batch grant access control, register access condition and NFT info
+     * @param documentIds An array of Identifiers for the digital content and decryption keys
+     * @param minter The address of the digital content creator for all provided document IDs
+     * @param nftContract The contract address of the NFT
+     * @param tokenIds An array of Identifiers for the NFTs corresponding to each document ID
+     * @param erc20Address The address of the ERC20 token used to pay the fee
+     * @param feePayer The address of the entity paying the fee
+     */
+    function batchGrantAccessControlWithERC20AndRegisterNFT(
+        bytes32[] memory documentIds,
+        address minter,
+        address nftContract,
+        uint256[] memory tokenIds,
+        address erc20Address,
+        address feePayer
+    ) external;
 }

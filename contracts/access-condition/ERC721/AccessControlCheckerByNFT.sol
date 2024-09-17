@@ -101,9 +101,7 @@ contract AccessControlCheckerByNFT is AbstractControlChecker, Ownable {
             IVWBL(nftContract).getMinter(tokenId)
         );
 
-        documentIdToToken[documentId].contractAddress = nftContract;
-        documentIdToToken[documentId].tokenId = tokenId;
-        emit nftDataRegistered(nftContract, tokenId);
+        setNFTInfo(documentId, nftContract, tokenId);
     }
 
     /**
@@ -127,9 +125,73 @@ contract AccessControlCheckerByNFT is AbstractControlChecker, Ownable {
         );
 
         for (uint256 i = 0; i < documentIds.length; i++) {
-            documentIdToToken[documentIds[i]].contractAddress = nftContract;
-            documentIdToToken[documentIds[i]].tokenId = tokenIds[i];
-            emit nftDataRegistered(nftContract, tokenIds[i]);
+            setNFTInfo(documentIds[i], nftContract, tokenIds[i]);
         }
+    }
+
+    /**
+     * @notice Grant access control using ERC20 tokens as payment for the VWBL fee and register access condition and NFT info
+     * @param documentId The Identifier of digital content and decryption key
+     * @param nftContract The contract address of NFT
+     * @param tokenId The Identifier of NFT
+     * @param erc20Address The address of the ERC20 token used to pay the fee
+     * @param feePayer The address of the entity paying the fee
+     */
+    function grantAccessControlWithERC20AndRegisterNFT(
+        bytes32 documentId,
+        address nftContract,
+        uint256 tokenId,
+        address erc20Address,
+        address feePayer
+    ) public {
+        IVWBLGatewayV2(getGatewayAddress()).grantAccessControlWithERC20(
+            documentId,
+            address(this),
+            IVWBL(nftContract).getMinter(tokenId),
+            erc20Address,
+            feePayer
+        );
+
+        setNFTInfo(documentId, nftContract, tokenId);
+    }
+
+    /**
+     * @notice Batch grant access control, register access condition and NFT info
+     * @param documentIds An array of Identifiers for the digital content and decryption keys
+     * @param minter The address of the digital content creator for all provided document IDs
+     * @param nftContract The contract address of the NFT
+     * @param tokenIds An array of Identifiers for the NFTs corresponding to each document ID
+     * @param erc20Address The address of the ERC20 token used to pay the fee
+     * @param feePayer The address of the entity paying the fee
+     */
+    function batchGrantAccessControlWithERC20AndRegisterNFT(
+        bytes32[] memory documentIds,
+        address minter,
+        address nftContract,
+        uint256[] memory tokenIds,
+        address erc20Address,
+        address feePayer
+    ) public {
+        IVWBLGatewayV2(getGatewayAddress()).batchGrantAccessControlWithERC20(
+            documentIds,
+            address(this),
+            minter,
+            erc20Address,
+            feePayer
+        );
+
+        for (uint256 i = 0; i < documentIds.length; i++) {
+            setNFTInfo(documentIds[i], nftContract, tokenIds[i]);
+        }
+    }
+
+    function setNFTInfo(
+        bytes32 documentId,
+        address nftContract,
+        uint256 tokenId
+    ) private {
+        documentIdToToken[documentId].contractAddress = nftContract;
+        documentIdToToken[documentId].tokenId = tokenId;
+        emit nftDataRegistered(nftContract, tokenId);
     }
 }

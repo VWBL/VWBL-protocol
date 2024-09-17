@@ -44,10 +44,8 @@ contract VWBLERC721 is Ownable, AbstractVWBLToken, ERC721Enumerable, IViewPermis
      */
     function mint(string memory _getKeyURl, bytes32 _documentId) public payable returns (uint256) {
         uint256 tokenId = ++counter;
-        TokenInfo memory tokenInfo = TokenInfo(_documentId, msg.sender, _getKeyURl);
-        tokenIdToTokenInfo[tokenId] = tokenInfo;
-        _mint(msg.sender, tokenId);
-        // grant access control to nft and pay vwbl fee and register nft data to access control checker contract
+        setVWBLInfo(_documentId, msg.sender, _getKeyURl, tokenId);
+        // grant access control to nft, pay vwbl fee and register nft data to access control checker contract
         IAccessControlCheckerByNFT(accessCheckerContract).grantAccessControlAndRegisterNFT{value: msg.value}(
             _documentId,
             address(this),
@@ -62,21 +60,88 @@ contract VWBLERC721 is Ownable, AbstractVWBLToken, ERC721Enumerable, IViewPermis
      * @param _getKeyURl The URl of VWBL Network(Key management network)
      * @param _documentIds The Identifier array of digital content and decryption key
      */
-    function batchMint(string memory _getKeyURl, bytes32[] memory _documentIds) public payable returns (uint256) {
+    function batchMint(string memory _getKeyURl, bytes32[] memory _documentIds) public payable returns (uint256[] memory) {
         uint256[] memory tokenIds = new uint256[](_documentIds.length);
         for (uint i = 0; i < _documentIds.length; i++) {
             uint256 tokenId = ++counter;
             tokenIds[i] = tokenId;
-            TokenInfo memory tokenInfo = TokenInfo(_documentIds[i], msg.sender, _getKeyURl);
-            tokenIdToTokenInfo[tokenId] = tokenInfo;
-            _mint(msg.sender, tokenId);
+            setVWBLInfo(_documentIds[i], msg.sender, _getKeyURl, tokenId);
         }
+        // batch grant access control to nft, pay vwbl fee and register nft data to access control checker contract
         IAccessControlCheckerByNFT(accessCheckerContract).batchGrantAccessControlAndRegisterNFT{value: msg.value}(
             _documentIds,
             msg.sender,
             address(this),
             tokenIds
         );
+        return tokenIds;
+    }
+
+    /**
+     * @notice Mint NFT, grant access feature by paying fee with ERC20 and register access condition of digital content.
+     * @param _getKeyURl The URl of VWBL Network(Key management network)
+     * @param _documentId The Identifier of digital content and decryption key
+     * @param _erc20Address The address of the ERC20 token used to pay the fee
+     * @param _feePayer The address of the entity paying the fee
+     */
+    function mintWithERC20(
+        string memory _getKeyURl,
+        bytes32 _documentId,
+        address _erc20Address,
+        address _feePayer
+    ) public returns (uint256) {
+        uint256 tokenId = ++counter;
+        setVWBLInfo(_documentId, msg.sender, _getKeyURl, tokenId);
+        // grant access control to nft, pay vwbl fee with erc20 and register nft data to access control checker contract
+        IAccessControlCheckerByNFT(accessCheckerContract).grantAccessControlWithERC20AndRegisterNFT(
+            _documentId,
+            address(this),
+            tokenId,
+            _erc20Address,
+            _feePayer
+        );
+        return tokenId;
+    }
+
+    /**
+     * @notice Batch mint NFT, grant access feature by paying fee with ERC20 and register access condition of digital content.
+     * @param _getKeyURl The URl of VWBL Network(Key management network)
+     * @param _documentIds The Identifier of digital content and decryption key
+     * @param _erc20Address The address of the ERC20 token used to pay the fee
+     * @param _feePayer The address of the entity paying the fee
+     */
+    function batchMintWithERC20(
+        string memory _getKeyURl, 
+        bytes32[] memory _documentIds,
+        address _erc20Address,
+        address _feePayer
+    ) public {
+        uint256[] memory tokenIds = new uint256[](_documentIds.length);
+        for (uint i = 0; i < _documentIds.length; i++) {
+            uint256 tokenId = ++counter;
+            tokenIds[i] = tokenId;
+            setVWBLInfo(_documentIds[i], msg.sender, _getKeyURl, tokenId);
+        }
+        // batch grant access control to nft, pay vwbl fee with erc20 and register nft data to access control checker contract
+        IAccessControlCheckerByNFT(accessCheckerContract).batchGrantAccessControlWithERC20AndRegisterNFT(
+            _documentIds,
+            msg.sender,
+            address(this),
+            tokenIds,
+            _erc20Address,
+            _feePayer
+        );
+    }
+
+    function setVWBLInfo(
+        bytes32 _documentId,
+        address _minter,
+        string memory _getKeyURl,
+        uint _tokenId
+    ) private {
+        TokenInfo memory tokenInfo = TokenInfo(_documentId, _minter, _getKeyURl);
+        tokenIdToTokenInfo[_tokenId] = tokenInfo;
+        _mint(_minter, _tokenId);
     }
 
     /**

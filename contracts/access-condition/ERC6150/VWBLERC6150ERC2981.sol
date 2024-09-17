@@ -57,14 +57,7 @@ contract VWBLERC6150ERC2981 is Ownable, ERC6150ParentTransferable, AbstractVWBLT
         bytes32 _documentId
     ) public payable returns (uint256) {
         uint256 tokenId = ++counter;
-        tokenIdToTokenInfo[tokenId].documentId = _documentId;
-        tokenIdToTokenInfo[tokenId].minterAddress = msg.sender;
-        tokenIdToTokenInfo[tokenId].getKeyURl = _getKeyURl;
-        _safeMintWithParent(msg.sender, _parentId, tokenId);
-        if (_feeNumerator > 0) {
-            _setTokenRoyalty(tokenId, msg.sender, _feeNumerator);
-        }
-
+        setVWBLInfo(tokenId, _parentId, _documentId, msg.sender, _getKeyURl, _feeNumerator);
         IAccessControlCheckerByNFT(accessCheckerContract).grantAccessControlAndRegisterNFT{value: msg.value}(
             _documentId,
             address(this),
@@ -72,6 +65,53 @@ contract VWBLERC6150ERC2981 is Ownable, ERC6150ParentTransferable, AbstractVWBLT
         );
 
         return tokenId;
+    }
+
+    /**
+     * @notice Mint NFT, grant access feature by paying fee with ERC20 and register access condition of digital content.
+     * @param _getKeyURl The URl of VWBL Network(Key management network)
+     * @param _parentId parent token Id
+     * @param _feeNumerator Royalty of NFT
+     * @param _documentId The Identifier of digital content and decryption key
+     * @param _erc20Address The address of the ERC20 token used to pay the fee
+     * @param _feePayer The address of the entity paying the fee
+     */
+    function mintWithERC20(
+        string memory _getKeyURl,
+        uint256 _parentId,
+        uint96 _feeNumerator,
+        bytes32 _documentId,
+        address _erc20Address,
+        address _feePayer
+    ) public returns (uint256) {
+        uint256 tokenId = ++counter;
+        setVWBLInfo(tokenId, _parentId, _documentId, msg.sender, _getKeyURl, _feeNumerator);
+        // grant access control to nft, pay vwbl fee with erc20 and register nft data to access control checker contract
+        IAccessControlCheckerByNFT(accessCheckerContract).grantAccessControlWithERC20AndRegisterNFT(
+            _documentId,
+            address(this),
+            tokenId,
+            _erc20Address,
+            _feePayer
+        );
+        return tokenId;
+    }
+
+    function setVWBLInfo(
+        uint256 _tokenId,
+        uint256 _parentId,
+        bytes32 _documentId,
+        address _minter,
+        string memory _getKeyURl,
+        uint96 _feeNumerator
+    ) private {
+        tokenIdToTokenInfo[_tokenId].documentId = _documentId;
+        tokenIdToTokenInfo[_tokenId].minterAddress = _minter;
+        tokenIdToTokenInfo[_tokenId].getKeyURl = _getKeyURl;
+        _safeMintWithParent(_minter, _parentId, _tokenId);
+        if (_feeNumerator > 0) {
+            _setTokenRoyalty(_tokenId, _minter, _feeNumerator);
+        }
     }
 
     function supportsInterface(bytes4 interfaceId)

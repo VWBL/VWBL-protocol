@@ -33,11 +33,8 @@ contract VWBLERC1155 is ERC1155Burnable, AbstractVWBLToken {
         bytes32 _documentId
     ) public payable returns (uint256) {
         uint256 tokenId = ++counter;
-        tokenIdToTokenInfo[tokenId].documentId = _documentId;
-        tokenIdToTokenInfo[tokenId].minterAddress = msg.sender;
-        tokenIdToTokenInfo[tokenId].getKeyURl = _getKeyURl;
+        setVWBLInfo(tokenId, _documentId, msg.sender, _getKeyURl);
         _mint(msg.sender, tokenId, _amount, "");
-
         IAccessControlCheckerByERC1155(accessCheckerContract).grantAccessControlAndRegisterERC1155{value: msg.value}(
             _documentId,
             address(this),
@@ -64,17 +61,72 @@ contract VWBLERC1155 is ERC1155Burnable, AbstractVWBLToken {
         for (uint32 i = 0; i < _amounts.length; i++) {
             uint256 tokenId = ++counter;
             tokenIds[i] = tokenId;
-            tokenIdToTokenInfo[tokenId].documentId = _documentIds[i];
-            tokenIdToTokenInfo[tokenId].minterAddress = msg.sender;
-            tokenIdToTokenInfo[tokenId].getKeyURl = _getKeyURl;
+            setVWBLInfo(tokenId, _documentIds[i], msg.sender, _getKeyURl);
         }
-
         _mintBatch(msg.sender, tokenIds, _amounts, "");
 
-        IAccessControlCheckerByERC1155(accessCheckerContract).batchGrantAccessControlAnderRegisterERC1155{
+        IAccessControlCheckerByERC1155(accessCheckerContract).batchGrantAccessControlAndRegisterERC1155{
             value: msg.value
         }(_documentIds, address(this), tokenIds, msg.sender);
 
         return tokenIds;
+    }
+
+    function mintWithERC20(
+        string memory _getKeyURl,
+        uint256 _amount,
+        bytes32 _documentId,
+        address erc20Address,
+        address feePayer
+    ) public returns (uint256) {
+        uint256 tokenId = ++counter;
+        setVWBLInfo(tokenId, _documentId, msg.sender, _getKeyURl);
+        _mint(msg.sender, tokenId, _amount, "");
+        IAccessControlCheckerByERC1155(accessCheckerContract).grantAccessControlWithERC20AndRegisterERC1155(
+            _documentId,
+            address(this),
+            tokenId,
+            erc20Address,
+            feePayer
+        );
+        return tokenId;
+    }
+
+    function mintBatchWithERC20(
+        string memory _getKeyURl,
+        uint256[] memory _amounts,
+        bytes32[] memory _documentIds,
+        address erc20Address,
+        address feePayer
+    ) public {
+        require(_amounts.length == _documentIds.length, "Invalid array length");
+
+        uint256[] memory tokenIds = new uint256[](_amounts.length);
+        for (uint32 i = 0; i < _amounts.length; i++) {
+            uint256 tokenId = ++counter;
+            tokenIds[i] = tokenId;
+            setVWBLInfo(tokenId, _documentIds[i], msg.sender, _getKeyURl);
+        }
+        _mintBatch(msg.sender, tokenIds, _amounts, "");
+
+        IAccessControlCheckerByERC1155(accessCheckerContract).batchGrantAccessControlWithERC20AndRegisterERC1155(
+            _documentIds,
+            address(this),
+            tokenIds,
+            msg.sender,
+            erc20Address,
+            feePayer
+        );
+    }
+
+    function setVWBLInfo(
+        uint256 _tokenId,
+        bytes32 _documentId,
+        address _minter,
+        string memory _getKeyURl
+    ) private {
+        tokenIdToTokenInfo[_tokenId].documentId = _documentId;
+        tokenIdToTokenInfo[_tokenId].minterAddress = _minter;
+        tokenIdToTokenInfo[_tokenId].getKeyURl = _getKeyURl;
     }
 }

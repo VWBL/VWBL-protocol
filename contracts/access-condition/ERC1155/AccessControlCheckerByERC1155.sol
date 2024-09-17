@@ -100,12 +100,10 @@ contract AccessControlCheckerByERC1155 is AbstractControlChecker, Ownable, IAcce
             IVWBL(erc1155Contract).getMinter(tokenId)
         );
 
-        documentIdToToken[documentId].contractAddress = erc1155Contract;
-        documentIdToToken[documentId].tokenId = tokenId;
-        emit erc1155DataRegistered(erc1155Contract, tokenId);
+        setERC1155Info(documentId, erc1155Contract, tokenId);
     }
 
-    function batchGrantAccessControlAnderRegisterERC1155(
+    function batchGrantAccessControlAndRegisterERC1155(
         bytes32[] memory documentIds,
         address erc1155Contract,
         uint256[] memory tokenIds,
@@ -114,9 +112,64 @@ contract AccessControlCheckerByERC1155 is AbstractControlChecker, Ownable, IAcce
         IVWBLGatewayV2(getGatewayAddress()).batchGrantAccessControl(documentIds, address(this), minter);
 
         for (uint256 i = 0; i < documentIds.length; i++) {
-            documentIdToToken[documentIds[i]].contractAddress = erc1155Contract;
-            documentIdToToken[documentIds[i]].tokenId = tokenIds[i];
-            emit erc1155DataRegistered(erc1155Contract, tokenIds[i]);
+            setERC1155Info(documentIds[i], erc1155Contract, tokenIds[i]);
         }
+    }
+
+    /**
+     * @notice Grant access control using ERC20 tokens as payment for the VWBL fee, register access condition and ERC1155 info
+     * @param documentId The Identifier of digital content and decryption key
+     * @param erc1155Contract The contract address of ERC1155
+     * @param tokenId The Identifier of ERC1155
+     * @param erc20Address The address of the ERC20 token used to pay the fee
+     * @param feePayer The address of the entity paying the fee
+     */
+    function grantAccessControlWithERC20AndRegisterERC1155(
+        bytes32 documentId,
+        address erc1155Contract,
+        uint256 tokenId,
+        address erc20Address,
+        address feePayer
+    ) public {
+        IVWBLGatewayV2(getGatewayAddress()).grantAccessControlWithERC20(
+            documentId,
+            address(this),
+            IVWBL(erc1155Contract).getMinter(tokenId),
+            erc20Address,
+            feePayer
+        );
+
+        setERC1155Info(documentId, erc1155Contract, tokenId);
+    }
+
+    function batchGrantAccessControlWithERC20AndRegisterERC1155(
+        bytes32[] memory documentIds,
+        address erc1155Contract,
+        uint256[] memory tokenIds,
+        address minter,
+        address erc20Address,
+        address feePayer
+    ) public {
+        IVWBLGatewayV2(getGatewayAddress()).batchGrantAccessControlWithERC20(
+            documentIds, 
+            address(this), 
+            minter, 
+            erc20Address, 
+            feePayer
+        );
+
+        for (uint256 i = 0; i < documentIds.length; i++) {
+            setERC1155Info(documentIds[i], erc1155Contract, tokenIds[i]);
+        }
+    }
+
+    function setERC1155Info(
+        bytes32 documentId,
+        address erc1155Contract,
+        uint256 tokenId
+    ) private {
+        documentIdToToken[documentId].contractAddress = erc1155Contract;
+        documentIdToToken[documentId].tokenId = tokenId;
+        emit erc1155DataRegistered(erc1155Contract, tokenId);
     }
 }

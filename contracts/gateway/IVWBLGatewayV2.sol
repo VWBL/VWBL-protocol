@@ -60,4 +60,36 @@ interface IVWBLGatewayV2 is IVWBLGateway {
      * @return withdrawalAmounts An array of amounts withdrawn for each registered fee token.
      */
     function withdrawERC20Fee() external returns (address[] memory, uint256[] memory);
+
+     /**
+     * @notice Grant access control using ERC20 tokens as payment for the VWBL fee. This method allows a user to pay the VWBL fee using a specified ERC20 token instead of the native token.
+     * @param documentId The Identifier of digital content and decryption key
+     * @param conditionContractAddress The address of the access condition contract
+     * @param minter The address of the digital content creator
+     * @param erc20Address The address of the ERC20 token used to pay the fee
+     * @param feePayer The address of the entity paying the fee
+     */
+    function grantAccessControlWithERC20(
+        bytes32 documentId,
+        address conditionContractAddress,
+        address minter,
+        address erc20Address,
+        address feePayer
+    ) external;
+
+    /**
+     * @notice Grant batch access control using ERC20 tokens as payment for the VWBL fee. This method allows users to pay the VWBL fee using a specified ERC20 token instead of the native token for multiple digital contents at once.
+     * @param documentIds An array of Identifiers for the digital content and decryption keys
+     * @param conditionContractAddress The address of the access condition contract to be applied to all provided document IDs
+     * @param minter The address of the digital content creator, applied to all provided document IDs
+     * @param erc20Address The address of the ERC20 token used to pay the fee
+     * @param feePayer The address of the entity paying the fee
+     */
+    function batchGrantAccessControlWithERC20(
+        bytes32[] memory documentIds,
+        address conditionContractAddress,
+        address minter,
+        address erc20Address,
+        address feePayer
+    ) external;
 }

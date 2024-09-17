@@ -10,10 +10,27 @@ interface IAccessControlCheckerByERC1155 is IAccessControlChecker {
         uint256 tokenId
     ) external payable;
 
-    function batchGrantAccessControlAnderRegisterERC1155(
+    function batchGrantAccessControlAndRegisterERC1155(
         bytes32[] memory documentIds,
         address erc1155Contract,
         uint256[] memory tokenIds,
         address minter
     ) external payable;
+
+    function grantAccessControlWithERC20AndRegisterERC1155(
+        bytes32 documentId,
+        address erc1155Contract,
+        uint256 tokenId,
+        address erc20Address,
+        address feePayer
+    ) external;
+
+    function batchGrantAccessControlWithERC20AndRegisterERC1155(
+        bytes32[] memory documentIds,
+        address erc1155Contract,
+        uint256[] memory tokenIds,
+        address minter,
+        address erc20Address,
+        address feePayer
+    ) external;
 }

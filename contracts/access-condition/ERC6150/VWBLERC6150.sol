@@ -54,10 +54,7 @@ contract VWBLERC6150 is Ownable, ERC6150ParentTransferable, AbstractVWBLToken, I
         bytes32 _documentId
     ) public payable returns (uint256) {
         uint256 tokenId = ++counter;
-        tokenIdToTokenInfo[tokenId].documentId = _documentId;
-        tokenIdToTokenInfo[tokenId].minterAddress = msg.sender;
-        tokenIdToTokenInfo[tokenId].getKeyURl = _getKeyURl;
-        _safeMintWithParent(msg.sender, _parentId, tokenId);
+        setVWBLInfo(tokenId, _parentId, _documentId, msg.sender, _getKeyURl);
         IAccessControlCheckerByNFT(accessCheckerContract).grantAccessControlAndRegisterNFT{value: msg.value}(
             _documentId,
             address(this),
@@ -65,6 +62,46 @@ contract VWBLERC6150 is Ownable, ERC6150ParentTransferable, AbstractVWBLToken, I
         );
 
         return tokenId;
+    }
+
+    /**
+     * @notice Mint ERC6150, grant access feature by paying fee with ERC20 and register access condition of digital content.
+     * @param _getKeyURl The URl of VWBL Network(Key management network)
+     * @param _parentId parent token Id
+     * @param _documentId The Identifier of digital content and decryption key
+     * @param _erc20Address The address of the ERC20 token used to pay the fee
+     * @param _feePayer The address of the entity paying the fee
+     */
+    function mintWithERC20(
+        string memory _getKeyURl,
+        uint256 _parentId,
+        bytes32 _documentId,
+        address _erc20Address,
+        address _feePayer
+    ) public returns (uint256) {
+        uint256 tokenId = ++counter;
+        setVWBLInfo(tokenId, _parentId, _documentId, msg.sender, _getKeyURl);
+        IAccessControlCheckerByNFT(accessCheckerContract).grantAccessControlWithERC20AndRegisterNFT(
+            _documentId,
+            address(this),
+            tokenId,
+            _erc20Address,
+            _feePayer
+        );
+        return tokenId;
+    }
+
+    function setVWBLInfo(
+        uint256 _tokenId,
+        uint256 _parentId,
+        bytes32 _documentId,
+        address _minter,
+        string memory _getKeyURl
+    ) private {
+        tokenIdToTokenInfo[_tokenId].documentId = _documentId;
+        tokenIdToTokenInfo[_tokenId].minterAddress = _minter;
+        tokenIdToTokenInfo[_tokenId].getKeyURl = _getKeyURl;
+        _safeMintWithParent(_minter, _parentId, _tokenId);
     }
 
     function supportsInterface(bytes4 interfaceId) public view virtual override(IERC165, ERC6150) returns (bool) {
